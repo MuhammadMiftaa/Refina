@@ -20,6 +20,7 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	version.GET("transactions", Transaction_handler.GetAllTransactions)
 	version.GET("transactions/:id", Transaction_handler.GetTransactionByID)
 	version.POST("transactions", Transaction_handler.CreateTransaction)
+	version.POST("transactions/attachment", Transaction_handler.UploadAttachment)
 	version.PUT("transactions/:id", Transaction_handler.UpdateTransaction)
 	version.DELETE("transactions/:id", Transaction_handler.DeleteTransaction)
 }

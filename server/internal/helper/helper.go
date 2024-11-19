@@ -2,6 +2,7 @@ package helper
 
 import (
 	"errors"
+	"os"
 	"regexp"
 	"time"
 	"unicode"
@@ -54,13 +55,13 @@ func ConvertToResponseType(data interface{}) interface{} {
 		}
 	case entity.Transactions:
 		return entity.TransactionsResponse{
-			ID: v.ID.String(),
-			Amount: v.Amount,
+			ID:              v.ID.String(),
+			Amount:          v.Amount,
 			TransactionType: v.TransactionType,
-			Date: v.Date,
-			Description: v.Description,
-			Category: v.Category,
-			UserID: v.UserID,
+			Date:            v.Date,
+			Description:     v.Description,
+			Category:        v.Category,
+			UserID:          v.UserID,
 		}
 	default:
 		return nil
@@ -107,4 +108,11 @@ func ComparePass(hashPassword, reqPassword string) bool {
 
 	err := bcrypt.CompareHashAndPassword(hash, pass)
 	return err == nil
+}
+
+func StorageIsExist(path string) error {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return os.MkdirAll(path, os.ModePerm)
+	}
+	return nil
 }
