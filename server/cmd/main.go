@@ -2,7 +2,7 @@ package main
 
 import (
 	"server/config"
-	"server/interface/router"
+	"server/interface/http/router"
 )
 
 func main() {
