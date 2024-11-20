@@ -120,7 +120,7 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":     false,
 			"statusCode": 500,
-			"message":    errors.New("Storage not found").Error(),
+			"message":    errors.New("storage not found").Error(),
 		})
 		return
 	}

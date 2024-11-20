@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
+
+	"golang.org/x/oauth2"
 
 	"server/internal/entity"
 	"server/internal/helper"
@@ -81,6 +85,80 @@ func (user_handler *usersHandler) Login(c *gin.Context) {
 		"message":    "Login user data",
 		"data":       token,
 	})
+}
+
+func (user_handler *usersHandler) OAuthGoogle(c *gin.Context) {
+	// Ambil konfigurasi OAuth Google
+	config, _, err := helper.GetGoogleOAuthConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"statusCode": 500,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	url := config.AuthCodeURL("google-oauth", oauth2.AccessTypeOffline)
+	// c.Redirect(http.StatusFound, url) // VIA BACKEND
+	c.JSON(http.StatusOK, gin.H{"url": url}) // VIA FRONTEND
+}
+
+func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
+	// Ambil konfigurasi OAuth Google
+	config, redirect_url, err := helper.GetGoogleOAuthConfig()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"statusCode": 500,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	// Ambil authorization code dari query parameter
+	code := c.Query("code")
+	if code == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization code not found"})
+		return
+	}
+
+	// Tukar authorization code dengan access token
+	token, err := config.Exchange(context.Background(), code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
+		return
+	}
+
+	// Gunakan access token untuk mengambil informasi pengguna
+	client := config.Client(context.Background(), token)
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
+		return
+	}
+	defer resp.Body.Close()
+
+	// Parse data pengguna
+	var userInfo map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user info"})
+		return
+	}
+
+	tokenJWT, err := user_handler.usersService.OAuthLogin(userInfo["name"].(string), userInfo["email"].(string))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+
+	c.Redirect(http.StatusFound, redirect_url)
 }
 
 func (user_handler *usersHandler) GetAllUsers(c *gin.Context) {

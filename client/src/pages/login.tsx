@@ -42,6 +42,24 @@ export default function SignInPage(props: {
     }
   });
 
+  const handleGoogleOAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/v1/auth/google/oauth", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.href = data.url;
+      } else {
+        console.error(data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error("Error during OAuth:", err);
+    }
+  };
+
   return props.isAuthenticated ? (
     <Navigate to={"/"} />
   ) : (
@@ -126,6 +144,7 @@ export default function SignInPage(props: {
           </p>
           <div className="flex gap-6 justify-stretch">
             <button
+              onClick={handleGoogleOAuth}
               type="button"
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}

@@ -11,6 +11,7 @@ import (
 type UsersService interface {
 	Register(user entity.UsersRequest) (entity.Users, error)
 	Login(user entity.UsersRequest) (*string, error)
+	OAuthLogin(name string, email string) (*string, error)
 	GetAllUsers() ([]entity.Users, error)
 	GetUserByID(id string) (entity.Users, error)
 	GetUserByEmail(email string) (entity.Users, error)
@@ -90,6 +91,16 @@ func (user_serv *usersService) Login(user entity.UsersRequest) (*string, error) 
 	}
 
 	token, err := helper.GenerateToken(userExist.Name, userExist.Email)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token, nil
+}
+
+func (user_serv *usersService) OAuthLogin(name string, email string) (*string, error) {
+
+	token, err := helper.GenerateToken(name, email)
 	if err != nil {
 		return nil, err
 	}

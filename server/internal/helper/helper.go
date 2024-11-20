@@ -10,7 +10,10 @@ import (
 	"server/internal/entity"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 func EmailValidator(str string) bool {
@@ -115,4 +118,29 @@ func StorageIsExist(path string) error {
 		return os.MkdirAll(path, os.ModePerm)
 	}
 	return nil
+}
+
+func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, "", err
+	}
+
+	var (
+		ClientID          = os.Getenv("GOOGLE_CLIENT_ID")
+		ClientSecret      = os.Getenv("GOOGLE_CLIENT_SECRET")
+		redirectURL       = os.Getenv("FRONTEND_URL")
+		googleOauthConfig = &oauth2.Config{
+			ClientID:     ClientID,
+			ClientSecret: ClientSecret,
+			RedirectURL:  "http://localhost:8080/v1/auth/callback/google",
+			Scopes: []string{
+				"https://www.googleapis.com/auth/userinfo.email",
+				"https://www.googleapis.com/auth/userinfo.profile",
+			},
+			Endpoint: google.Endpoint,
+		}
+	)
+
+	return googleOauthConfig, redirectURL, nil
+	
 }
