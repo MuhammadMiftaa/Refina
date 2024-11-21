@@ -23,6 +23,8 @@ func UserRoutes(version *gin.RouterGroup, db *gorm.DB) {
 		auth.GET("callback/google", User_handler.CallbackGoogle)
 		auth.GET("github/oauth", User_handler.OAuthGithub)
 		auth.GET("callback/github", User_handler.CallbackGithub)
+		auth.GET("microsoft/oauth", User_handler.OAuthMicrosoft)
+		auth.GET("callback/microsoft", User_handler.CallbackMicrosoft)
 	}
 
 	version.Use(middleware.AuthMiddleware())

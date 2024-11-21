@@ -15,6 +15,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/microsoft"
 )
 
 func EmailValidator(str string) bool {
@@ -167,4 +168,27 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 	)
 
 	return githubOauthConfig, redirectURL, nil
+}
+
+func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, "", err
+	}
+
+	var (
+		ClientID          = os.Getenv("MICROSOFT_CLIENT_ID")
+		ClientSecret      = os.Getenv("MICROSOFT_CLIENT_SECRET")
+		redirectURL       = os.Getenv("FRONTEND_URL")
+		microsoftOauthConfig = &oauth2.Config{
+			ClientID:     ClientID,
+			ClientSecret: ClientSecret,
+			RedirectURL:  "http://localhost:8080/v1/auth/callback/microsoft",
+			Scopes: []string{
+				"User.Read",
+			},
+			Endpoint: microsoft.AzureADEndpoint("common"),
+		}
+	)
+
+	return microsoftOauthConfig, redirectURL, nil
 }
