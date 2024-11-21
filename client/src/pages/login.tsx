@@ -42,45 +42,9 @@ export default function SignInPage(props: {
     }
   });
 
-  const handleGoogleOAuth = async () => {
+  const handleOAuth = async (server: string) => {
     try {
-      const res = await fetch("http://localhost:8080/v1/auth/google/oauth", {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        window.location.href = data.url;
-      } else {
-        console.error(data.message || "Login failed");
-      }
-    } catch (err) {
-      console.error("Error during OAuth:", err);
-    }
-  };
-
-  const handleGithubOAuth = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/v1/auth/github/oauth", {
-        method: "GET",
-        credentials: "include",
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        window.location.href = data.url;
-      } else {
-        console.error(data.message || "Login failed");
-      }
-    } catch (err) {
-      console.error("Error during OAuth:", err);
-    }
-  };
-
-  const handleMicrosoftOAuth = async () => {
-    try {
-      const res = await fetch("http://localhost:8080/v1/auth/microsoft/oauth", {
+      const res = await fetch(`http://localhost:8080/v1/auth/${server}/oauth`, {
         method: "GET",
         credentials: "include",
       });
@@ -180,7 +144,7 @@ export default function SignInPage(props: {
           </p>
           <div className="flex gap-6 justify-stretch">
             <button
-              onClick={handleGoogleOAuth}
+              onClick={() => handleOAuth("google")}
               type="button"
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
@@ -213,14 +177,14 @@ export default function SignInPage(props: {
             </button>
 
             <button
-              onClick={handleGithubOAuth}
+              onClick={() => handleOAuth("github")}
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-purple-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
               <VscGithub />
             </button>
             <button
-              onClick={handleMicrosoftOAuth}
+              onClick={() => handleOAuth("microsoft")}
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >

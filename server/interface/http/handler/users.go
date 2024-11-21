@@ -89,21 +89,34 @@ func (user_handler *usersHandler) Login(c *gin.Context) {
 	})
 }
 
-func (user_handler *usersHandler) OAuthGoogle(c *gin.Context) {
-	// Ambil konfigurasi OAuth Google
-	config, _, err := helper.GetGoogleOAuthConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"statusCode": 500,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
+func (user_handler *usersHandler) OAuthHandler(state string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var (
+			config *oauth2.Config
+			err    error
+		)
+		switch state {
+		case "google":
+			config, _, err = helper.GetGoogleOAuthConfig()
+		case "github":
+			config, _, err = helper.GetGithubOAuthConfig()
+		case "microsoft":
+			config, _, err = helper.GetMicrosoftOAuthConfig()
+		}
 
-	url := config.AuthCodeURL("google-oauth", oauth2.AccessTypeOffline) // BESERTA REFRESH TOKEN
-	// c.Redirect(http.StatusFound, url) // VIA BACKEND
-	c.JSON(http.StatusOK, gin.H{"url": url}) // VIA FRONTEND
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"statusCode": 500,
+				"status":     false,
+				"message":    err.Error(),
+			})
+			return
+		}
+
+		url := config.AuthCodeURL(state, oauth2.AccessTypeOffline) // BESERTA REFRESH TOKEN
+		// c.Redirect(http.StatusFound, url) // VIA BACKEND
+		c.JSON(http.StatusOK, gin.H{"url": url}) // VIA FRONTEND
+	}
 }
 
 func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
@@ -163,22 +176,6 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 	c.Redirect(http.StatusFound, redirect_url)
 }
 
-func (user_handler *usersHandler) OAuthGithub(c *gin.Context) {
-	config, _, err := helper.GetGithubOAuthConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"statusCode": 500,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
-
-	url := config.AuthCodeURL("github-oauth", oauth2.AccessTypeOffline ) //BESERTA REFRESH TOKEN
-	// c.Redirect(http.StatusFound, url) // VIA BACKEND
-	c.JSON(http.StatusOK, gin.H{"url": url}) // VIA FRONTEND
-}
-
 func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 	// Ambil konfigurasi OAuth Google
 	config, redirect_url, err := helper.GetGithubOAuthConfig()
@@ -235,7 +232,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user info"})
 		return
 	}
-	
+
 	// Parse email data
 	var emails []map[string]interface{}
 	if err := json.NewDecoder(emailResp.Body).Decode(&emails); err != nil {
@@ -267,23 +264,6 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
 
 	c.Redirect(http.StatusFound, redirect_url)
-
-}
-
-func (user_handler *usersHandler) OAuthMicrosoft(c *gin.Context) {
-	config, _, err := helper.GetMicrosoftOAuthConfig()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"statusCode": 500,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
-
-	url := config.AuthCodeURL("microsoft-oauth", oauth2.AccessTypeOffline ) //BESERTA REFRESH TOKEN
-	// c.Redirect(http.StatusFound, url) // VIA BACKEND
-	c.JSON(http.StatusOK, gin.H{"url": url}) // VIA FRONTEND
 }
 
 func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {

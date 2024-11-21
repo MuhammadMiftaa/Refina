@@ -19,11 +19,11 @@ func UserRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	{
 		auth.POST("register", User_handler.Register)
 		auth.POST("login", User_handler.Login)
-		auth.GET("google/oauth", User_handler.OAuthGoogle)
+		auth.GET("google/oauth", User_handler.OAuthHandler("google"))
 		auth.GET("callback/google", User_handler.CallbackGoogle)
-		auth.GET("github/oauth", User_handler.OAuthGithub)
+		auth.GET("github/oauth", User_handler.OAuthHandler("github"))
 		auth.GET("callback/github", User_handler.CallbackGithub)
-		auth.GET("microsoft/oauth", User_handler.OAuthMicrosoft)
+		auth.GET("microsoft/oauth", User_handler.OAuthHandler("microsoft"))
 		auth.GET("callback/microsoft", User_handler.CallbackMicrosoft)
 	}
 
