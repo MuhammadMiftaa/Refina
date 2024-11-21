@@ -60,6 +60,24 @@ export default function SignInPage(props: {
     }
   };
 
+  const handleGithubOAuth = async () => {
+    try {
+      const res = await fetch("http://localhost:8080/v1/auth/github/oauth", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.href = data.url;
+      } else {
+        console.error(data.message || "Login failed");
+      }
+    } catch (err) {
+      console.error("Error during OAuth:", err);
+    }
+  };
+  
   return props.isAuthenticated ? (
     <Navigate to={"/"} />
   ) : (
@@ -175,7 +193,7 @@ export default function SignInPage(props: {
                 ></path>
               </svg>
             </button>
-            <div
+            <button
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
@@ -196,13 +214,14 @@ export default function SignInPage(props: {
                   d="M26.572,29.036h4.917l0.772-4.995h-5.69v-2.73c0-2.075,0.678-3.915,2.619-3.915h3.119v-4.359c-0.548-0.074-1.707-0.236-3.897-0.236c-4.573,0-7.254,2.415-7.254,7.917v3.323h-4.701v4.995h4.701v13.729C22.089,42.905,23.032,43,24,43c0.875,0,1.729-0.08,2.572-0.194V29.036z"
                 ></path>
               </svg>
-            </div>
-            <div
+            </button>
+            <button
+            onClick={handleGithubOAuth}
               className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-purple-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
               <VscGithub />
-            </div>
+            </button>
           </div>
         </div>
       </div>

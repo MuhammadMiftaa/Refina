@@ -13,6 +13,7 @@ import (
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/github"
 	"golang.org/x/oauth2/google"
 )
 
@@ -142,5 +143,28 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 	)
 
 	return googleOauthConfig, redirectURL, nil
-	
+}
+
+func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, "", err
+	}
+
+	var (
+		ClientID          = os.Getenv("GITHUB_CLIENT_ID")
+		ClientSecret      = os.Getenv("GITHUB_CLIENT_SECRET")
+		redirectURL       = os.Getenv("FRONTEND_URL")
+		githubOauthConfig = &oauth2.Config{
+			ClientID:     ClientID,
+			ClientSecret: ClientSecret,
+			RedirectURL:  "http://localhost:8080/v1/auth/callback/github",
+			Scopes: []string{
+				"read:user",
+				"user:email",
+			},
+			Endpoint: github.Endpoint,
+		}
+	)
+
+	return githubOauthConfig, redirectURL, nil
 }
