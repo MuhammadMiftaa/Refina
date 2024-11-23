@@ -50,3 +50,8 @@ type GitHubUser struct {
 	URL                     string      `json:"url"`
 	UserViewType            string      `json:"user_view_type"`
 }
+
+type OTP struct {
+	Email    string `json:"email"`
+	OTP      string `json:"otp"`
+}

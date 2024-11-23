@@ -1,7 +1,9 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
+	"time"
 
 	"server/internal/entity"
 	"server/internal/helper"
@@ -16,6 +18,7 @@ type UsersService interface {
 	GetUserByID(id string) (entity.Users, error)
 	GetUserByEmail(email string) (entity.Users, error)
 	UpdateUser(id string, userNew entity.UsersRequest) (entity.Users, error)
+	VerifyUser(email string) (entity.Users, error)
 	DeleteUser(id string) (entity.Users, error)
 }
 
@@ -99,7 +102,6 @@ func (user_serv *usersService) Login(user entity.UsersRequest) (*string, error) 
 }
 
 func (user_serv *usersService) OAuthLogin(name string, email string) (*string, error) {
-
 	token, err := helper.GenerateToken(name, email)
 	if err != nil {
 		return nil, err
@@ -148,6 +150,22 @@ func (user_serv *usersService) UpdateUser(id string, userNew entity.UsersRequest
 			return entity.Users{}, errors.New("email already in use by another user")
 		}
 		user.Email = userNew.Email
+	}
+
+	return user_serv.userRepository.UpdateUser(user)
+}
+
+func (user_serv *usersService) VerifyUser(email string) (entity.Users, error) {
+	// MENGAMBIL DATA YANG INGIN DI UPDATE
+	user, err := user_serv.userRepository.GetUserByEmail(email)
+	if err != nil {
+		return entity.Users{}, err
+	}
+
+	current := time.Now()
+	user.EmailVerfiedAt = sql.NullTime{
+		Time:  current,
+		Valid: true,
 	}
 
 	return user_serv.userRepository.UpdateUser(user)

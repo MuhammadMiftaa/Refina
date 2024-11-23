@@ -4,11 +4,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+
 	"server/internal/entity"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/go-redis/redis/v8"
 )
 
 func SetupDatabase() (*gorm.DB, error) {
@@ -23,4 +26,12 @@ func SetupDatabase() (*gorm.DB, error) {
 	db.AutoMigrate(&entity.Users{}, &entity.Transactions{})
 
 	return db, err
+}
+
+func SetupRedisDatabase() *redis.Client {
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	return rdb
 }

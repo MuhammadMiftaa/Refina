@@ -11,6 +11,8 @@ func main() {
 		panic(err)
 	}
 
-	r := router.SetupRouter(db)
+	redis := config.SetupRedisDatabase()
+
+	r := router.SetupRouter(db, redis)
 	r.Run(":8080")
 }

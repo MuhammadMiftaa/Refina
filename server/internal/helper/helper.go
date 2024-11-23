@@ -2,6 +2,9 @@ package helper
 
 import (
 	"errors"
+	"fmt"
+	"math/rand"
+	"net/smtp"
 	"os"
 	"regexp"
 	"time"
@@ -176,9 +179,9 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 	}
 
 	var (
-		ClientID          = os.Getenv("MICROSOFT_CLIENT_ID")
-		ClientSecret      = os.Getenv("MICROSOFT_CLIENT_SECRET")
-		redirectURL       = os.Getenv("FRONTEND_URL")
+		ClientID             = os.Getenv("MICROSOFT_CLIENT_ID")
+		ClientSecret         = os.Getenv("MICROSOFT_CLIENT_SECRET")
+		redirectURL          = os.Getenv("FRONTEND_URL")
 		microsoftOauthConfig = &oauth2.Config{
 			ClientID:     ClientID,
 			ClientSecret: ClientSecret,
@@ -191,4 +194,24 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 	)
 
 	return microsoftOauthConfig, redirectURL, nil
+}
+
+func GenerateOTP() string {
+	return fmt.Sprintf("%06d", rand.Intn(1000000))
+}
+
+func SendEmail(emailTo string, otp string) error {
+	if err := godotenv.Load(); err != nil {
+		return err
+	}
+
+	smtpHost := os.Getenv("SMTP_HOST")
+	smtpPort := os.Getenv("SMTP_PORT")
+	smtpUser := os.Getenv("SMTP_USER")
+	smtpPassword := os.Getenv("SMTP_PASSWORD")
+	fmt.Println(smtpHost, smtpPort, smtpUser, smtpPassword)
+	msg := fmt.Sprintf("Subject: Your OTP Code\n\nYour OTP code is: %s", otp)
+	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, []string{emailTo}, []byte(msg))
+	return err
 }

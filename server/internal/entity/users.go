@@ -1,10 +1,13 @@
 package entity
 
+import "database/sql"
+
 type Users struct {
 	Base
-	Name     string `gorm:"type:varchar(100);not null"`
-	Email    string `gorm:"type:varchar(100);unique;not null"`
-	Password string `gorm:"type:varchar(100);not null"`
+	Name           string       `gorm:"type:varchar(100);not null"`
+	Email          string       `gorm:"type:varchar(100);unique;not null"`
+	Password       string       `gorm:"type:varchar(100);not null"`
+	EmailVerfiedAt sql.NullTime
 }
 
 type UsersResponse struct {

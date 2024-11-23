@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 
@@ -18,10 +19,14 @@ import (
 
 type usersHandler struct {
 	usersService service.UsersService
+	otpService   service.OTPService
 }
 
-func NewUsersHandler(usersService service.UsersService) *usersHandler {
-	return &usersHandler{usersService}
+func NewUsersHandler(usersService service.UsersService, otpService service.OTPService) *usersHandler {
+	return &usersHandler{
+		usersService: usersService,
+		otpService:   otpService,
+	}
 }
 
 func (user_handler *usersHandler) Register(c *gin.Context) {
@@ -431,6 +436,83 @@ func (user_handler *usersHandler) DeleteUser(c *gin.Context) {
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Delete user data",
+		"data":       userResponse,
+	})
+}
+
+func (user_handler *usersHandler) SendOTP(c *gin.Context) {
+	var OTP helper.OTP
+	if err := c.ShouldBindBodyWithJSON(&OTP); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    "Invalid request body",
+		})
+		return
+	}
+	OTP.OTP = helper.GenerateOTP()
+
+	// Simpan OTP ke Redis
+	if err := user_handler.otpService.SetOTP(OTP.Email, OTP.OTP, 5*time.Minute); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"statusCode": 500,
+			"status":     false,
+			"message":    "Failed to save OTP",
+		})
+		return
+	}
+
+	// Kirimkan OTP ke email
+	if err := helper.SendEmail(OTP.Email, OTP.OTP); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "OTP sent successfully",
+		"data":       OTP.Email,
+	})
+}
+
+func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
+	var OTP helper.OTP
+	if err := c.ShouldBindBodyWithJSON(&OTP); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	valid, err := user_handler.otpService.ValidateOTP(OTP.Email, OTP.OTP)
+	if err != nil || !valid {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"statusCode": 401,
+			"status":     false,
+			"message":    "Invalid or expired OTP",
+		})
+		return
+	}
+
+	user, err := user_handler.usersService.VerifyUser(OTP.Email)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"statusCode": 500,
+			"status":     false,
+			"message":    "Failed to verify user",
+		})
+		return
+	}
+
+	userResponse := helper.ConvertToResponseType(user)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "OTP verified successfully",
 		"data":       userResponse,
 	})
 }
