@@ -1,7 +1,8 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/login";
 import RegisterPage from "./pages/register";
 import { useState } from "react";
+import HomePage from "./pages/home";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -20,7 +21,7 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<div>Home</div>} />
+      <Route path="/" element={<HomePage></HomePage>} />
       <Route
         path="/login"
         element={
@@ -44,3 +45,11 @@ function App() {
 }
 
 export default App;
+
+function ProtectedRoute(props: { isAuthenticated: boolean, children: React.ReactNode }) {
+  return props.isAuthenticated ? (
+    <h1>Protected Route</h1>
+  ) : (
+    <Navigate to="/login" />
+  );
+}

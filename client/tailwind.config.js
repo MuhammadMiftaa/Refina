@@ -5,10 +5,12 @@ export default {
     extend: {
       fontFamily: {
         inter: ["Inter"],
+        poppins: ["Poppins"],
       },
       colors: {
-        primary: "#4A446C"
-      }
+        primary: "#060610",
+        secondary: "#1d1e22",
+      },
     },
   },
   plugins: [],
