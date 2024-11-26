@@ -120,3 +120,8 @@
   font-weight: 900;
   font-style: italic;
 }
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}

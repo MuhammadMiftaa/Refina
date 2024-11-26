@@ -3,6 +3,7 @@ import LoginPage from "./pages/login";
 import RegisterPage from "./pages/register";
 import { useState } from "react";
 import HomePage from "./pages/home";
+import TransactionsPage from "./pages/transactions/page";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -22,6 +23,10 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage></HomePage>} />
+      <Route
+        path="/transactions"
+        element={<TransactionsPage></TransactionsPage>}
+      />
       <Route
         path="/login"
         element={
@@ -46,10 +51,13 @@ function App() {
 
 export default App;
 
-function ProtectedRoute(props: { isAuthenticated: boolean, children: React.ReactNode }) {
-  return props.isAuthenticated ? (
-    <h1>Protected Route</h1>
-  ) : (
-    <Navigate to="/login" />
-  );
-}
+// function ProtectedRoute(props: {
+//   isAuthenticated: boolean;
+//   children: React.ReactNode;
+// }) {
+//   return props.isAuthenticated ? (
+//     <h1>Protected Route</h1>
+//   ) : (
+//     <Navigate to="/login" />
+//   );
+// }
