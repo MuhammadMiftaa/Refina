@@ -2,8 +2,10 @@
 
 import {
   ColumnDef,
+  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
   VisibilityState,
@@ -25,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "../../components/ui/dropdown-menu";
 import { useState } from "react";
+import { Input } from "../../components/ui/input";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -36,6 +39,9 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -43,14 +49,25 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       columnVisibility,
+      columnFilters
     },
   });
 
   return (
     <div>
-      <div>
+      <div className="flex items-center">
+        <Input
+          placeholder="Search by description..."
+          value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("description")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm font-poppins border-[#00D47E] shadow-[#00D47E]"
+        />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -88,7 +105,7 @@ export function DataTable<TData, TValue>({
         <Table className="font-poppins">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="border-none text-xs" key={headerGroup.id}>
+              <TableRow className="border-none text-xs hover:bg-slate-900" key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
@@ -108,7 +125,7 @@ export function DataTable<TData, TValue>({
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
-                  className="border-zinc-500"
+                  className="border-zinc-500 hover:bg-slate-900"
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
                 >

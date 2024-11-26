@@ -4,6 +4,12 @@ import { transactionsType } from "../../types/Transactions";
 import Template from "../../components/layouts/template";
 import { LuHistory } from "react-icons/lu";
 import { FiPlus } from "react-icons/fi";
+import { useState } from "react";
+import { DateRange } from "react-day-picker";
+import { addDays } from "date-fns";
+import { DatePickerWithRange } from "../../components/layouts/date-picker";
+import { FaArrowTrendUp } from "react-icons/fa6";
+import { FaFilePdf } from "react-icons/fa";
 
 export default function DemoPage() {
   const transactions: transactionsType[] = [
@@ -189,22 +195,56 @@ export default function DemoPage() {
     },
   ];
 
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(2022, 0, 20),
+    to: addDays(new Date(2022, 0, 20), 20),
+  });
+
   return (
     <Template>
-      <div className="bg-secondary w-full text-white p-5">
-        <div className="flex justify-between items-center bg-primary text-purple-500 rounded-2xl p-4">
-          <div className="flex items-center gap-2">
-            <LuHistory />
-            <h1 className="text-2xl font-bold font-poppins">
-              Transactions History
-            </h1>
+      <div className="bg-secondary w-full text-white p-5 min-h-screen">
+        <div className="bg-gradient-to-b from-purple-600 to-[#00D47E] text-purple-500 rounded-2xl p-0.5">
+          <div className="bg-primary w-full rounded-2xl flex justify-between items-center px-4 py-3">
+            <div className="flex items-center gap-2">
+              <LuHistory />
+              <h1 className="text-2xl font-bold font-poppins">
+                Transactions History
+              </h1>
+            </div>
+            <button className="bg-[#00D47E] text-primary py-2 px-4 rounded-lg flex items-center font-poppins font-light">
+              <FiPlus />
+              <span className="ml-2">Add</span>
+            </button>
           </div>
-          <button className="bg-[#00D47E] text-primary py-2 px-4 rounded-lg flex items-center font-poppins font-light">
-            <FiPlus />
-            <span className="ml-2">Add</span>
-          </button>
         </div>
-        <div className="bg-primary rounded-2xl p-4 mt-4">
+        <div className="flex gap-5 mt-6">
+          <div className="p-0.5 w-fit rounded-2xl font-poppins bg-primary basis-2/5">
+            <h1 className="text-xs text-zinc-400 pt-3 pl-8">
+              Select Date Range
+            </h1>
+            <DatePickerWithRange
+              date={date}
+              setDate={setDate}
+            ></DatePickerWithRange>
+          </div>
+          <div className="bg-[#00D47E] rounded-2xl font-poppins py-3 px-8 w-72 basis-2/5">
+            <h1 className="text-xs text-black">Current Balance</h1>
+            <div className="flex items-center gap-3 justify-between">
+              <h2 className=" text-2xl text-black font-bold">Rp. 8.000.000</h2>
+              <div className="text-xl text-black flex flex-col-reverse items-center">
+                <p className="text-xs -mt-1">10%</p>
+                <FaArrowTrendUp />
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-primary font-poppins py-3 px-8 flex flex-col items-center justify-center basis-1/5 cursor-pointer duration-100 hover:text-purple-500">
+            <div className="text-3xl w-fit">
+              <FaFilePdf />
+            </div>
+            <h1>Print to PDF</h1>
+          </div>
+        </div>
+        <div className="bg-primary rounded-2xl p-4 mt-6">
           <DataTable columns={columns} data={transactions} />
         </div>
       </div>

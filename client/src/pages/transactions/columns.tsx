@@ -253,12 +253,15 @@ export const columns: ColumnDef<transactionsType>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const payment = row.original;
+      const transaction = row.original;
 
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0 hover:bg-purple-500 hover:text-primary"
+            >
               <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -269,13 +272,14 @@ export const columns: ColumnDef<transactionsType>[] = [
           >
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
+              className="hover:bg-slate-900"
+              onClick={() => navigator.clipboard.writeText(transaction.id)}
             >
-              Copy payment ID
+              Copy transaction ID
             </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-purple-600" />
-            <DropdownMenuItem>View customer</DropdownMenuItem>
-            <DropdownMenuItem>View payment details</DropdownMenuItem>
+            <DropdownMenuItem className="hover:bg-slate-900">
+              View transactions attachments
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
