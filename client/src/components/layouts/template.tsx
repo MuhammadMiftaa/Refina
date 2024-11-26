@@ -32,6 +32,11 @@ export default function Template(props: { children: ReactNode }) {
     },
   ];
 
+  const handleLogout = (): void => {
+    document.cookie = `token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    window.location.href = "/login";
+  };
+
   return (
     <div className="">
       <div className="bg-secondary text-white fixed h-screen w-[20%] py-6 flex flex-col border-r border-slate-600">
@@ -61,8 +66,7 @@ export default function Template(props: { children: ReactNode }) {
                   <div className="">{item.icon}</div>
                   <h1
                     className={`text-sm ${
-                      item.link !== pathname &&
-                      "font-light"
+                      item.link !== pathname && "font-light"
                     }`}
                   >
                     {item.name}
@@ -70,9 +74,7 @@ export default function Template(props: { children: ReactNode }) {
                 </div>
                 <div
                   className={`text-xs text-purple-500 group-hover:scale-100 duration-500 ${
-                    item.link === pathname
-                      ? "scale-100"
-                      : "scale-0"
+                    item.link === pathname ? "scale-100" : "scale-0"
                   }`}
                 >
                   <FaChevronRight />
@@ -81,12 +83,15 @@ export default function Template(props: { children: ReactNode }) {
             ))}
           </div>
         </div>
-        <div className="flex items-center absolute left-7 bottom-5 gap-2 text-zinc-400 hover:text-red-600 duration-500 cursor-pointer">
+        <button
+          onClick={handleLogout}
+          className="flex items-center absolute left-7 bottom-5 gap-2 text-zinc-400 hover:text-red-600 duration-500 cursor-pointer"
+        >
           <div>
             <ImExit />
           </div>
           <h1 className="-mt-1 uppercase text-sm">Logout</h1>
-        </div>
+        </button>
       </div>
       <div className="pl-[20%]">{props.children}</div>
     </div>

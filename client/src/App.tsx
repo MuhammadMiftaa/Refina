@@ -22,10 +22,21 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage></HomePage>} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <HomePage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/transactions"
-        element={<TransactionsPage></TransactionsPage>}
+        element={
+          <ProtectedRoute isAuthenticated={isAuthenticated}>
+            <TransactionsPage />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/login"
@@ -51,13 +62,9 @@ function App() {
 
 export default App;
 
-// function ProtectedRoute(props: {
-//   isAuthenticated: boolean;
-//   children: React.ReactNode;
-// }) {
-//   return props.isAuthenticated ? (
-//     <h1>Protected Route</h1>
-//   ) : (
-//     <Navigate to="/login" />
-//   );
-// }
+function ProtectedRoute(props: {
+  isAuthenticated: boolean;
+  children: React.ReactNode;
+}) {
+  return props.isAuthenticated ? props.children : <Navigate to="/login" />;
+}
