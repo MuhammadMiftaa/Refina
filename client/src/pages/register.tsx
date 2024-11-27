@@ -3,6 +3,12 @@ import { FormEventHandler, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { z } from "zod";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "../components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
 const postFormSchema = z.object({
   name: z.string(),
@@ -86,7 +92,7 @@ export default function SignUpPage(props: {
     if (email === "") {
       return;
     }
-
+    
     const res = await fetch("http://localhost:8080/v1/auth/verify/otp", {
       method: "POST",
       headers: {
@@ -132,103 +138,17 @@ export default function SignUpPage(props: {
               <h3 className="text-xl text-white text-center font-bold -mt-1">
                 {localStorage.getItem("email")}
               </h3>
-              <form onSubmit={verifyOTP} className="mx-auto mt-9 flex flex-col">
-                <div className="flex justify-center mb-5 space-x-2 rtl:space-x-reverse">
-                  <div>
-                    <label htmlFor="code-1" className="sr-only">
-                      First code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="1"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-next="code-2"
-                      id="code-1"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="code-2" className="sr-only">
-                      Second code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="2"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-prev="code-1"
-                      data-focus-input-next="code-3"
-                      id="code-2"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="code-3" className="sr-only">
-                      Third code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="3"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-prev="code-2"
-                      data-focus-input-next="code-4"
-                      id="code-3"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="code-4" className="sr-only">
-                      Fourth code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="4"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-prev="code-3"
-                      data-focus-input-next="code-5"
-                      id="code-4"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="code-5" className="sr-only">
-                      Fifth code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="5"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-prev="code-4"
-                      data-focus-input-next="code-6"
-                      id="code-5"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="code-6" className="sr-only">
-                      Sixth code
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="6"
-                      maxLength={1}
-                      data-focus-input-init
-                      data-focus-input-prev="code-5"
-                      id="code-6"
-                      className="block w-16 h-16 py-3 text-4xl font-extrabold text-center text-white bg-transparent border border-white rounded-lg focus:ring-purple-500 focus:border-purple-500 placeholder-zinc-300"
-                      required
-                    />
-                  </div>
-                </div>
+              <form onSubmit={verifyOTP} className="mx-auto mt-9 flex flex-col items-center">
+                <InputOTP className="flex justify-center" maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
+                  <InputOTPGroup className="flex justify-center">
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={0} />
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={1} />
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={2} />
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={3} />
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={4} />
+                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
                 <p
                   id="helper-text-explanation"
                   className="mt-2 text-sm font-light text-white text-center"
