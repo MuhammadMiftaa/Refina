@@ -57,7 +57,7 @@ export default function Template(props: { children: ReactNode }) {
                 to={item.link}
                 key={index}
                 className={`flex p-2 rounded-lg items-center justify-between hover:bg-primary hover:text-purple-500 duration-500 cursor-pointer group ${
-                  item.link === pathname
+                  pathname.includes(item.link)
                     ? "bg-primary text-purple-500"
                     : "text-zinc-400"
                 }`}
@@ -66,7 +66,7 @@ export default function Template(props: { children: ReactNode }) {
                   <div className="">{item.icon}</div>
                   <h1
                     className={`text-sm ${
-                      item.link !== pathname && "font-light"
+                      pathname.includes(item.link) ? "font-bold" : "font-light"
                     }`}
                   >
                     {item.name}
@@ -74,7 +74,7 @@ export default function Template(props: { children: ReactNode }) {
                 </div>
                 <div
                   className={`text-xs text-purple-500 group-hover:scale-100 duration-500 ${
-                    item.link === pathname ? "scale-100" : "scale-0"
+                    pathname.includes(item.link) ? "scale-100" : "scale-0"
                   }`}
                 >
                   <FaChevronRight />

@@ -4,6 +4,7 @@ import RegisterPage from "./pages/register";
 import { useState } from "react";
 import HomePage from "./pages/home";
 import TransactionsPage from "./pages/transactions/page";
+import FormAddPage from "./pages/transactions/form-add";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
@@ -22,40 +23,13 @@ function App() {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/transactions"
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated}>
-            <TransactionsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <LoginPage
-            handleLogin={handleLogin}
-            isAuthenticated={isAuthenticated}
-          />
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <RegisterPage
-            handleLogin={handleLogin}
-            isAuthenticated={isAuthenticated}
-          />
-        }
-      />
+      <Route path="/" element={<ProtectedRoute isAuthenticated={isAuthenticated}><HomePage /></ProtectedRoute>}/>
+      <Route path="transactions">
+        <Route index element={<ProtectedRoute isAuthenticated={isAuthenticated}><TransactionsPage /></ProtectedRoute>} />
+        <Route path="add" element={<ProtectedRoute isAuthenticated={isAuthenticated}><FormAddPage /></ProtectedRoute>} />
+      </Route>
+      <Route path="login" element={<LoginPage handleLogin={handleLogin} isAuthenticated={isAuthenticated}/>}/>
+      <Route path="register" element={<RegisterPage handleLogin={handleLogin} isAuthenticated={isAuthenticated}/>}/>
     </Routes>
   );
 }

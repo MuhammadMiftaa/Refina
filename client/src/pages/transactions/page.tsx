@@ -10,6 +10,7 @@ import { addDays } from "date-fns";
 import { DatePickerWithRange } from "../../components/layouts/date-picker";
 import { FaArrowTrendUp } from "react-icons/fa6";
 import { FaFilePdf } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function DemoPage() {
   const transactions: transactionsType[] = [
@@ -211,10 +212,13 @@ export default function DemoPage() {
                 Transactions History
               </h1>
             </div>
-            <button className="bg-[#00D47E] text-primary py-2 px-4 rounded-lg flex items-center font-poppins font-light">
+            <Link
+              to={"add"}
+              className="bg-[#00D47E] text-primary py-2 px-4 rounded-lg flex items-center font-poppins font-light"
+            >
               <FiPlus />
               <span className="ml-2">Add</span>
-            </button>
+            </Link>
           </div>
         </div>
         <div className="flex gap-5 mt-6">
