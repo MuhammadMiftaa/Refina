@@ -13,12 +13,22 @@ import (
 )
 
 func SetupDatabase() (*gorm.DB, error) {
+	mode := os.Getenv("MODE")
+
 	user := os.Getenv("DB_USER")
 	host := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 	password := os.Getenv("DB_PASSWORD")
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", host, user, password, dbName, dbPort)
+	
+	var dsn string
+	
+	if mode == "development" {
+		dsn = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", host, user, password, dbName, dbPort)
+	} else if mode == "production" {
+		dsn = os.Getenv("DATABASE_URL")
+	}
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	db.AutoMigrate(&entity.Users{}, &entity.Transactions{})
