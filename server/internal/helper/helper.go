@@ -13,7 +13,6 @@ import (
 	"server/internal/entity"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -126,10 +125,6 @@ func StorageIsExist(path string) error {
 }
 
 func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, "", err
-	}
-
 	var (
 		ClientID          = os.Getenv("GOOGLE_CLIENT_ID")
 		ClientSecret      = os.Getenv("GOOGLE_CLIENT_SECRET")
@@ -151,10 +146,6 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 }
 
 func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, "", err
-	}
-
 	var (
 		ClientID          = os.Getenv("GITHUB_CLIENT_ID")
 		ClientSecret      = os.Getenv("GITHUB_CLIENT_SECRET")
@@ -176,10 +167,6 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 }
 
 func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
-	if err := godotenv.Load(); err != nil {
-		return nil, "", err
-	}
-
 	var (
 		ClientID             = os.Getenv("MICROSOFT_CLIENT_ID")
 		ClientSecret         = os.Getenv("MICROSOFT_CLIENT_SECRET")
@@ -204,10 +191,6 @@ func GenerateOTP() string {
 }
 
 func SendEmail(emailTo string, otp string) error {
-	if err := godotenv.Load(); err != nil {
-		return err
-	}
-
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPort := os.Getenv("SMTP_PORT")
 	smtpUser := os.Getenv("SMTP_USER")
