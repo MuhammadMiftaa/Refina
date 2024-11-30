@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"server/config"
@@ -10,9 +11,12 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
-		panic(err)
+	if _, err := os.Stat(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			log.Println("Error loading .env file")
+		}
 	}
+	
 	port := os.Getenv("PORT")
 
 	db, err := config.SetupDatabase()
