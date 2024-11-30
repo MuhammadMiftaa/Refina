@@ -134,10 +134,11 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 		ClientID          = os.Getenv("GOOGLE_CLIENT_ID")
 		ClientSecret      = os.Getenv("GOOGLE_CLIENT_SECRET")
 		redirectURL       = os.Getenv("FRONTEND_URL")
+		port              = os.Getenv("PORT")
 		googleOauthConfig = &oauth2.Config{
 			ClientID:     ClientID,
 			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:8080/v1/auth/callback/google",
+			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/google",
 			Scopes: []string{
 				"https://www.googleapis.com/auth/userinfo.email",
 				"https://www.googleapis.com/auth/userinfo.profile",
@@ -158,10 +159,11 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 		ClientID          = os.Getenv("GITHUB_CLIENT_ID")
 		ClientSecret      = os.Getenv("GITHUB_CLIENT_SECRET")
 		redirectURL       = os.Getenv("FRONTEND_URL")
+		port              = os.Getenv("PORT")
 		githubOauthConfig = &oauth2.Config{
 			ClientID:     ClientID,
 			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:8080/v1/auth/callback/github",
+			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/github",
 			Scopes: []string{
 				"read:user",
 				"user:email",
@@ -182,10 +184,11 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 		ClientID             = os.Getenv("MICROSOFT_CLIENT_ID")
 		ClientSecret         = os.Getenv("MICROSOFT_CLIENT_SECRET")
 		redirectURL          = os.Getenv("FRONTEND_URL")
+		port                 = os.Getenv("PORT")
 		microsoftOauthConfig = &oauth2.Config{
 			ClientID:     ClientID,
 			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:8080/v1/auth/callback/microsoft",
+			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/microsoft",
 			Scopes: []string{
 				"User.Read",
 			},
@@ -209,7 +212,7 @@ func SendEmail(emailTo string, otp string) error {
 	smtpPort := os.Getenv("SMTP_PORT")
 	smtpUser := os.Getenv("SMTP_USER")
 	smtpPassword := os.Getenv("SMTP_PASSWORD")
-	
+
 	msg := fmt.Sprintf("Subject: Your OTP Code\n\nYour OTP code is: %s", otp)
 	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, []string{emailTo}, []byte(msg))
