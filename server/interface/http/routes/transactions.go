@@ -16,11 +16,6 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	Transaction_serv := service.NewTransactionService(Transaction_repo, User_repo)
 	Transaction_handler := handler.NewTransactionHandler(Transaction_serv)
 
-	version.GET("test", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
 	version.Use(middleware.AuthMiddleware())
 	version.GET("transactions", Transaction_handler.GetAllTransactions)
 	version.GET("transactions/:id", Transaction_handler.GetTransactionByID)
