@@ -1,21 +1,21 @@
 package main
 
 import (
-	"log"
+	// "log"
 	"os"
 
 	"server/config"
 	"server/interface/http/router"
 
-	"github.com/joho/godotenv"
+	// "github.com/joho/godotenv"
 )
 
 func main() {
-	if _, err := os.Stat(".env"); err == nil {
-		if err := godotenv.Load(); err != nil {
-			log.Println("Error loading .env file")
-		}
-	}
+	// if _, err := os.Stat(".env"); err == nil {
+	// 	if err := godotenv.Load(); err != nil {
+	// 		log.Println("Error loading .env file")
+	// 	}
+	// }
 	
 	port := os.Getenv("PORT")
 
