@@ -5,6 +5,11 @@ import { VscGithub } from "react-icons/vsc";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
+const backendURL = "https://refina.up.railway.app"
+  // process.env.MODE === "development"
+  //   ? "http://localhost:8080"
+  //   : process.env.BACKEND_URL;
+
 const postFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -25,7 +30,7 @@ export default function SignInPage(props: {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    const res = await fetch("http://localhost:8080/v1/auth/login", {
+    const res = await fetch(`${backendURL}/v1/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -44,7 +49,7 @@ export default function SignInPage(props: {
 
   const handleOAuth = async (server: string) => {
     try {
-      const res = await fetch(`http://localhost:8080/v1/auth/${server}/oauth`, {
+      const res = await fetch(`${backendURL}/v1/auth/${server}/oauth`, {
         method: "GET",
         credentials: "include",
       });

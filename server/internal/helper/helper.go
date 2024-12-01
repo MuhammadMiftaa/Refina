@@ -20,6 +20,8 @@ import (
 	"golang.org/x/oauth2/microsoft"
 )
 
+var mode = os.Getenv("MODE")
+
 func EmailValidator(str string) bool {
 	email_validator := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
 	return email_validator.MatchString(str)
@@ -142,6 +144,10 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 		}
 	)
 
+	if mode == "production" {
+		googleOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/google"
+	}
+
 	return googleOauthConfig, redirectURL, nil
 }
 
@@ -163,6 +169,10 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 		}
 	)
 
+	if mode == "production" {
+		githubOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/github"
+	}
+
 	return githubOauthConfig, redirectURL, nil
 }
 
@@ -182,6 +192,10 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 			Endpoint: microsoft.AzureADEndpoint("common"),
 		}
 	)
+
+	if mode == "production" {
+		microsoftOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/microsoft"
+	}
 
 	return microsoftOauthConfig, redirectURL, nil
 }

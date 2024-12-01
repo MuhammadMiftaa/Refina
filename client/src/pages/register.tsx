@@ -10,6 +10,11 @@ import {
 } from "../components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
 
+const backendURL = "https://refina.up.railway.app"
+  // process.env.MODE === "development"
+  //   ? "http://localhost:8080"
+  //   : process.env.BACKEND_URL;
+
 const postFormSchema = z.object({
   name: z.string(),
   email: z.string().email(),
@@ -41,7 +46,7 @@ export default function SignUpPage(props: {
     }
 
     setLoading(true);
-    const res = await fetch("http://localhost:8080/v1/auth/register", {
+    const res = await fetch(`${backendURL}/v1/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -63,7 +68,7 @@ export default function SignUpPage(props: {
       return;
     }
 
-    const res = await fetch("http://localhost:8080/v1/auth/send/otp", {
+    const res = await fetch(`${backendURL}/v1/auth/send/otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -92,8 +97,8 @@ export default function SignUpPage(props: {
     if (email === "") {
       return;
     }
-    
-    const res = await fetch("http://localhost:8080/v1/auth/verify/otp", {
+
+    const res = await fetch(`${backendURL}/v1/auth/verify/otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -138,15 +143,40 @@ export default function SignUpPage(props: {
               <h3 className="text-xl text-white text-center font-bold -mt-1">
                 {localStorage.getItem("email")}
               </h3>
-              <form onSubmit={verifyOTP} className="mx-auto mt-9 flex flex-col items-center">
-                <InputOTP className="flex justify-center" maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
+              <form
+                onSubmit={verifyOTP}
+                className="mx-auto mt-9 flex flex-col items-center"
+              >
+                <InputOTP
+                  className="flex justify-center"
+                  maxLength={6}
+                  pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                >
                   <InputOTPGroup className="flex justify-center">
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={0} />
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={1} />
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={2} />
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={3} />
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={4} />
-                    <InputOTPSlot className="h-16 w-16 shadow-none text-white text-3xl" index={5} />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={0}
+                    />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={1}
+                    />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={2}
+                    />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={3}
+                    />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={4}
+                    />
+                    <InputOTPSlot
+                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      index={5}
+                    />
                   </InputOTPGroup>
                 </InputOTP>
                 <p
