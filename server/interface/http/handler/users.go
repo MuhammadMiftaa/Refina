@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -16,6 +18,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+var mode = os.Getenv("MODE")
 
 type usersHandler struct {
 	usersService service.UsersService
@@ -176,7 +180,12 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	if mode == "production" {
+		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
+	} else {
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	}
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
@@ -266,7 +275,12 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	if mode == "production" {
+		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
+	} else {
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	}
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
@@ -326,7 +340,12 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	if mode == "production" {
+		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
+	} else {
+		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+	}
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
