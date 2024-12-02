@@ -1,14 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { VscGithub } from "react-icons/vsc";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 
-const backendURL = "https://refina.up.railway.app"
-  // process.env.MODE === "development"
-  //   ? "http://localhost:8080"
-  //   : process.env.BACKEND_URL;
+const backendURL = "https://refina.up.railway.app";
+// process.env.MODE === "development"
+//   ? "http://localhost:8080"
+//   : process.env.BACKEND_URL;
 
 const postFormSchema = z.object({
   email: z.string().email(),
@@ -64,6 +64,16 @@ export default function SignInPage(props: {
       console.error("Error during OAuth:", err);
     }
   };
+
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const token = searchParams.get("token");
+    if (token) {
+      document.cookie = `token=${token}; path=/`;
+      props.handleLogin();
+      navigate("/");
+    }
+  });
 
   return props.isAuthenticated ? (
     <Navigate to={"/"} />

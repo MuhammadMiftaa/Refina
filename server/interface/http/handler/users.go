@@ -3,12 +3,9 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -182,13 +179,9 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 	}
 
 	if mode == "production" {
-		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
-		fmt.Println(url)
-		log.Println(url)
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
-	} else {
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
+	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
@@ -279,13 +272,9 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 	}
 
 	if mode == "production" {
-		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
-		fmt.Println(url)
-		log.Println(url)
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
-	} else {
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
+	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
@@ -333,8 +322,6 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(userInfo)
-
 	tokenJWT, err := user_handler.usersService.OAuthLogin(userInfo["displayName"].(string), userInfo["mail"].(string))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -346,13 +333,9 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 	}
 
 	if mode == "production" {
-		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
-		fmt.Println(url)
-		log.Println(url)
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
-	} else {
-		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
+		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
+	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
 
 	c.Redirect(http.StatusFound, redirect_url)
 }
