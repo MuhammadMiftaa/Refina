@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -182,6 +183,8 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 
 	if mode == "production" {
 		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		fmt.Println(url)
+		log.Println(url)
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
 	} else {
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -277,6 +280,8 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 
 	if mode == "production" {
 		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		fmt.Println(url)
+		log.Println(url)
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
 	} else {
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -342,6 +347,8 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 
 	if mode == "production" {
 		url := strings.Split(os.Getenv("PUBLIC_URL"), "://")[1]
+		fmt.Println(url)
+		log.Println(url)
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", url, false, false)
 	} else {
 		c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
