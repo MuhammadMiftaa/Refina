@@ -4,11 +4,7 @@ import { useForm } from "react-hook-form";
 import { VscGithub } from "react-icons/vsc";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
-
-const backendURL = "https://refina.up.railway.app";
-// process.env.MODE === "development"
-//   ? "http://localhost:8080"
-//   : process.env.BACKEND_URL;
+import { getBackendURL, getMode } from "../lib/readenv";
 
 const postFormSchema = z.object({
   email: z.string().email(),
@@ -21,6 +17,8 @@ export default function SignInPage(props: {
   handleLogin: () => void;
   isAuthenticated: boolean;
 }) {
+  const backendURL = getMode() === "production" ? getBackendURL() : "localhost:8080"
+
   const navigate = useNavigate();
 
   const [error, setError] = useState("");
@@ -29,7 +27,7 @@ export default function SignInPage(props: {
     resolver: zodResolver(postFormSchema),
   });
 
-  const onSubmit = handleSubmit(async (data) => {
+  const onSubmit = handleSubmit(async (data) => {    
     const res = await fetch(`${backendURL}/v1/auth/login`, {
       method: "POST",
       credentials: "include",

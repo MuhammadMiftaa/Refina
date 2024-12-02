@@ -9,11 +9,7 @@ import {
   InputOTPSlot,
 } from "../components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-
-const backendURL = "https://refina.up.railway.app"
-  // process.env.MODE === "development"
-  //   ? "http://localhost:8080"
-  //   : process.env.BACKEND_URL;
+import { getBackendURL, getMode } from "../lib/readenv";
 
 const postFormSchema = z.object({
   name: z.string(),
@@ -27,6 +23,8 @@ export default function SignUpPage(props: {
   isAuthenticated: boolean;
   handleLogin: () => void;
 }) {
+  const backendURL = getMode() === "production" ? getBackendURL() : "http://localhost:8080"
+
   const navigate = useNavigate();
 
   const [confirmPassword, setConfirmPassword] = useState("");
