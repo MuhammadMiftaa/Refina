@@ -17,7 +17,7 @@ export default function SignInPage(props: {
   handleLogin: () => void;
   isAuthenticated: boolean;
 }) {
-  const backendURL = getMode() === "production" ? getBackendURL() : "localhost:8080"
+  const backendURL = getMode() === "production" ? getBackendURL() : "http://localhost:8080"
 
   const navigate = useNavigate();
 
