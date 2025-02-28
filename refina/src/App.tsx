@@ -1,37 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import appLogo from '/favicon.svg'
-import PWABadge from './PWABadge.tsx'
-import './App.css'
+import { Route, Routes } from "react-router-dom";
+// import { useState } from "react";
+// import Cookies from "js-cookie";
+import MainLayout from "./components/layouts/MainLayout";
+import Home from "./components/pages/Home";
 
 function App() {
-  const [count, setCount] = useState(0)
+  // const [isAuthenticated, setIsAuthenticated] = useState(() => {
+  //   return Cookies.get("token") ? true : false;
+  // });
 
+  // const handleLogin = () => {
+  //   setIsAuthenticated(true);
+  // };
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={appLogo} className="logo" alt="refina logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>refina</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-      <PWABadge />
-    </>
-  )
+    <Routes>
+      <Route path="/" element={<MainLayout />}>
+        <Route path="dashboard" element={<Home />} />
+      </Route>
+
+      <Route path="login" element />
+    </Routes>
+  );
 }
 
-export default App
+export default App;
