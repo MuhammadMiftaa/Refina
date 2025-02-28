@@ -1,30 +1,28 @@
-"use client"
+"use client";
 
-import * as React from "react"
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
-  Command,
   Frame,
-  GalleryVerticalEnd,
   Map,
   PieChart,
   Settings2,
   SquareTerminal,
-} from "lucide-react"
+} from "lucide-react";
 
-import { NavMain } from "@/components/ui/nav-main"
-import { NavProjects } from "@/components/ui/nav-projects"
-import { NavUser } from "@/components/ui/nav-user"
-import { TeamSwitcher } from "@/components/ui/team-switcher"
+import { NavMain } from "@/components/ui/nav-main";
+import { NavProjects } from "@/components/ui/nav-projects";
+import { NavUser } from "@/components/ui/nav-user";
+import { TeamSwitcher } from "@/components/ui/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { useProfile } from "@/store/useProfile";
+import { useShallow } from "zustand/shallow";
 
 // This is sample data.
 const data = {
@@ -35,18 +33,18 @@ const data = {
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
+      name: "Refina",
+      logo: <img src="/logo.png" alt="Logo Refina" />,
+      plan: "Verified",
     },
     {
       name: "Acme Corp.",
-      logo: AudioWaveform,
+      logo: <img src="/logo.png" alt="Logo Refina" />,
       plan: "Startup",
     },
     {
       name: "Evil Corp.",
-      logo: Command,
+      logo: <img src="/logo.png" alt="Logo Refina" />,
       plan: "Free",
     },
   ],
@@ -154,9 +152,16 @@ const data = {
       icon: Map,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { username, email } = useProfile(
+    useShallow((state) => ({
+      username: state.username,
+      email: state.email,
+    }))
+  );
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -167,9 +172,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={{ ...data.user, name: username, email: email }} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
