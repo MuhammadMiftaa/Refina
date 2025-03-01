@@ -40,7 +40,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* <Route path="dashboard" element={<Home />} /> */}
+        <Route path="dashboard" element={<Home />} />
       </Route>
 
       <Route
