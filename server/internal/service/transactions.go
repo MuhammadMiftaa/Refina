@@ -3,6 +3,8 @@ package service
 import (
 	"errors"
 
+	"github.com/google/uuid"
+
 	"server/internal/entity"
 	"server/internal/repository"
 )
@@ -46,7 +48,7 @@ func (transactionServ *transactionsService) GetTransactionByID(id string) (entit
 }
 
 func (transactionServ *transactionsService) CreateTransaction(transaction entity.TransactionsRequest) (entity.Transactions, error) {
-	if transaction.Amount == 0 || transaction.TransactionType == "" || transaction.Description == "" || transaction.Date == "" || transaction.Category == "" {
+	if transaction.Amount == 0 || transaction.CategoryID == "" || transaction.Description == "" || transaction.WalletID == "" {
 		return entity.Transactions{}, errors.New("all fields must be filled")
 	}
 
@@ -54,22 +56,20 @@ func (transactionServ *transactionsService) CreateTransaction(transaction entity
 		return entity.Transactions{}, errors.New("amount must be greater than 0")
 	}
 
-	if transaction.TransactionType != "income" && transaction.TransactionType != "expense" {
-		return entity.Transactions{}, errors.New("transaction type must be income or expense")
-	}
+	// if transaction.CategoryID != "income" && transaction.TransactionType != "expense" {
+	// 	return entity.Transactions{}, errors.New("transaction type must be income or expense")
+	// }
 
-	if _, err := transactionServ.userRepo.GetUserByID(transaction.UserID); err != nil{
+	if _, err := transactionServ.userRepo.GetUserByID(transaction.WalletID); err != nil {
 		return entity.Transactions{}, errors.New("user not found")
 	}
 
 	transactionNew := entity.Transactions{
+		WalletID:        uuid.MustParse(transaction.WalletID),
+		CategoryID:      uuid.MustParse(transaction.CategoryID),
 		Amount:          transaction.Amount,
-		TransactionType: transaction.TransactionType,
+		TransactionDate: transaction.TransactionDate,
 		Description:     transaction.Description,
-		Date:            transaction.Date,
-		Category:        transaction.Category,
-		AttachmentUrl:   transaction.AttachmentUrl,
-		UserID:          transaction.UserID,
 	}
 
 	transactionCreated, err := transactionServ.transactionRepo.CreateTransaction(transactionNew)
@@ -87,11 +87,10 @@ func (transactionServ *transactionsService) UpdateTransaction(id string, transac
 	}
 
 	transactionExist.Amount = transaction.Amount
-	transactionExist.TransactionType = transaction.TransactionType
+	transactionExist.CategoryID = uuid.MustParse(transaction.CategoryID)
 	transactionExist.Description = transaction.Description
-	transactionExist.Date = transaction.Date
-	transactionExist.Category = transaction.Category
-	transactionExist.AttachmentUrl = transaction.AttachmentUrl
+	transactionExist.WalletID = uuid.MustParse(transaction.WalletID)
+	transactionExist.TransactionDate = transaction.TransactionDate
 
 	transactionUpdated, err := transactionServ.transactionRepo.UpdateTransaction(transactionExist)
 	if err != nil {

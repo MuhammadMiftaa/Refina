@@ -11,7 +11,7 @@ import { addDays } from "date-fns";
 import { columns } from "./columns";
 import { transactionsType } from "@/types/Transactions";
 
-export default function Home() {
+export default function Analytics() {
   const transactions: transactionsType[] = [
     {
       id: "1",

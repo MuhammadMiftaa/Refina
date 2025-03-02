@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"server/config"
+	"server/db/config"
 	"server/interface/http/router"
 
 	"github.com/joho/godotenv"

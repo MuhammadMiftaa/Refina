@@ -12,6 +12,7 @@ type Investments struct {
 	UserID            uuid.UUID `gorm:"type:uuid;not null"`
 	Name              string    `gorm:"type:varchar(50);not null"`
 	Amount            float64   `gorm:"type:decimal(18,2);not null"`
+	Quantity          float64   `gorm:"type:decimal(18,2);not null"`
 	InvestmentDate    time.Time `gorm:"type:timestamp;not null"`
 	Description       string    `gorm:"type:text"`
 
@@ -25,6 +26,7 @@ type InvestmentsResponse struct {
 	UserID            string    `json:"user_id"`
 	Name              string    `json:"name"`
 	Amount            float64   `json:"amount"`
+	Quantity          float64   `json:"quantity"`
 	InvestmentDate    time.Time `json:"investment_date"`
 	Description       string    `json:"description"`
 }
@@ -34,6 +36,7 @@ type InvestmentsRequest struct {
 	UserID            string    `json:"user_id"`
 	Name              string    `json:"name"`
 	Amount            float64   `json:"amount"`
+	Quantity          float64   `json:"quantity"`
 	InvestmentDate    time.Time `json:"investment_date"`
 	Description       string    `json:"description"`
 }

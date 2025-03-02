@@ -2,12 +2,17 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useState } from "react";
 import Cookies from "js-cookie";
 import MainLayout from "./components/layouts/MainLayout";
-import Home from "./components/pages/Home";
+import Analytics from "./components/pages/Analytics";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import { decodeJwt } from "jose";
 import { useProfile } from "./store/useProfile";
 import { useShallow } from "zustand/shallow";
+import { data } from "./helper/Data";
+import Wallets from "./components/pages/Wallets";
+import Transactions from "./components/pages/Transactions";
+import Investments from "./components/pages/Investments";
+import { createElement } from "react";
 
 function App() {
   const { setProfile } = useProfile(
@@ -29,18 +34,30 @@ function App() {
       setIsAuthenticated(true);
     }
   };
+
+  const components = {
+    Analytics,
+    Wallets,
+    Transactions,
+    Investments,
+  } as const;
+
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <Home />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="dashboard" element={<Home />} />
+        {data.navMain.map((item) => (
+          <Route
+            key={item.title}
+            path={item.url}
+            element={
+              <ProtectedRoute isAuthenticated={isAuthenticated}>
+                {createElement(
+                  components[item.title as keyof typeof components]
+                )}
+              </ProtectedRoute>
+            }
+          />
+        ))}
       </Route>
 
       <Route

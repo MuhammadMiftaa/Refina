@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"server/db/prepopulate"
 	"server/internal/entity"
 
 	"github.com/go-redis/redis/v8"
@@ -42,9 +43,11 @@ func SetupDatabase() (*gorm.DB, error) {
 		log.Fatalf("Gagal terhubung ke database: %v", err)
 	}
 
-	if err := db.AutoMigrate(&entity.Users{}, &entity.Transactions{}); err != nil {
+	if err := db.AutoMigrate(&entity.Users{}, &entity.WalletTypes{}, &entity.Wallets{}, &entity.Categories{}, &entity.Transactions{}, &entity.Attachments{}, &entity.InvestmentTypes{}, &entity.Investments{}); err != nil {
 		log.Fatalf("Error saat melakukan migrasi: %v", err)
 	}
+
+	PrePopulate(db)
 
 	return db, nil
 }
@@ -70,4 +73,10 @@ func SetupRedisDatabase() *redis.Client {
 	}
 
 	return rdb
+}
+
+func PrePopulate(db *gorm.DB) {
+	prepopulate.WalletTypesSeeder(db)
+	prepopulate.CategoryTypeSeeder(db)
+	prepopulate.InvestmentTypesSeeder(db)
 }
