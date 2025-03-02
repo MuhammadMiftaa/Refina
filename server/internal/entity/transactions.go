@@ -1,46 +1,36 @@
 package entity
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Transactions struct {
 	Base
-	Amount          int    `gorm:"type:decimal(15)"`
-	TransactionType string `gorm:"type:varchar(100);not null"`
-	Date            string `gorm:"type:date;not null"`
-	Description     string `gorm:"type:text"`
-	Category        string `gorm:"type:varchar(100);not null"`
-	AttachmentUrl   string `gorm:"type:text"`
-	UserID          string `gorm:"type:uuid;not null"`
+	WalletID        uuid.UUID `gorm:"type:uuid;not null"`
+	CategoryID      uuid.UUID `gorm:"type:uuid;not null"`
+	Amount          float64   `gorm:"type:decimal(18,2);not null"`
+	TransactionDate time.Time `gorm:"type:timestamp;not null"`
+	Description     string    `gorm:"type:text"`
 
-	User Users `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-}
-
-type TransactionDetail struct {
-	ID              string `json:"id"`
-	Amount          int    `json:"amount"`
-	TransactionType string `json:"transaction_type"`
-	Date            string `json:"date"`
-	Description     string `json:"description"`
-	Category        string `json:"category"`
-	UserName        string `json:"user_name"`
-	UserEmail       string `json:"user_email"`
+	Wallet   Wallets    `gorm:"foreignKey:WalletID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Category Categories `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type TransactionsResponse struct {
-	ID              string `json:"id"`
-	Amount          int    `json:"amount"`
-	TransactionType string `json:"transaction_type"`
-	Date            string `json:"date"`
-	Description     string `json:"description"`
-	Category        string `json:"category"`
-	AttachmentUrl   string `json:"attachment_url"`
-	UserID          string `json:"user_id"`
+	ID              string    `json:"id"`
+	WalletID        string    `json:"wallet_id"`
+	CategoryID      string    `json:"category_id"`
+	Amount          float64   `json:"amount"`
+	TransactionDate time.Time `json:"transaction_date"`
+	Description     string    `json:"description"`
 }
 
 type TransactionsRequest struct {
-	Amount          int    `json:"amount"`
-	TransactionType string `json:"transaction_type"`
-	Date            string `json:"date"`
-	Description     string `json:"description"`
-	Category        string `json:"category"`
-	AttachmentUrl   string `json:"attachment_url"`
-	UserID          string `json:"user_id"`
+	WalletID        string    `json:"wallet_id"`
+	CategoryID      string    `json:"category_id"`
+	Amount          float64   `json:"amount"`
+	TransactionDate time.Time `json:"transaction_date"`
+	Description     string    `json:"description"`
 }
