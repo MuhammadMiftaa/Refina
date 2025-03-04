@@ -93,7 +93,7 @@ func (user_serv *usersService) Login(user entity.UsersRequest) (*string, error) 
 		return nil, errors.New("password is incorrect")
 	}
 
-	token, err := helper.GenerateToken(userExist.Name, userExist.Email)
+	token, err := helper.GenerateToken(userExist.ID.String(), userExist.Name, userExist.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (user_serv *usersService) Login(user entity.UsersRequest) (*string, error) 
 }
 
 func (user_serv *usersService) OAuthLogin(name string, email string) (*string, error) {
-	token, err := helper.GenerateToken(name, email)
+	token, err := helper.GenerateToken("99", name, email)
 	if err != nil {
 		return nil, err
 	}

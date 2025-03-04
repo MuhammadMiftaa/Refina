@@ -78,9 +78,10 @@ func ConvertToResponseType(data interface{}) interface{} {
 
 var secretKey = "pojq09720ef1ko0f1h9iego2010j20240"
 
-func GenerateToken(username string, email string) (string, error) {
+func GenerateToken(ID string, username string, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
+		"id":       ID,
 		"username": username,
 		"email":    email,
 		"exp":      expirationTime.Unix(),
