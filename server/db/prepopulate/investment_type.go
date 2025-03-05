@@ -26,22 +26,31 @@ func InvestmentTypesSeeder(db *gorm.DB) {
 		{"Others", "-"},
 	}
 
-	// Kosongkan tabel investment_types
-	db.Exec("TRUNCATE TABLE investment_types RESTART IDENTITY CASCADE")
-
 	var wg sync.WaitGroup
 
 	for _, inv := range investmentData {
 		wg.Add(1)
 		go func(name, unit string) {
 			defer wg.Done()
+
+			var existing entity.InvestmentTypes
+
+			// Cek apakah data sudah ada
+			if err := db.Where("name = ?", name).First(&existing).Error; err == nil {
+				fmt.Printf("Investment type %s already exists, skipping...\n", name)
+				return
+			} else if err != gorm.ErrRecordNotFound {
+				log.Printf("Error checking investment type %s: %v\n", name, err)
+				return
+			}
+
+			// Insert jika belum ada
 			investment := entity.InvestmentTypes{
 				Base: entity.Base{ID: uuid.New()},
 				Name: name,
 				Unit: unit,
 			}
 
-			// Insert ke database
 			if err := db.Create(&investment).Error; err != nil {
 				log.Printf("Error inserting investment type %s: %v\n", name, err)
 			} else {

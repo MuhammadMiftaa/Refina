@@ -16,9 +16,7 @@ func WalletTypesSeeder(db *gorm.DB) {
 		Physical     entity.WalletType = "physical"
 		OthersWallet entity.WalletType = "others"
 	)
-
-	db.Exec("TRUNCATE TABLE wallet_types RESTART IDENTITY CASCADE")
-
+	
 	// Data prepopulate
 	walletTypes := []entity.WalletTypes{
 		// Bank

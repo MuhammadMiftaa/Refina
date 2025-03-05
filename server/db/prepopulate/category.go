@@ -40,14 +40,24 @@ func CategoryTypeSeeder(db *gorm.DB) {
 		"Lainnya":                  {Expense, []string{"Hadiah & Ucapan", "Biaya Tak Terduga", "Biaya Hukum & Notaris", "Denda & Tilang", "Biaya Pernikahan", "Keanggotaan", "Biaya Perjalanan Dinas"}},
 	}
 
-	// Kosongkan tabel categories
-	db.Exec("TRUNCATE TABLE categories RESTART IDENTITY CASCADE")
-
-	var wg sync.WaitGroup
+		var wg sync.WaitGroup
 	parentIDs := make(map[string]uuid.UUID)
 
-	// Insert kategori utama
+	// Insert kategori utama dengan pengecekan duplikasi
 	for parentName, data := range categoriesData {
+		var existingParent entity.Categories
+
+		// Cek apakah parent category sudah ada
+		if err := db.Where("name = ?", parentName).First(&existingParent).Error; err == nil {
+			fmt.Printf("Parent category %s already exists, skipping...\n", parentName)
+			parentIDs[parentName] = existingParent.ID
+			continue
+		} else if err != gorm.ErrRecordNotFound {
+			log.Printf("Error checking parent category %s: %v\n", parentName, err)
+			continue
+		}
+
+		// Jika tidak ada, insert parent
 		parentID := uuid.New()
 		parentIDs[parentName] = parentID // Simpan UUID untuk parent
 		category := entity.Categories{
@@ -56,7 +66,6 @@ func CategoryTypeSeeder(db *gorm.DB) {
 			Type: data.Type,
 		}
 
-		// Insert parent ke database
 		if err := db.Create(&category).Error; err != nil {
 			log.Printf("Error inserting parent category %s: %v\n", parentName, err)
 			continue
@@ -68,6 +77,19 @@ func CategoryTypeSeeder(db *gorm.DB) {
 			wg.Add(1)
 			go func(parentID uuid.UUID, childName string, categoryType entity.CategoryType) {
 				defer wg.Done()
+
+				var existingChild entity.Categories
+
+				// Cek apakah child category sudah ada
+				if err := db.Where("name = ? AND parent_id = ?", childName, parentID).First(&existingChild).Error; err == nil {
+					fmt.Printf("Child category %s (Parent: %s) already exists, skipping...\n", childName, parentID)
+					return
+				} else if err != gorm.ErrRecordNotFound {
+					log.Printf("Error checking child category %s: %v\n", childName, err)
+					return
+				}
+
+				// Jika tidak ada, insert child
 				child := entity.Categories{
 					Base:     entity.Base{ID: uuid.New()},
 					ParentID: &parentID,
@@ -75,7 +97,6 @@ func CategoryTypeSeeder(db *gorm.DB) {
 					Type:     categoryType,
 				}
 
-				// Insert child ke database
 				if err := db.Create(&child).Error; err != nil {
 					log.Printf("Error inserting child category %s: %v\n", childName, err)
 				} else {
