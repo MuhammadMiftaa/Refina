@@ -71,6 +71,15 @@ func ConvertToResponseType(data interface{}) interface{} {
 			TransactionDate: v.TransactionDate,
 			Description:     v.Description,
 		}
+	case entity.Wallets:
+		return entity.WalletsResponse{
+			ID:           v.ID.String(),
+			UserID:       v.UserID.String(),
+			WalletTypeID: v.WalletTypeID.String(),
+			Name:         v.Name,
+			Number:       v.Number,
+			Balance:      v.Balance,
+		}
 	default:
 		return nil
 	}
