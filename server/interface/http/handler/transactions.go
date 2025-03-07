@@ -128,7 +128,7 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 }
 
 func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
-	path := "../client/src/assets/attachments"
+	path := "../refina/src/assets/attachments"
 	absoultePath, _ := filepath.Abs(path)
 
 	// Check if attachment is exist
