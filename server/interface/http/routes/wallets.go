@@ -11,8 +11,8 @@ import (
 )
 
 func WalletRoutes(version *gin.RouterGroup, db *gorm.DB) {
-	Wallet_repo := repository.NewWalletsRepository(db)
-	Wallet_serv := service.NewWalletsService(Wallet_repo)
+	Wallet_repo := repository.NewWalletRepository(db)
+	Wallet_serv := service.NewWalletService(Wallet_repo)
 	Wallet_handler := handler.NewWalletHandler(Wallet_serv)
 
 	// version.Use(middleware.AuthMiddleware())

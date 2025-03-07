@@ -3,9 +3,8 @@ package service
 import (
 	"errors"
 
-	"github.com/google/uuid"
-
 	"server/internal/entity"
+	"server/internal/helper"
 	"server/internal/repository"
 )
 
@@ -64,9 +63,19 @@ func (transactionServ *transactionsService) CreateTransaction(transaction entity
 		return entity.Transactions{}, errors.New("user not found")
 	}
 
+	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
+	if err != nil {
+		return entity.Transactions{}, errors.New("invalid category id")
+	}
+
+	WalletID, err := helper.ParseUUID(transaction.WalletID)
+	if err != nil {
+		return entity.Transactions{}, errors.New("invalid wallet id")
+	}
+
 	transactionNew := entity.Transactions{
-		WalletID:        uuid.MustParse(transaction.WalletID),
-		CategoryID:      uuid.MustParse(transaction.CategoryID),
+		WalletID:        CategoryID,
+		CategoryID:      WalletID,
 		Amount:          transaction.Amount,
 		TransactionDate: transaction.TransactionDate,
 		Description:     transaction.Description,
@@ -86,10 +95,20 @@ func (transactionServ *transactionsService) UpdateTransaction(id string, transac
 		return entity.Transactions{}, errors.New("transaction not found")
 	}
 
+	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
+	if err != nil {
+		return entity.Transactions{}, errors.New("invalid category id")
+	}
+
+	WalletID, err := helper.ParseUUID(transaction.WalletID)
+	if err != nil {
+		return entity.Transactions{}, errors.New("invalid wallet id")
+	}
+
 	transactionExist.Amount = transaction.Amount
-	transactionExist.CategoryID = uuid.MustParse(transaction.CategoryID)
+	transactionExist.CategoryID = CategoryID
 	transactionExist.Description = transaction.Description
-	transactionExist.WalletID = uuid.MustParse(transaction.WalletID)
+	transactionExist.WalletID = WalletID
 	transactionExist.TransactionDate = transaction.TransactionDate
 
 	transactionUpdated, err := transactionServ.transactionRepo.UpdateTransaction(transactionExist)

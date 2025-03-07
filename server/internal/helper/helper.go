@@ -13,6 +13,7 @@ import (
 	"server/internal/entity"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
@@ -79,6 +80,17 @@ func ConvertToResponseType(data interface{}) interface{} {
 			Name:         v.Name,
 			Number:       v.Number,
 			Balance:      v.Balance,
+		}
+	case entity.Investments:
+		return entity.InvestmentsResponse{
+			ID:                v.ID.String(),
+			UserID:            v.UserID.String(),
+			InvestmentsTypeID: v.InvestmentsTypeID.String(),
+			Name:              v.Name,
+			Amount:            v.Amount,
+			Quantity:          v.Quantity,
+			InvestmentDate:    v.InvestmentDate,
+			Description:       v.Description,
 		}
 	default:
 		return nil
@@ -223,4 +235,12 @@ func SendEmail(emailTo string, otp string) error {
 	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
 	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, []string{emailTo}, []byte(msg))
 	return err
+}
+
+func ParseUUID(id string) (uuid.UUID, error) {
+	parsedID, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return parsedID, nil
 }

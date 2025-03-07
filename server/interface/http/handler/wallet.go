@@ -26,9 +26,15 @@ func (wallet_handler *walletHandler) GetAllWallets(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletsResponse := helper.ConvertToResponseType(wallets)
+	var walletsResponse []entity.WalletsResponse
+	for _, wallet := range wallets {
+		walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
+		walletsResponse = append(walletsResponse, walletResponse)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
@@ -47,9 +53,10 @@ func (wallet_handler *walletHandler) GetWalletByID(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletResponse := helper.ConvertToResponseType(wallet)
+	walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
@@ -68,16 +75,22 @@ func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletsResponse := helper.ConvertToResponseType(wallets)
+	var walletsResponse []entity.WalletsResponse
+	for _, wallet := range wallets {
+		walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
+		walletsResponse = append(walletsResponse, walletResponse)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get wallets by user ID",
 		"data":       walletsResponse,
 	})
-}								
+}
 
 func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 	var walletRequest entity.WalletsRequest
@@ -97,9 +110,10 @@ func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletResponse := helper.ConvertToResponseType(wallet)
+	walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
 	c.JSON(http.StatusCreated, gin.H{
 		"statusCode": 201,
 		"status":     true,
@@ -128,9 +142,10 @@ func (wallet_handler *walletHandler) UpdateWallet(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletResponse := helper.ConvertToResponseType(wallet)
+	walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
@@ -149,9 +164,10 @@ func (wallet_handler *walletHandler) DeleteWallet(c *gin.Context) {
 			"status":     false,
 			"message":    err.Error(),
 		})
+		return
 	}
 
-	walletResponse := helper.ConvertToResponseType(wallet)
+	walletResponse := helper.ConvertToResponseType(wallet).(entity.WalletsResponse)
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,

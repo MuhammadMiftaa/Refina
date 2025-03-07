@@ -8,7 +8,7 @@ import (
 
 type Investments struct {
 	Base
-	InvestmentsTypeID uuid.UUID `gorm:"type:uuid;not null"`
+	InvestmentTypeID uuid.UUID `gorm:"type:uuid;not null"`
 	UserID            uuid.UUID `gorm:"type:uuid;not null"`
 	Name              string    `gorm:"type:varchar(50);not null"`
 	Amount            float64   `gorm:"type:decimal(18,2);not null"`
@@ -16,13 +16,13 @@ type Investments struct {
 	InvestmentDate    time.Time `gorm:"type:timestamp;not null"`
 	Description       string    `gorm:"type:text"`
 
-	InvestmentTypes InvestmentTypes `gorm:"foreignKey:InvestmentsTypeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	InvestmentTypes InvestmentTypes `gorm:"foreignKey:InvestmentTypeID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	User            Users           `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 type InvestmentsResponse struct {
 	ID                string    `json:"id"`
-	InvestmentsTypeID string    `json:"investments_type_id"`
+	InvestmentTypeID string    `json:"investment_type_id"`
 	UserID            string    `json:"user_id"`
 	Name              string    `json:"name"`
 	Amount            float64   `json:"amount"`
@@ -32,7 +32,7 @@ type InvestmentsResponse struct {
 }
 
 type InvestmentsRequest struct {
-	InvestmentsTypeID string    `json:"investments_type_id"`
+	InvestmentTypeID string    `json:"investments_type_id"`
 	UserID            string    `json:"user_id"`
 	Name              string    `json:"name"`
 	Amount            float64   `json:"amount"`

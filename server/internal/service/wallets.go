@@ -4,9 +4,8 @@ import (
 	"errors"
 
 	"server/internal/entity"
+	"server/internal/helper"
 	"server/internal/repository"
-
-	"github.com/google/uuid"
 )
 
 type WalletsService interface {
@@ -22,7 +21,7 @@ type walletsService struct {
 	walletsRepository repository.WalletsRepository
 }
 
-func NewWalletsService(walletsRepository repository.WalletsRepository) WalletsService {
+func NewWalletService(walletsRepository repository.WalletsRepository) WalletsService {
 	return &walletsService{walletsRepository}
 }
 
@@ -39,9 +38,20 @@ func (wallet_serv *walletsService) GetWalletsByUserID(id string) ([]entity.Walle
 }
 
 func (wallet_serv *walletsService) CreateWallet(wallet entity.WalletsRequest) (entity.Wallets, error) {
+
+	UserID, err := helper.ParseUUID(wallet.UserID)
+	if err != nil {
+		return entity.Wallets{}, errors.New("invalid user id")
+	}
+
+	WalletTypeID, err := helper.ParseUUID(wallet.WalletTypeID)
+	if err != nil {
+		return entity.Wallets{}, errors.New("invalid wallet type id")
+	}
+	
 	return wallet_serv.walletsRepository.CreateWallet(entity.Wallets{
-		UserID:       uuid.MustParse(wallet.UserID),
-		WalletTypeID: uuid.MustParse(wallet.WalletTypeID),
+		UserID:       UserID,
+		WalletTypeID: WalletTypeID,
 		Name:         wallet.Name,
 		Number:       wallet.Number,
 		Balance:      wallet.Balance,
