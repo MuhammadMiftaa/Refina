@@ -83,14 +83,14 @@ func ConvertToResponseType(data interface{}) interface{} {
 		}
 	case entity.Investments:
 		return entity.InvestmentsResponse{
-			ID:                v.ID.String(),
-			UserID:            v.UserID.String(),
-			InvestmentsTypeID: v.InvestmentsTypeID.String(),
-			Name:              v.Name,
-			Amount:            v.Amount,
-			Quantity:          v.Quantity,
-			InvestmentDate:    v.InvestmentDate,
-			Description:       v.Description,
+			ID:               v.ID.String(),
+			UserID:           v.UserID.String(),
+			InvestmentTypeID: v.InvestmentTypeID.String(),
+			Name:             v.Name,
+			Amount:           v.Amount,
+			Quantity:         v.Quantity,
+			InvestmentDate:   v.InvestmentDate,
+			Description:      v.Description,
 		}
 	default:
 		return nil

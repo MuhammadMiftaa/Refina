@@ -11,6 +11,7 @@ import (
 type TransactionsRepository interface {
 	GetAllTransactions() ([]entity.Transactions, error)
 	GetTransactionByID(id string) (entity.Transactions, error)
+	GetTransactionsByWalletID(id string) ([]entity.Transactions, error)
 	CreateTransaction(transaction entity.Transactions) (entity.Transactions, error)
 	UpdateTransaction(transaction entity.Transactions) (entity.Transactions, error)
 	DeleteTransaction(transaction entity.Transactions) (entity.Transactions, error)
@@ -42,6 +43,16 @@ func (transaction_repo *transactionsRepository) GetTransactionByID(id string) (e
 	}
 
 	return transaction, nil
+}
+
+func (transaction_repo *transactionsRepository) GetTransactionsByWalletID(id string) ([]entity.Transactions, error) {
+	var transactions []entity.Transactions
+	err := transaction_repo.db.Find(&transactions, "wallet_id = ?", id).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
 }
 
 func (transaction_repo *transactionsRepository) CreateTransaction(transaction entity.Transactions) (entity.Transactions, error) {

@@ -11,6 +11,7 @@ import (
 type TransactionsService interface {
 	GetAllTransactions() ([]entity.Transactions, error)
 	GetTransactionByID(id string) (entity.Transactions, error)
+	GetTransactionsByWalletID(id string) ([]entity.Transactions, error)
 	CreateTransaction(transaction entity.TransactionsRequest) (entity.Transactions, error)
 	UpdateTransaction(id string, transaction entity.TransactionsRequest) (entity.Transactions, error)
 	DeleteTransaction(id string) (entity.Transactions, error)
@@ -18,51 +19,56 @@ type TransactionsService interface {
 
 type transactionsService struct {
 	transactionRepo repository.TransactionsRepository
-	userRepo        repository.UsersRepository
+	walletRepo      repository.WalletsRepository
+	categoryRepo    repository.CategoriesRepository
 }
 
-func NewTransactionService(transactionRepo repository.TransactionsRepository, userRepo repository.UsersRepository) TransactionsService {
+func NewTransactionService(transactionRepo repository.TransactionsRepository, walletRepo repository.WalletsRepository, categoryRepo repository.CategoriesRepository) TransactionsService {
 	return &transactionsService{
 		transactionRepo: transactionRepo,
-		userRepo:        userRepo,
+		walletRepo:      walletRepo,
+		categoryRepo:    categoryRepo,
 	}
 }
 
-func (transactionServ *transactionsService) GetAllTransactions() ([]entity.Transactions, error) {
-	transactions, err := transactionServ.transactionRepo.GetAllTransactions()
+func (transaction_serv *transactionsService) GetAllTransactions() ([]entity.Transactions, error) {
+	transactions, err := transaction_serv.transactionRepo.GetAllTransactions()
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed to get transactions")
 	}
 
 	return transactions, nil
 }
 
-func (transactionServ *transactionsService) GetTransactionByID(id string) (entity.Transactions, error) {
-	transaction, err := transactionServ.transactionRepo.GetTransactionByID(id)
+func (transaction_serv *transactionsService) GetTransactionByID(id string) (entity.Transactions, error) {
+	transaction, err := transaction_serv.transactionRepo.GetTransactionByID(id)
 	if err != nil {
-		return entity.Transactions{}, err
+		return entity.Transactions{}, errors.New("transaction not found")
 	}
 
 	return transaction, nil
 }
 
-func (transactionServ *transactionsService) CreateTransaction(transaction entity.TransactionsRequest) (entity.Transactions, error) {
-	if transaction.Amount == 0 || transaction.CategoryID == "" || transaction.Description == "" || transaction.WalletID == "" {
-		return entity.Transactions{}, errors.New("all fields must be filled")
+func (transaction_serv *transactionsService) GetTransactionsByWalletID(id string) ([]entity.Transactions, error) {
+	transactions, err := transaction_serv.transactionRepo.GetTransactionsByWalletID(id)
+	if err != nil {
+		return nil, errors.New("failed to get transactions")
 	}
 
-	if transaction.Amount < 0 {
-		return entity.Transactions{}, errors.New("amount must be greater than 0")
+	return transactions, nil
+}
+
+func (transaction_serv *transactionsService) CreateTransaction(transaction entity.TransactionsRequest) (entity.Transactions, error) {
+	// Check if wallet and category exist
+	if _, err := transaction_serv.walletRepo.GetWalletByID(transaction.WalletID); err != nil {
+		return entity.Transactions{}, errors.New("wallet not found")
 	}
 
-	// if transaction.CategoryID != "income" && transaction.TransactionType != "expense" {
-	// 	return entity.Transactions{}, errors.New("transaction type must be income or expense")
-	// }
-
-	if _, err := transactionServ.userRepo.GetUserByID(transaction.WalletID); err != nil {
-		return entity.Transactions{}, errors.New("user not found")
+	if _, err := transaction_serv.categoryRepo.GetCategoryByID(transaction.CategoryID); err != nil {
+		return entity.Transactions{}, errors.New("category not found")
 	}
 
+	// Parse ID from JSON to valid UUID
 	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
 	if err != nil {
 		return entity.Transactions{}, errors.New("invalid category id")
@@ -73,61 +79,72 @@ func (transactionServ *transactionsService) CreateTransaction(transaction entity
 		return entity.Transactions{}, errors.New("invalid wallet id")
 	}
 
-	transactionNew := entity.Transactions{
-		WalletID:        CategoryID,
-		CategoryID:      WalletID,
+	transactionNew, err := transaction_serv.transactionRepo.CreateTransaction(entity.Transactions{
+		WalletID:        WalletID,
+		CategoryID:      CategoryID,
 		Amount:          transaction.Amount,
 		TransactionDate: transaction.TransactionDate,
 		Description:     transaction.Description,
-	}
-
-	transactionCreated, err := transactionServ.transactionRepo.CreateTransaction(transactionNew)
+	})
 	if err != nil {
-		return entity.Transactions{}, err
+		return entity.Transactions{}, errors.New("failed to create transaction")
 	}
 
-	return transactionCreated, nil
+	return transactionNew, nil
 }
 
-func (transactionServ *transactionsService) UpdateTransaction(id string, transaction entity.TransactionsRequest) (entity.Transactions, error) {
-	transactionExist, err := transactionServ.transactionRepo.GetTransactionByID(id)
+func (transaction_serv *transactionsService) UpdateTransaction(id string, transaction entity.TransactionsRequest) (entity.Transactions, error) {
+	// Check if transaction exist
+	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(id)
 	if err != nil {
 		return entity.Transactions{}, errors.New("transaction not found")
 	}
 
-	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
-	if err != nil {
-		return entity.Transactions{}, errors.New("invalid category id")
+	// Update transaction only if the field is not empty
+	if transaction.CategoryID != "" {
+		CategoryID, err := helper.ParseUUID(transaction.CategoryID)
+		if err != nil {
+			return entity.Transactions{}, errors.New("invalid category id")
+		}
+
+		transactionExist.CategoryID = CategoryID
+	}
+	if transaction.WalletID != "" {
+		WalletID, err := helper.ParseUUID(transaction.WalletID)
+		if err != nil {
+			return entity.Transactions{}, errors.New("invalid wallet id")
+		}
+
+		transactionExist.WalletID = WalletID
+	}
+	if transaction.Amount != 0 {
+		transactionExist.Amount = transaction.Amount
+	}
+	if !transaction.TransactionDate.IsZero() {
+		transactionExist.TransactionDate = transaction.TransactionDate
+	}
+	if transaction.Description != "" {
+		transactionExist.Description = transaction.Description
 	}
 
-	WalletID, err := helper.ParseUUID(transaction.WalletID)
+	transactionUpdated, err := transaction_serv.transactionRepo.UpdateTransaction(transactionExist)
 	if err != nil {
-		return entity.Transactions{}, errors.New("invalid wallet id")
-	}
-
-	transactionExist.Amount = transaction.Amount
-	transactionExist.CategoryID = CategoryID
-	transactionExist.Description = transaction.Description
-	transactionExist.WalletID = WalletID
-	transactionExist.TransactionDate = transaction.TransactionDate
-
-	transactionUpdated, err := transactionServ.transactionRepo.UpdateTransaction(transactionExist)
-	if err != nil {
-		return entity.Transactions{}, err
+		return entity.Transactions{}, errors.New("failed to update transaction")
 	}
 
 	return transactionUpdated, nil
 }
 
-func (transactionServ *transactionsService) DeleteTransaction(id string) (entity.Transactions, error) {
-	transactionExist, err := transactionServ.transactionRepo.GetTransactionByID(id)
+func (transaction_serv *transactionsService) DeleteTransaction(id string) (entity.Transactions, error) {
+	// Check if transaction exist
+	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(id)
 	if err != nil {
 		return entity.Transactions{}, errors.New("transaction not found")
 	}
 
-	transactionDeleted, err := transactionServ.transactionRepo.DeleteTransaction(transactionExist)
+	transactionDeleted, err := transaction_serv.transactionRepo.DeleteTransaction(transactionExist)
 	if err != nil {
-		return entity.Transactions{}, err
+		return entity.Transactions{}, errors.New("failed to delete transaction")
 	}
 
 	return transactionDeleted, nil

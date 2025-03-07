@@ -43,14 +43,14 @@ func (investment_serv *investmentsService) CreateInvestment(investment entity.In
 		return entity.Investments{}, errors.New("invalid user id")
 	}
 
-	investmentTypeID, err := helper.ParseUUID(investment.InvestmentsTypeID)
+	investmentTypeID, err := helper.ParseUUID(investment.InvestmentTypeID)
 	if err != nil {
 		return entity.Investments{}, err
 	}
 
 	return investment_serv.investmentsRepository.CreateInvestment(entity.Investments{
 		UserID:            userID,
-		InvestmentsTypeID: investmentTypeID,
+		InvestmentTypeID: investmentTypeID,
 		Name:              investment.Name,
 		Amount:            investment.Amount,
 		Quantity:          investment.Quantity,

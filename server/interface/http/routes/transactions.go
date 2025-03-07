@@ -12,13 +12,15 @@ import (
 
 func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	Transaction_repo := repository.NewTransactionRepository(db)
-	User_repo := repository.NewUsersRepository(db)
-	Transaction_serv := service.NewTransactionService(Transaction_repo, User_repo)
+	Wallet_repo := repository.NewWalletRepository(db)
+	Category_repo := repository.NewCategoryRepository(db)
+	Transaction_serv := service.NewTransactionService(Transaction_repo, Wallet_repo, Category_repo)
 	Transaction_handler := handler.NewTransactionHandler(Transaction_serv)
 
 	version.Use(middleware.AuthMiddleware())
 	version.GET("transactions", Transaction_handler.GetAllTransactions)
 	version.GET("transactions/:id", Transaction_handler.GetTransactionByID)
+	version.GET("transactions/wallet/:id", Transaction_handler.GetTransactionsByWalletID)
 	version.POST("transactions", Transaction_handler.CreateTransaction)
 	version.POST("transactions/attachment", Transaction_handler.UploadAttachment)
 	version.PUT("transactions/:id", Transaction_handler.UpdateTransaction)

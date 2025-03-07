@@ -69,6 +69,33 @@ func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context)
 	})
 }
 
+func (transactionHandler *TransactionHandler) GetTransactionsByWalletID(c *gin.Context) {
+	id := c.Param("id")
+
+	transactions, err := transactionHandler.transactionServ.GetTransactionsByWalletID(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	var transactionsResponse []entity.TransactionsResponse
+	for _, transaction := range transactions {
+		transactionResponse := helper.ConvertToResponseType(transaction).(entity.TransactionsResponse)
+		transactionsResponse = append(transactionsResponse, transactionResponse)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get transactions data by wallet ID",
+		"data":       transactionsResponse,
+	})
+}
+
 func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) {
 	var transaction entity.TransactionsRequest
 	if err := c.ShouldBindJSON(&transaction); err != nil {
