@@ -26,15 +26,29 @@ func NewInvestmentService(investmentsRepository repository.InvestmentsRepository
 }
 
 func (investment_serv *investmentsService) GetAllInvestments() ([]entity.Investments, error) {
-	return investment_serv.investmentsRepository.GetAllInvestments()
+	investments, err := investment_serv.investmentsRepository.GetAllInvestments()
+	if err != nil {
+		return nil, errors.New("failed to get investments")
+	}
+
+	return investments, nil
 }
 
 func (investment_serv *investmentsService) GetInvestmentByID(id string) (entity.Investments, error) {
-	return investment_serv.investmentsRepository.GetInvestmentByID(id)
+	investment, err := investment_serv.investmentsRepository.GetInvestmentByID(id)
+	if err != nil {
+		return entity.Investments{}, errors.New("investment not found")
+	}
+
+	return investment, nil
 }
 
 func (investment_serv *investmentsService) GetInvestmentsByUserID(id string) ([]entity.Investments, error) {
-	return investment_serv.investmentsRepository.GetInvestmentsByUserID(id)
+	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(id)
+	if err != nil {
+		return nil, errors.New("failed to get investments")
+	}
+	return investments, nil
 }
 
 func (investment_serv *investmentsService) CreateInvestment(investment entity.InvestmentsRequest) (entity.Investments, error) {
@@ -48,15 +62,20 @@ func (investment_serv *investmentsService) CreateInvestment(investment entity.In
 		return entity.Investments{}, err
 	}
 
-	return investment_serv.investmentsRepository.CreateInvestment(entity.Investments{
-		UserID:            userID,
+	newInvestment, err := investment_serv.investmentsRepository.CreateInvestment(entity.Investments{
+		UserID:           userID,
 		InvestmentTypeID: investmentTypeID,
-		Name:              investment.Name,
-		Amount:            investment.Amount,
-		Quantity:          investment.Quantity,
-		InvestmentDate:    investment.InvestmentDate,
-		Description:       investment.Description,
+		Name:             investment.Name,
+		Amount:           investment.Amount,
+		Quantity:         investment.Quantity,
+		InvestmentDate:   investment.InvestmentDate,
+		Description:      investment.Description,
 	})
+	if err != nil {
+		return entity.Investments{}, err
+	}
+
+	return newInvestment, nil
 }
 
 func (investment_serv *investmentsService) UpdateInvestment(id string, investment entity.InvestmentsRequest) (entity.Investments, error) {
@@ -65,12 +84,25 @@ func (investment_serv *investmentsService) UpdateInvestment(id string, investmen
 		return entity.Investments{}, errors.New("investment not found")
 	}
 
-	existingInvestment.Name = investment.Name
-	existingInvestment.Amount = investment.Amount
-	existingInvestment.Quantity = investment.Quantity
-	existingInvestment.Description = investment.Description
+	if investment.Name != "" {
+		existingInvestment.Name = investment.Name
+	}
+	if investment.Amount != 0 {
+		existingInvestment.Amount = investment.Amount
+	}
+	if investment.Quantity != 0 {
+		existingInvestment.Quantity = investment.Quantity
+	}
+	if !investment.InvestmentDate.IsZero() {
+		existingInvestment.Description = investment.Description
+	}
 
-	return investment_serv.investmentsRepository.UpdateInvestment(existingInvestment)
+	investmentUpdated, err := investment_serv.investmentsRepository.UpdateInvestment(existingInvestment)
+	if err != nil {
+		return entity.Investments{}, errors.New("failed to update investment")
+	}
+
+	return investmentUpdated, nil
 }
 
 func (investment_serv *investmentsService) DeleteInvestment(id string) (entity.Investments, error) {
@@ -79,5 +111,10 @@ func (investment_serv *investmentsService) DeleteInvestment(id string) (entity.I
 		return entity.Investments{}, errors.New("investment not found")
 	}
 
-	return investment_serv.investmentsRepository.DeleteInvestment(existingInvestment)
+	investmentDeleted, err := investment_serv.investmentsRepository.DeleteInvestment(existingInvestment)
+	if err != nil {
+		return entity.Investments{}, errors.New("failed to delete investment")
+	}
+
+	return investmentDeleted, nil
 }
