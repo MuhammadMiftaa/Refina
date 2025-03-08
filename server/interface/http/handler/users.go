@@ -525,3 +525,24 @@ func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
 		"data":       userResponse,
 	})
 }
+
+func (user_handler *usersHandler) GetUserWallets(c *gin.Context) {
+	id := c.Param("id")
+
+	userWallets, err := user_handler.usersService.GetUserWallets(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"statusCode": 200,
+		"status":     true,
+		"message":    "Get user wallets data",
+		"data":       userWallets,
+	})
+}

@@ -18,6 +18,17 @@ type Users struct {
 	EmailVerfiedAt sql.NullTime `gorm:"type:timestamp"`
 }
 
+type UserWallet struct {
+	ID            string
+	UserID        string
+	Name          string
+	Email         string
+	WalletNumber  string
+	WalletBalance float64
+	WalletName    string
+	WalletType    string
+}
+
 type UsersResponse struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`

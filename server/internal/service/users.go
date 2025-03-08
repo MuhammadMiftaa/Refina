@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"server/internal/dto"
 	"server/internal/entity"
 	"server/internal/helper"
 	"server/internal/repository"
@@ -20,6 +21,8 @@ type UsersService interface {
 	UpdateUser(id string, userNew entity.UsersRequest) (entity.Users, error)
 	VerifyUser(email string) (entity.Users, error)
 	DeleteUser(id string) (entity.Users, error)
+
+	GetUserWallets(id string) (dto.UserWalletsResponse, error)
 }
 
 type usersService struct {
@@ -179,4 +182,33 @@ func (user_serv *usersService) DeleteUser(id string) (entity.Users, error) {
 	}
 
 	return user_serv.userRepository.DeleteUser(user)
+}
+
+func (user_serv *usersService) GetUserWallets(id string) (dto.UserWalletsResponse, error) {
+	userWallets, err := user_serv.userRepository.GetUserWallets(id)
+	if err != nil || len(userWallets) == 0 {
+		return dto.UserWalletsResponse{}, errors.New("failed to get user wallets")
+	}
+
+	UserID := userWallets[0].UserID
+	Name := userWallets[0].Name
+	Email := userWallets[0].Email
+	Wallets := make([]dto.WalletResponse, 0, len(userWallets))
+	for _, userWallet := range userWallets {
+		Wallet := dto.WalletResponse{
+			ID:      userWallet.ID,
+			Number:  userWallet.WalletNumber,
+			Balance: userWallet.WalletBalance,
+			Name:    userWallet.WalletName,
+			Type:    userWallet.WalletType,
+		}
+		Wallets = append(Wallets, Wallet)
+	}
+
+	return dto.UserWalletsResponse{
+		UserID:  UserID,
+		Name:    Name,
+		Email:   Email,
+		Wallets: Wallets,
+	}, nil
 }
