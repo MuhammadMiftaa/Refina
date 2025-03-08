@@ -17,6 +17,7 @@ type UsersRepository interface {
 	DeleteUser(user entity.Users) (entity.Users, error)
 
 	GetUserWallets(id string) ([]entity.UserWallet, error)
+	GetUserInvestments(id string) ([]entity.UserInvestment, error)
 }
 
 type usersRepository struct {
@@ -97,4 +98,19 @@ func (user_repo *usersRepository) GetUserWallets(id string) ([]entity.UserWallet
 	}
 
 	return userWallet, nil
+}
+
+func (user_repo *usersRepository) GetUserInvestments(id string) ([]entity.UserInvestment, error) {
+	var userInvestment []entity.UserInvestment
+	err := user_repo.db.Table("users").Select("investments.id, users.id AS user_id, users.name, users.email, investment_types.name AS investment_type, investments.name AS investment_name, investments.amount AS investment_amount, investments.quantity AS investment_quantity, investment_types.unit AS investment_unit, investments.investment_date AS investment_date").
+		Joins("LEFT JOIN investments ON users.id = investments.user_id AND investments.deleted_at IS NULL").
+		Joins("LEFT JOIN investment_types ON investments.investment_type_id = investment_types.id AND investment_types.deleted_at IS NULL").
+		Where("users.id = ?", id).
+		Where("users.deleted_at IS NULL").
+		Find(&userInvestment).Error
+	if err != nil {
+		return nil, errors.New("user investment not found")
+	}
+
+	return userInvestment, nil
 }

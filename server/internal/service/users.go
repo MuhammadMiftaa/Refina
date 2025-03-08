@@ -23,6 +23,7 @@ type UsersService interface {
 	DeleteUser(id string) (entity.Users, error)
 
 	GetUserWallets(id string) (dto.UserWalletsResponse, error)
+	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
 }
 
 type usersService struct {
@@ -210,5 +211,36 @@ func (user_serv *usersService) GetUserWallets(id string) (dto.UserWalletsRespons
 		Name:    Name,
 		Email:   Email,
 		Wallets: Wallets,
+	}, nil
+}
+
+func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestmentsResponse, error) {
+	userInvestments, err := user_serv.userRepository.GetUserInvestments(id)
+	if err != nil || len(userInvestments) == 0 {
+		return dto.UserInvestmentsResponse{}, errors.New("failed to get user investments")
+	}
+
+	UserID := userInvestments[0].UserID
+	Name := userInvestments[0].Name
+	Email := userInvestments[0].Email
+	Investments := make([]dto.InvestmentResponse, 0, len(userInvestments))
+	for _, userInvestment := range userInvestments {
+		Investment := dto.InvestmentResponse{
+			ID:         userInvestment.ID,
+			Type:       userInvestment.InvestmentType,
+			Name:       userInvestment.InvestmentName,
+			Amount:     userInvestment.InvestmentAmount,
+			Quantity:   userInvestment.InvestmentQuantity,
+			Unit:       userInvestment.InvestmentUnit,
+			InvestDate: userInvestment.InvestmentDate,
+		}
+		Investments = append(Investments, Investment)
+	}
+
+	return dto.UserInvestmentsResponse{
+		UserID:      UserID,
+		Name:        Name,
+		Email:       Email,
+		Investments: Investments,
 	}, nil
 }

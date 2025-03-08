@@ -546,3 +546,24 @@ func (user_handler *usersHandler) GetUserWallets(c *gin.Context) {
 		"data":       userWallets,
 	})
 }
+
+func (user_handler *usersHandler) GetUserInvestments(c *gin.Context) {
+	id := c.Param("id")
+
+	userInvestments, err := user_handler.usersService.GetUserInvestments(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"statusCode": 200,
+		"status":     true,
+		"message":    "Get user investments data",
+		"data":       userInvestments,
+	})
+}

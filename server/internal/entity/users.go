@@ -29,6 +29,19 @@ type UserWallet struct {
 	WalletType    string
 }
 
+type UserInvestment struct {
+	ID                 string
+	UserID             string
+	Name               string
+	Email              string
+	InvestmentType     string
+	InvestmentName     string
+	InvestmentAmount   float64
+	InvestmentQuantity float64
+	InvestmentUnit     string
+	InvestmentDate     string
+}
+
 type UsersResponse struct {
 	ID    string `json:"id"`
 	Name  string `json:"name"`
