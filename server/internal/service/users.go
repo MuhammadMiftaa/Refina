@@ -24,6 +24,7 @@ type UsersService interface {
 
 	GetUserWallets(id string) (dto.UserWalletsResponse, error)
 	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
+	GetUserTransactions(id string) (dto.UserTransactionsResponse, error)
 }
 
 type usersService struct {
@@ -242,5 +243,58 @@ func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestment
 		Name:        Name,
 		Email:       Email,
 		Investments: Investments,
+	}, nil
+}
+
+func (user_serv *usersService) GetUserTransactions(id string) (dto.UserTransactionsResponse, error) {
+	userTransactions, err := user_serv.userRepository.GetUserTransactions(id)
+	if err != nil || len(userTransactions) == 0 {
+		return dto.UserTransactionsResponse{}, errors.New("failed to get user transactions")
+	}
+
+	UserID := userTransactions[0].UserID
+	Name := userTransactions[0].Name
+	Email := userTransactions[0].Email
+
+	walletMap := make(map[string]dto.WalletWithTransactionsResponse)
+
+	for _, ut := range userTransactions {
+		_, exists := walletMap[ut.WalletID]
+		if !exists {
+			walletMap[ut.WalletID] = dto.WalletWithTransactionsResponse{
+				ID:      ut.WalletID,
+				Number:  ut.WalletNumber,
+				Balance: ut.WalletBalance,
+				Name:    ut.WalletName,
+				Type:    ut.WalletType,
+			}
+		}
+		
+		transaction := dto.TransactionsResponse{
+			ID:          ut.TransactionID,
+			Name:        ut.CategoryName,
+			Type:        ut.CategoryType,
+			Amount:      ut.Amount,
+			Date:        ut.TransactionDate,
+			Description: ut.Description,
+			Image:       ut.Image,
+		}
+
+		tempWallet := walletMap[ut.WalletID]
+		tempWallet.Transactions = append(tempWallet.Transactions, transaction)
+		walletMap[ut.WalletID] = tempWallet
+	}
+
+	// Konversi map ke slice
+	Wallets := make([]dto.WalletWithTransactionsResponse, 0, len(walletMap))
+	for _, wallet := range walletMap {
+		Wallets = append(Wallets, wallet)
+	}
+
+	return dto.UserTransactionsResponse{
+		UserID:  UserID,
+		Name:    Name,
+		Email:   Email,
+		Wallets: Wallets,
 	}, nil
 }

@@ -18,6 +18,7 @@ type UsersRepository interface {
 
 	GetUserWallets(id string) ([]entity.UserWallet, error)
 	GetUserInvestments(id string) ([]entity.UserInvestment, error)
+	GetUserTransactions(id string) ([]entity.UserTransactions, error)
 }
 
 type usersRepository struct {
@@ -113,4 +114,22 @@ func (user_repo *usersRepository) GetUserInvestments(id string) ([]entity.UserIn
 	}
 
 	return userInvestment, nil
+}
+
+func (user_repo *usersRepository) GetUserTransactions(id string) ([]entity.UserTransactions, error) {
+	var userTransactions []entity.UserTransactions
+	err := user_repo.db.Table("users").Select("users.id AS user_id, users.name, users.email, wallets.id AS wallet_id, wallets.number AS wallet_number, wallets.balance AS wallet_balance, wallet_types.name AS wallet_type, transactions.id AS transaction_id, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
+	Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
+	Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
+	Joins("INNER JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL").
+	Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
+	Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
+	Where("users.id = ?", id).
+	Where("users.deleted_at IS NULL").
+	Find(&userTransactions).Error
+	if err != nil {
+		return nil, errors.New("user transactions not found")
+	}
+
+	return userTransactions, nil
 }
