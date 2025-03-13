@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"server/internal/entity"
@@ -9,24 +10,28 @@ import (
 )
 
 type WalletsService interface {
-	GetAllWallets() ([]entity.Wallets, error)
-	GetWalletByID(id string) (entity.Wallets, error)
-	GetWalletsByUserID(id string) ([]entity.Wallets, error)
-	CreateWallet(wallet entity.WalletsRequest) (entity.Wallets, error)
-	UpdateWallet(id string, wallet entity.WalletsRequest) (entity.Wallets, error)
-	DeleteWallet(id string) (entity.Wallets, error)
+	GetAllWallets(ctx context.Context) ([]entity.Wallets, error)
+	GetWalletByID(ctx context.Context, id string) (entity.Wallets, error)
+	GetWalletsByUserID(ctx context.Context, id string) ([]entity.Wallets, error)
+	CreateWallet(ctx context.Context, wallet entity.WalletsRequest) (entity.Wallets, error)
+	UpdateWallet(ctx context.Context, id string, wallet entity.WalletsRequest) (entity.Wallets, error)
+	DeleteWallet(ctx context.Context, id string) (entity.Wallets, error)
 }
 
 type walletsService struct {
+	txManager         repository.TxManager
 	walletsRepository repository.WalletsRepository
 }
 
-func NewWalletService(walletsRepository repository.WalletsRepository) WalletsService {
-	return &walletsService{walletsRepository}
+func NewWalletService(txManager repository.TxManager, walletsRepository repository.WalletsRepository) WalletsService {
+	return &walletsService{
+		txManager:         txManager,
+		walletsRepository: walletsRepository,
+	}
 }
 
-func (wallet_serv *walletsService) GetAllWallets() ([]entity.Wallets, error) {
-	wallets, err := wallet_serv.walletsRepository.GetAllWallets()
+func (wallet_serv *walletsService) GetAllWallets(ctx context.Context) ([]entity.Wallets, error) {
+	wallets, err := wallet_serv.walletsRepository.GetAllWallets(ctx, nil)
 	if err != nil {
 		return nil, errors.New("failed to get wallets")
 	}
@@ -34,8 +39,8 @@ func (wallet_serv *walletsService) GetAllWallets() ([]entity.Wallets, error) {
 	return wallets, nil
 }
 
-func (wallet_serv *walletsService) GetWalletByID(id string) (entity.Wallets, error) {
-	wallet, err := wallet_serv.walletsRepository.GetWalletByID(id)
+func (wallet_serv *walletsService) GetWalletByID(ctx context.Context, id string) (entity.Wallets, error) {
+	wallet, err := wallet_serv.walletsRepository.GetWalletByID(ctx, nil, id)
 	if err != nil {
 		return entity.Wallets{}, errors.New("wallet not found")
 	}
@@ -43,8 +48,8 @@ func (wallet_serv *walletsService) GetWalletByID(id string) (entity.Wallets, err
 	return wallet, nil
 }
 
-func (wallet_serv *walletsService) GetWalletsByUserID(id string) ([]entity.Wallets, error) {
-	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserID(id)
+func (wallet_serv *walletsService) GetWalletsByUserID(ctx context.Context, id string) ([]entity.Wallets, error) {
+	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserID(ctx, nil, id)
 	if err != nil {
 		return nil, errors.New("failed to get wallets")
 	}
@@ -52,7 +57,7 @@ func (wallet_serv *walletsService) GetWalletsByUserID(id string) ([]entity.Walle
 	return wallets, err
 }
 
-func (wallet_serv *walletsService) CreateWallet(wallet entity.WalletsRequest) (entity.Wallets, error) {
+func (wallet_serv *walletsService) CreateWallet(ctx context.Context, wallet entity.WalletsRequest) (entity.Wallets, error) {
 	UserID, err := helper.ParseUUID(wallet.UserID)
 	if err != nil {
 		return entity.Wallets{}, errors.New("invalid user id")
@@ -63,7 +68,7 @@ func (wallet_serv *walletsService) CreateWallet(wallet entity.WalletsRequest) (e
 		return entity.Wallets{}, errors.New("invalid wallet type id")
 	}
 
-	newWallet, err := wallet_serv.walletsRepository.CreateWallet(entity.Wallets{
+	newWallet, err := wallet_serv.walletsRepository.CreateWallet(ctx, nil, entity.Wallets{
 		UserID:       UserID,
 		WalletTypeID: WalletTypeID,
 		Name:         wallet.Name,
@@ -77,8 +82,8 @@ func (wallet_serv *walletsService) CreateWallet(wallet entity.WalletsRequest) (e
 	return newWallet, nil
 }
 
-func (wallet_serv *walletsService) UpdateWallet(id string, wallet entity.WalletsRequest) (entity.Wallets, error) {
-	existingWallet, err := wallet_serv.walletsRepository.GetWalletByID(id)
+func (wallet_serv *walletsService) UpdateWallet(ctx context.Context, id string, wallet entity.WalletsRequest) (entity.Wallets, error) {
+	existingWallet, err := wallet_serv.walletsRepository.GetWalletByID(ctx, nil, id)
 	if err != nil {
 		return entity.Wallets{}, errors.New("wallet not found")
 	}
@@ -87,7 +92,7 @@ func (wallet_serv *walletsService) UpdateWallet(id string, wallet entity.Wallets
 	existingWallet.Number = wallet.Number
 	existingWallet.Balance = wallet.Balance
 
-	newWallet, err := wallet_serv.walletsRepository.UpdateWallet(existingWallet)
+	newWallet, err := wallet_serv.walletsRepository.UpdateWallet(ctx, nil, existingWallet)
 	if err != nil {
 		return entity.Wallets{}, err
 	}
@@ -95,13 +100,13 @@ func (wallet_serv *walletsService) UpdateWallet(id string, wallet entity.Wallets
 	return newWallet, nil
 }
 
-func (wallet_serv *walletsService) DeleteWallet(id string) (entity.Wallets, error) {
-	existingWallet, err := wallet_serv.walletsRepository.GetWalletByID(id)
+func (wallet_serv *walletsService) DeleteWallet(ctx context.Context, id string) (entity.Wallets, error) {
+	existingWallet, err := wallet_serv.walletsRepository.GetWalletByID(ctx, nil, id)
 	if err != nil {
 		return entity.Wallets{}, errors.New("wallet not found")
 	}
 
-	deletedWallet, err := wallet_serv.walletsRepository.DeleteWallet(existingWallet)
+	deletedWallet, err := wallet_serv.walletsRepository.DeleteWallet(ctx, nil, existingWallet)
 	if err != nil {
 		return entity.Wallets{}, err
 	}

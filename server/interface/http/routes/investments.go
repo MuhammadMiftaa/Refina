@@ -10,8 +10,9 @@ import (
 )
 
 func InvestmentRoute(version *gin.RouterGroup, db *gorm.DB) {
+	txManager := repository.NewTxManager(db)
 	Investment_repo := repository.NewInvestmentRepository(db)
-	Investment_serv := service.NewInvestmentService(Investment_repo)
+	Investment_serv := service.NewInvestmentService(txManager, Investment_repo)
 	Investment_handler := handler.NewInvestmentHandler(Investment_serv)
 	
 	// version.Use(middleware.AuthMiddleware())

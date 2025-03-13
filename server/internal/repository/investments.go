@@ -1,18 +1,21 @@
 package repository
 
 import (
+	"context"
+	"errors"
+
 	"server/internal/entity"
 
 	"gorm.io/gorm"
 )
 
 type InvestmentsRepository interface {
-	GetAllInvestments() ([]entity.Investments, error)
-	GetInvestmentByID(id string) (entity.Investments, error)
-	GetInvestmentsByUserID(id string) ([]entity.Investments, error)
-	CreateInvestment(investment entity.Investments) (entity.Investments, error)
-	UpdateInvestment(investment entity.Investments) (entity.Investments, error)
-	DeleteInvestment(investment entity.Investments) (entity.Investments, error)
+	GetAllInvestments(ctx context.Context, tx Transaction) ([]entity.Investments, error)
+	GetInvestmentByID(ctx context.Context, tx Transaction, id string) (entity.Investments, error)
+	GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Investments, error)
+	CreateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
+	UpdateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
+	DeleteInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
 }
 
 type investmentsRepository struct {
@@ -23,57 +26,93 @@ func NewInvestmentRepository(db *gorm.DB) InvestmentsRepository {
 	return &investmentsRepository{db}
 }
 
-func (investment_repo *investmentsRepository) GetAllInvestments() ([]entity.Investments, error) {
-	var investments []entity.Investments
-	err := investment_repo.db.Find(&investments).Error
+// Helper untuk mendapatkan DB instance (transaksi atau biasa)
+func (investment_repo *investmentsRepository) getDB(ctx context.Context, tx Transaction) (*gorm.DB, error) {
+	if tx != nil {
+		gormTx, ok := tx.(*GormTx) // Type assertion ke GORM transaction
+		if !ok {
+			return nil, errors.New("invalid transaction type")
+		}
+		return gormTx.db.WithContext(ctx), nil
+	}
+	return investment_repo.db.WithContext(ctx), nil
+}
+
+func (investment_repo *investmentsRepository) GetAllInvestments(ctx context.Context, tx Transaction) ([]entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
+		return nil, err
+	}
+
+	var investments []entity.Investments
+	if err := db.Find(&investments).Error; err != nil {
 		return nil, err
 	}
 
 	return investments, nil
 }
 
-func (investment_repo *investmentsRepository) GetInvestmentByID(id string) (entity.Investments, error) {
+func (investment_repo *investmentsRepository) GetInvestmentByID(ctx context.Context, tx Transaction, id string) (entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
+	if err != nil {
+		return entity.Investments{}, err
+	}
+
 	var investment entity.Investments
-	err := investment_repo.db.First(&investment, "id = ?", id).Error
-	if err != nil {
+	if err := db.First(&investment, "id = ?", id).Error; err != nil {
 		return entity.Investments{}, err
 	}
 
 	return investment, nil
 }
 
-func (investment_repo *investmentsRepository) GetInvestmentsByUserID(id string) ([]entity.Investments, error) {
-	var investments []entity.Investments
-	err := investment_repo.db.Find(&investments, "user_id = ?", id).Error
+func (investment_repo *investmentsRepository) GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
+		return nil, err
+	}
+
+	var investments []entity.Investments
+	if err := db.Find(&investments, "user_id = ?", id).Error; err != nil {
 		return nil, err
 	}
 
 	return investments, nil
 }
 
-func (investment_repo *investmentsRepository) CreateInvestment(investment entity.Investments) (entity.Investments, error) {
-	err := investment_repo.db.Create(&investment).Error
+func (investment_repo *investmentsRepository) CreateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
+		return entity.Investments{}, err
+	}
+
+	if err := db.Create(&investment).Error; err != nil {
 		return entity.Investments{}, err
 	}
 
 	return investment, nil
 }
 
-func (investment_repo *investmentsRepository) UpdateInvestment(investment entity.Investments) (entity.Investments, error) {
-	err := investment_repo.db.Save(&investment).Error
+func (investment_repo *investmentsRepository) UpdateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
+		return entity.Investments{}, err
+	}
+
+	if err := db.Save(&investment).Error; err != nil {
 		return entity.Investments{}, err
 	}
 
 	return investment, nil
 }
 
-func (investment_repo *investmentsRepository) DeleteInvestment(investment entity.Investments) (entity.Investments, error) {
-	err := investment_repo.db.Delete(&investment).Error
+func (investment_repo *investmentsRepository) DeleteInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error) {
+	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
+		return entity.Investments{}, err
+	}
+
+	if err := db.Delete(&investment).Error; err != nil {
 		return entity.Investments{}, err
 	}
 

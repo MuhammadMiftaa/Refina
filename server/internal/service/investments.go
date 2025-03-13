@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"server/internal/entity"
@@ -9,24 +10,28 @@ import (
 )
 
 type InvestmentsService interface {
-	GetAllInvestments() ([]entity.Investments, error)
-	GetInvestmentByID(id string) (entity.Investments, error)
-	GetInvestmentsByUserID(id string) ([]entity.Investments, error)
-	CreateInvestment(investment entity.InvestmentsRequest) (entity.Investments, error)
-	UpdateInvestment(id string, investment entity.InvestmentsRequest) (entity.Investments, error)
-	DeleteInvestment(id string) (entity.Investments, error)
+	GetAllInvestments(ctx context.Context) ([]entity.Investments, error)
+	GetInvestmentByID(ctx context.Context, id string) (entity.Investments, error)
+	GetInvestmentsByUserID(ctx context.Context, id string) ([]entity.Investments, error)
+	CreateInvestment(ctx context.Context, investment entity.InvestmentsRequest) (entity.Investments, error)
+	UpdateInvestment(ctx context.Context, id string, investment entity.InvestmentsRequest) (entity.Investments, error)
+	DeleteInvestment(ctx context.Context, id string) (entity.Investments, error)
 }
 
 type investmentsService struct {
+	txManager             repository.TxManager
 	investmentsRepository repository.InvestmentsRepository
 }
 
-func NewInvestmentService(investmentsRepository repository.InvestmentsRepository) InvestmentsService {
-	return &investmentsService{investmentsRepository}
+func NewInvestmentService(txManager repository.TxManager, investmentsRepository repository.InvestmentsRepository) InvestmentsService {
+	return &investmentsService{
+		txManager:             txManager,
+		investmentsRepository: investmentsRepository,
+	}
 }
 
-func (investment_serv *investmentsService) GetAllInvestments() ([]entity.Investments, error) {
-	investments, err := investment_serv.investmentsRepository.GetAllInvestments()
+func (investment_serv *investmentsService) GetAllInvestments(ctx context.Context) ([]entity.Investments, error) {
+	investments, err := investment_serv.investmentsRepository.GetAllInvestments(ctx, nil)
 	if err != nil {
 		return nil, errors.New("failed to get investments")
 	}
@@ -34,8 +39,8 @@ func (investment_serv *investmentsService) GetAllInvestments() ([]entity.Investm
 	return investments, nil
 }
 
-func (investment_serv *investmentsService) GetInvestmentByID(id string) (entity.Investments, error) {
-	investment, err := investment_serv.investmentsRepository.GetInvestmentByID(id)
+func (investment_serv *investmentsService) GetInvestmentByID(ctx context.Context, id string) (entity.Investments, error) {
+	investment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
 	if err != nil {
 		return entity.Investments{}, errors.New("investment not found")
 	}
@@ -43,15 +48,15 @@ func (investment_serv *investmentsService) GetInvestmentByID(id string) (entity.
 	return investment, nil
 }
 
-func (investment_serv *investmentsService) GetInvestmentsByUserID(id string) ([]entity.Investments, error) {
-	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(id)
+func (investment_serv *investmentsService) GetInvestmentsByUserID(ctx context.Context, id string) ([]entity.Investments, error) {
+	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(ctx, nil, id)
 	if err != nil {
 		return nil, errors.New("failed to get investments")
 	}
 	return investments, nil
 }
 
-func (investment_serv *investmentsService) CreateInvestment(investment entity.InvestmentsRequest) (entity.Investments, error) {
+func (investment_serv *investmentsService) CreateInvestment(ctx context.Context, investment entity.InvestmentsRequest) (entity.Investments, error) {
 	userID, err := helper.ParseUUID(investment.UserID)
 	if err != nil {
 		return entity.Investments{}, errors.New("invalid user id")
@@ -62,7 +67,7 @@ func (investment_serv *investmentsService) CreateInvestment(investment entity.In
 		return entity.Investments{}, err
 	}
 
-	newInvestment, err := investment_serv.investmentsRepository.CreateInvestment(entity.Investments{
+	newInvestment, err := investment_serv.investmentsRepository.CreateInvestment(ctx, nil, entity.Investments{
 		UserID:           userID,
 		InvestmentTypeID: investmentTypeID,
 		Name:             investment.Name,
@@ -78,8 +83,8 @@ func (investment_serv *investmentsService) CreateInvestment(investment entity.In
 	return newInvestment, nil
 }
 
-func (investment_serv *investmentsService) UpdateInvestment(id string, investment entity.InvestmentsRequest) (entity.Investments, error) {
-	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(id)
+func (investment_serv *investmentsService) UpdateInvestment(ctx context.Context, id string, investment entity.InvestmentsRequest) (entity.Investments, error) {
+	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
 	if err != nil {
 		return entity.Investments{}, errors.New("investment not found")
 	}
@@ -97,7 +102,7 @@ func (investment_serv *investmentsService) UpdateInvestment(id string, investmen
 		existingInvestment.Description = investment.Description
 	}
 
-	investmentUpdated, err := investment_serv.investmentsRepository.UpdateInvestment(existingInvestment)
+	investmentUpdated, err := investment_serv.investmentsRepository.UpdateInvestment(ctx, nil, existingInvestment)
 	if err != nil {
 		return entity.Investments{}, errors.New("failed to update investment")
 	}
@@ -105,13 +110,13 @@ func (investment_serv *investmentsService) UpdateInvestment(id string, investmen
 	return investmentUpdated, nil
 }
 
-func (investment_serv *investmentsService) DeleteInvestment(id string) (entity.Investments, error) {
-	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(id)
+func (investment_serv *investmentsService) DeleteInvestment(ctx context.Context, id string) (entity.Investments, error) {
+	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
 	if err != nil {
 		return entity.Investments{}, errors.New("investment not found")
 	}
 
-	investmentDeleted, err := investment_serv.investmentsRepository.DeleteInvestment(existingInvestment)
+	investmentDeleted, err := investment_serv.investmentsRepository.DeleteInvestment(ctx, nil, existingInvestment)
 	if err != nil {
 		return entity.Investments{}, errors.New("failed to delete investment")
 	}

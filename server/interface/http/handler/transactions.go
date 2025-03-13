@@ -22,7 +22,9 @@ func NewTransactionHandler(transactionServ service.TransactionsService) *Transac
 }
 
 func (transactionHandler *TransactionHandler) GetAllTransactions(c *gin.Context) {
-	transactions, err := transactionHandler.transactionServ.GetAllTransactions()
+	ctx := c.Request.Context()
+
+	transactions, err := transactionHandler.transactionServ.GetAllTransactions(ctx)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -47,9 +49,11 @@ func (transactionHandler *TransactionHandler) GetAllTransactions(c *gin.Context)
 }
 
 func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	transaction, err := transactionHandler.transactionServ.GetTransactionByID(id)
+	transaction, err := transactionHandler.transactionServ.GetTransactionByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -70,9 +74,11 @@ func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context)
 }
 
 func (transactionHandler *TransactionHandler) GetTransactionsByWalletID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	transactions, err := transactionHandler.transactionServ.GetTransactionsByWalletID(id)
+	transactions, err := transactionHandler.transactionServ.GetTransactionsByWalletID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -97,6 +103,8 @@ func (transactionHandler *TransactionHandler) GetTransactionsByWalletID(c *gin.C
 }
 
 func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var transaction entity.TransactionsRequest
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -107,7 +115,7 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 		return
 	}
 
-	transactionCreated, err := transactionHandler.transactionServ.CreateTransaction(transaction)
+	transactionCreated, err := transactionHandler.transactionServ.CreateTransaction(ctx, transaction)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -173,6 +181,8 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 }
 
 func (transactionHandler *TransactionHandler) UpdateTransaction(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var transaction entity.TransactionsRequest
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -185,7 +195,7 @@ func (transactionHandler *TransactionHandler) UpdateTransaction(c *gin.Context) 
 
 	id := c.Param("id")
 
-	transactionUpdated, err := transactionHandler.transactionServ.UpdateTransaction(id, transaction)
+	transactionUpdated, err := transactionHandler.transactionServ.UpdateTransaction(ctx, id, transaction)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -206,9 +216,11 @@ func (transactionHandler *TransactionHandler) UpdateTransaction(c *gin.Context) 
 }
 
 func (transactionHandler *TransactionHandler) DeleteTransaction(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	transactionDeleted, err := transactionHandler.transactionServ.DeleteTransaction(id)
+	transactionDeleted, err := transactionHandler.transactionServ.DeleteTransaction(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,

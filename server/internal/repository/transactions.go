@@ -1,20 +1,21 @@
 package repository
 
 import (
+	"context"
 	"errors"
-
+	
 	"server/internal/entity"
-
+	
 	"gorm.io/gorm"
 )
 
 type TransactionsRepository interface {
-	GetAllTransactions() ([]entity.Transactions, error)
-	GetTransactionByID(id string) (entity.Transactions, error)
-	GetTransactionsByWalletID(id string) ([]entity.Transactions, error)
-	CreateTransaction(transaction entity.Transactions) (entity.Transactions, error)
-	UpdateTransaction(transaction entity.Transactions) (entity.Transactions, error)
-	DeleteTransaction(transaction entity.Transactions) (entity.Transactions, error)
+	GetAllTransactions(ctx context.Context, tx Transaction) ([]entity.Transactions, error)
+	GetTransactionByID(ctx context.Context, tx Transaction, id string) (entity.Transactions, error)
+	GetTransactionsByWalletID(ctx context.Context, tx Transaction, id string) ([]entity.Transactions, error)
+	CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
+	UpdateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
+	DeleteTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 }
 
 type transactionsRepository struct {
@@ -25,55 +26,88 @@ func NewTransactionRepository(db *gorm.DB) TransactionsRepository {
 	return &transactionsRepository{db}
 }
 
-func (transaction_repo *transactionsRepository) GetAllTransactions() ([]entity.Transactions, error) {
-	var transactions []entity.Transactions
-	err := transaction_repo.db.Find(&transactions).Error
+func (transaction_repo *transactionsRepository) getDB(ctx context.Context, tx Transaction) (*gorm.DB, error) {
+	if tx != nil {
+		gormTx, ok := tx.(*GormTx)
+		if !ok {
+			return nil, errors.New("invalid transaction type")
+		}
+		return gormTx.db.WithContext(ctx), nil
+	}
+	return transaction_repo.db.WithContext(ctx), nil
+}
+
+func (transaction_repo *transactionsRepository) GetAllTransactions(ctx context.Context, tx Transaction) ([]entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
+	var transactions []entity.Transactions
+	if err := db.Find(&transactions).Error; err != nil {
+		return nil, err
+	}
 	return transactions, nil
 }
 
-func (transaction_repo *transactionsRepository) GetTransactionByID(id string) (entity.Transactions, error) {
-	var transaction entity.Transactions
-	err := transaction_repo.db.First(&transaction, "id = ?", id).Error
+func (transaction_repo *transactionsRepository) GetTransactionByID(ctx context.Context, tx Transaction, id string) (entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
+		return entity.Transactions{}, err
+	}
+
+	var transaction entity.Transactions
+	if err := db.First(&transaction, "id = ?", id).Error; err != nil {
 		return entity.Transactions{}, errors.New("transaction not found")
 	}
-
 	return transaction, nil
 }
 
-func (transaction_repo *transactionsRepository) GetTransactionsByWalletID(id string) ([]entity.Transactions, error) {
-	var transactions []entity.Transactions
-	err := transaction_repo.db.Find(&transactions, "wallet_id = ?", id).Error
+func (transaction_repo *transactionsRepository) GetTransactionsByWalletID(ctx context.Context, tx Transaction, id string) ([]entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
+	var transactions []entity.Transactions
+	if err := db.Find(&transactions, "wallet_id = ?", id).Error; err != nil {
+		return nil, err
+	}
 	return transactions, nil
 }
 
-func (transaction_repo *transactionsRepository) CreateTransaction(transaction entity.Transactions) (entity.Transactions, error) {
-	err := transaction_repo.db.Create(&transaction).Error
+func (transaction_repo *transactionsRepository) CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
+		return entity.Transactions{}, err
+	}
+
+	if err := db.Create(&transaction).Error; err != nil {
+		return entity.Transactions{}, err
+	}
+
+	return transaction, nil
+}
+
+func (transaction_repo *transactionsRepository) UpdateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
+	if err != nil {
+		return entity.Transactions{}, err
+	}
+
+	if err := db.Save(&transaction).Error; err != nil {
 		return entity.Transactions{}, err
 	}
 	return transaction, nil
 }
 
-func (transaction_repo *transactionsRepository) UpdateTransaction(transaction entity.Transactions) (entity.Transactions, error) {
-	err := transaction_repo.db.Save(&transaction).Error
+func (transaction_repo *transactionsRepository) DeleteTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
 		return entity.Transactions{}, err
 	}
-	return transaction, nil
-}
 
-func (transaction_repo *transactionsRepository) DeleteTransaction(transaction entity.Transactions) (entity.Transactions, error) {
-	err := transaction_repo.db.Delete(&transaction).Error
-	if err != nil {
+	if err := db.Delete(&transaction).Error; err != nil {
 		return entity.Transactions{}, err
 	}
 	return transaction, nil

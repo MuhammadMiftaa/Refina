@@ -19,7 +19,9 @@ func NewInvestmentHandler(investmentService service.InvestmentsService) *investm
 }
 
 func (investment_handler *investmentHandler) GetAllInvestments(c *gin.Context) {
-	investments, err := investment_handler.investmentService.GetAllInvestments()
+	ctx := c.Request.Context()
+
+	investments, err := investment_handler.investmentService.GetAllInvestments(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -44,9 +46,11 @@ func (investment_handler *investmentHandler) GetAllInvestments(c *gin.Context) {
 }
 
 func (investment_handler *investmentHandler) GetInvestmentByID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	investment, err := investment_handler.investmentService.GetInvestmentByID(id)
+	investment, err := investment_handler.investmentService.GetInvestmentByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -66,9 +70,11 @@ func (investment_handler *investmentHandler) GetInvestmentByID(c *gin.Context) {
 }
 
 func (investment_handler *investmentHandler) GetInvestmentsByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	investments, err := investment_handler.investmentService.GetInvestmentsByUserID(id)
+	investments, err := investment_handler.investmentService.GetInvestmentsByUserID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -93,6 +99,8 @@ func (investment_handler *investmentHandler) GetInvestmentsByUserID(c *gin.Conte
 }
 
 func (investment_handler *investmentHandler) CreateInvestment(c *gin.Context) {
+	ctx := c.Request.Context()
+	
 	var investmentRequest entity.InvestmentsRequest
 	if err := c.ShouldBindJSON(&investmentRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -103,7 +111,7 @@ func (investment_handler *investmentHandler) CreateInvestment(c *gin.Context) {
 		return
 	}
 
-	investment, err := investment_handler.investmentService.CreateInvestment(investmentRequest)
+	investment, err := investment_handler.investmentService.CreateInvestment(ctx, investmentRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -124,6 +132,8 @@ func (investment_handler *investmentHandler) CreateInvestment(c *gin.Context) {
 }
 
 func (investment_handler *investmentHandler) UpdateInvestment(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
 	var investmentRequest entity.InvestmentsRequest
@@ -136,7 +146,7 @@ func (investment_handler *investmentHandler) UpdateInvestment(c *gin.Context) {
 		return
 	}
 
-	investment, err := investment_handler.investmentService.UpdateInvestment(id, investmentRequest)
+	investment, err := investment_handler.investmentService.UpdateInvestment(ctx, id, investmentRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -157,9 +167,11 @@ func (investment_handler *investmentHandler) UpdateInvestment(c *gin.Context) {
 }
 
 func (investment_handler *investmentHandler) DeleteInvestment(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	investment, err := investment_handler.investmentService.DeleteInvestment(id)
+	investment, err := investment_handler.investmentService.DeleteInvestment(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,

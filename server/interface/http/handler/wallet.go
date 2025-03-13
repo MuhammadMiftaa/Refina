@@ -19,7 +19,9 @@ func NewWalletHandler(walletService service.WalletsService) *walletHandler {
 }
 
 func (wallet_handler *walletHandler) GetAllWallets(c *gin.Context) {
-	wallets, err := wallet_handler.walletService.GetAllWallets()
+	ctx := c.Request.Context()
+
+	wallets, err := wallet_handler.walletService.GetAllWallets(ctx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -44,9 +46,11 @@ func (wallet_handler *walletHandler) GetAllWallets(c *gin.Context) {
 }
 
 func (wallet_handler *walletHandler) GetWalletByID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	wallet, err := wallet_handler.walletService.GetWalletByID(id)
+	wallet, err := wallet_handler.walletService.GetWalletByID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -66,9 +70,11 @@ func (wallet_handler *walletHandler) GetWalletByID(c *gin.Context) {
 }
 
 func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	wallets, err := wallet_handler.walletService.GetWalletsByUserID(id)
+	wallets, err := wallet_handler.walletService.GetWalletsByUserID(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -93,6 +99,8 @@ func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 }
 
 func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var walletRequest entity.WalletsRequest
 	if err := c.ShouldBindJSON(&walletRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -103,7 +111,7 @@ func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 		return
 	}
 
-	wallet, err := wallet_handler.walletService.CreateWallet(walletRequest)
+	wallet, err := wallet_handler.walletService.CreateWallet(ctx, walletRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -123,6 +131,8 @@ func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 }
 
 func (wallet_handler *walletHandler) UpdateWallet(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
 	var walletRequest entity.WalletsRequest
@@ -135,7 +145,7 @@ func (wallet_handler *walletHandler) UpdateWallet(c *gin.Context) {
 		return
 	}
 
-	wallet, err := wallet_handler.walletService.UpdateWallet(id, walletRequest)
+	wallet, err := wallet_handler.walletService.UpdateWallet(ctx, id, walletRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -155,9 +165,11 @@ func (wallet_handler *walletHandler) UpdateWallet(c *gin.Context) {
 }
 
 func (wallet_handler *walletHandler) DeleteWallet(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	id := c.Param("id")
 
-	wallet, err := wallet_handler.walletService.DeleteWallet(id)
+	wallet, err := wallet_handler.walletService.DeleteWallet(ctx, id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,

@@ -11,10 +11,12 @@ import (
 )
 
 func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
-	Transaction_repo := repository.NewTransactionRepository(db)
-	Wallet_repo := repository.NewWalletRepository(db)
-	Category_repo := repository.NewCategoryRepository(db)
-	Transaction_serv := service.NewTransactionService(Transaction_repo, Wallet_repo, Category_repo)
+	txManager := repository.NewTxManager(db)
+	transactionRepo := repository.NewTransactionRepository(db)
+	walletRepo := repository.NewWalletRepository(db)
+	categoryRepo := repository.NewCategoryRepository(db)
+
+	Transaction_serv := service.NewTransactionService(txManager, transactionRepo, walletRepo, categoryRepo)
 	Transaction_handler := handler.NewTransactionHandler(Transaction_serv)
 
 	version.Use(middleware.AuthMiddleware())
