@@ -1,6 +1,10 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"context"
+
+	"gorm.io/gorm"
+)
 
 type Transaction interface {
 	Commit() error
@@ -8,7 +12,7 @@ type Transaction interface {
 }
 
 type TxManager interface {
-	Begin() (Transaction, error)
+	Begin(ctx context.Context) (Transaction, error)
 }
 
 type GormTx struct {
@@ -31,7 +35,7 @@ func (txm *GormTx) Rollback() error {
 	return txm.db.Rollback().Error
 }
 
-func (txm *GormTxManager) Begin() (Transaction, error) {
-	tx := txm.db.Begin()
+func (txm *GormTxManager) Begin(ctx context.Context) (Transaction, error) {
+	tx := txm.db.Begin().WithContext(ctx)
 	return &GormTx{db: tx}, tx.Error
 }

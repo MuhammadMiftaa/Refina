@@ -62,19 +62,36 @@ func (transaction_serv *transactionsService) GetTransactionsByWalletID(ctx conte
 }
 
 func (transaction_serv *transactionsService) CreateTransaction(ctx context.Context, transaction entity.TransactionsRequest) (entity.Transactions, error) {
-
-	tx, err := transaction_serv.txManager.Begin()
+	tx, err := transaction_serv.txManager.Begin(ctx)
 	if err != nil {
 		return entity.Transactions{}, errors.New("failed to create transaction")
 	}
 
+	defer func() {
+		// Rollback otomatis jika transaksi belum di-commit
+		if r := recover(); r != nil || err != nil {
+			tx.Rollback()
+		}
+	}()
+
 	// Check if wallet and category exist
-	if _, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID); err != nil {
+	wallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID)
+	if err != nil {
 		return entity.Transactions{}, errors.New("wallet not found")
 	}
 
-	if _, err := transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID); err != nil {
+	category, err := transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID)
+	if err != nil {
 		return entity.Transactions{}, errors.New("category not found")
+	}
+
+	// Check if transaction type is valid and update wallet balance
+	if category.Type == "expense" {
+		wallet.Balance -= transaction.Amount
+	} else if category.Type == "income" {
+		wallet.Balance += transaction.Amount
+	} else {
+		return entity.Transactions{}, errors.New("invalid transaction type")
 	}
 
 	// Parse ID from JSON to valid UUID
@@ -88,6 +105,13 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 		return entity.Transactions{}, errors.New("invalid wallet id")
 	}
 
+	// Update wallet balance
+	_, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, wallet)
+	if err != nil {
+		return entity.Transactions{}, errors.New("failed to update wallet")
+	}
+
+	// Create transaction
 	transactionNew, err := transaction_serv.transactionRepo.CreateTransaction(ctx, tx, entity.Transactions{
 		WalletID:        WalletID,
 		CategoryID:      CategoryID,
@@ -98,6 +122,11 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 	if err != nil {
 		return entity.Transactions{}, errors.New("failed to create transaction")
 	}
+
+	// Commit transaksi jika semua sukses
+    if err := tx.Commit(); err != nil {
+        return entity.Transactions{}, errors.New("failed to commit transaction")
+    }
 
 	return transactionNew, nil
 }
