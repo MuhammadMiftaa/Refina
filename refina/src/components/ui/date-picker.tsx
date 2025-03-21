@@ -11,22 +11,28 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 interface DatePickerWithRangeProps {
   className?: string;
-  date: DateRange | undefined
+  date: DateRange | undefined;
   setDate: (date: DateRange | undefined) => void;
 }
 
-export function DatePickerWithRange({ className, date, setDate }: DatePickerWithRangeProps) {
-
+export function DatePickerWithRange({
+  className,
+  date,
+  setDate,
+}: DatePickerWithRangeProps) {
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
-        <PopoverTrigger asChild className="bg-primary border-none shadow-none hover:bg-primary hover:text-[#00D47E]">
+        <PopoverTrigger
+          asChild
+          className="bg-primary hover:bg-primary border-none shadow-none hover:text-[#00D47E]"
+        >
           <Button
             id="date"
             variant={"outline"}
             className={cn(
-              "min-w-[300px] justify-start text-left font-normal text-xl px-8 pb-8 pt-4 rounded-2xl",
-              !date && "text-muted-foreground"
+              "min-w-[300px] justify-start rounded-2xl px-8 pt-4 pb-8 text-left text-xl font-normal",
+              !date && "text-muted-foreground",
             )}
           >
             <CalendarIcon />

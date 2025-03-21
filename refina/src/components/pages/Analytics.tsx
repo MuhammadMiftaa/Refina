@@ -201,50 +201,50 @@ export default function Analytics() {
   });
 
   return (
-    <div className="bg-secondary w-full text-white p-5 min-h-screen">
-      <div className="bg-gradient-to-b from-purple-600 to-[#00D47E] text-purple-500 rounded-2xl p-0.5">
-        <div className="bg-primary w-full rounded-2xl flex justify-between items-center px-4 py-3">
+    <div className="bg-secondary min-h-screen w-full p-5 text-white">
+      <div className="rounded-2xl bg-gradient-to-b from-purple-600 to-[#00D47E] p-0.5 text-purple-500">
+        <div className="bg-primary flex w-full items-center justify-between rounded-2xl px-4 py-3">
           <div className="flex items-center gap-2">
             <LucideHistory />
-            <h1 className="text-2xl font-bold font-poppins">
+            <h1 className="font-poppins text-2xl font-bold">
               Transactions History
             </h1>
           </div>
           <Link
             to={"add"}
-            className="bg-[#00D47E] text-primary py-2 px-4 rounded-lg flex items-center font-poppins font-light"
+            className="text-primary font-poppins flex items-center rounded-lg bg-[#00D47E] px-4 py-2 font-light"
           >
             <FiPlus />
             <span className="ml-2">Add</span>
           </Link>
         </div>
       </div>
-      <div className="flex gap-5 mt-6">
-        <div className="p-0.5 w-fit rounded-2xl font-poppins bg-primary basis-2/5">
-          <h1 className="text-xs text-zinc-400 pt-3 pl-8">Select Date Range</h1>
+      <div className="mt-6 flex gap-5">
+        <div className="font-poppins bg-primary w-fit basis-2/5 rounded-2xl p-0.5">
+          <h1 className="pt-3 pl-8 text-xs text-zinc-400">Select Date Range</h1>
           <DatePickerWithRange
             date={date}
             setDate={setDate}
           ></DatePickerWithRange>
         </div>
-        <div className="bg-[#00D47E] rounded-2xl font-poppins py-3 px-8 w-72 basis-2/5">
+        <div className="font-poppins w-72 basis-2/5 rounded-2xl bg-[#00D47E] px-8 py-3">
           <h1 className="text-xs text-black">Current Balance</h1>
-          <div className="flex items-center gap-3 justify-between">
-            <h2 className=" text-2xl text-black font-bold">Rp. 8.000.000</h2>
-            <div className="text-xl text-black flex flex-col-reverse items-center">
-              <p className="text-xs -mt-1">10%</p>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-bold text-black">Rp. 8.000.000</h2>
+            <div className="flex flex-col-reverse items-center text-xl text-black">
+              <p className="-mt-1 text-xs">10%</p>
               <FaArrowTrendUp />
             </div>
           </div>
         </div>
-        <div className="rounded-2xl bg-primary font-poppins py-3 px-8 flex flex-col items-center justify-center basis-1/5 cursor-pointer duration-100 hover:text-purple-500">
-          <div className="text-3xl w-fit">
+        <div className="bg-primary font-poppins flex basis-1/5 cursor-pointer flex-col items-center justify-center rounded-2xl px-8 py-3 duration-100 hover:text-purple-500">
+          <div className="w-fit text-3xl">
             <FaFilePdf />
           </div>
           <h1>Print to PDF</h1>
         </div>
       </div>
-      <div className="bg-primary rounded-2xl p-4 mt-6">
+      <div className="bg-primary mt-6 rounded-2xl p-4">
         <DataTable columns={columns} data={transactions} />
       </div>
     </div>

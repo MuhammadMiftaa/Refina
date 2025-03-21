@@ -16,7 +16,7 @@ import { createElement } from "react";
 
 function App() {
   const { setProfile } = useProfile(
-    useShallow((state) => ({ setProfile: state.setProfile }))
+    useShallow((state) => ({ setProfile: state.setProfile })),
   );
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
@@ -52,7 +52,7 @@ function App() {
             element={
               <ProtectedRoute isAuthenticated={isAuthenticated}>
                 {createElement(
-                  components[item.title as keyof typeof components]
+                  components[item.title as keyof typeof components],
                 )}
               </ProtectedRoute>
             }

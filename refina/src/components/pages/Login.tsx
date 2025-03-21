@@ -25,7 +25,7 @@ export default function Login(props: {
     getMode() === "production" ? getBackendURL() : "http://localhost:8080";
 
   const { setProfile } = useProfile(
-    useShallow((state) => ({ setProfile: state.setProfile }))
+    useShallow((state) => ({ setProfile: state.setProfile })),
   );
 
   const navigate = useNavigate();
@@ -91,7 +91,7 @@ export default function Login(props: {
     <Navigate to={"/"} />
   ) : (
     <div
-      className="min-h-screen flex relative after:content-[''] after:absolute after:inset-0 after:bg-black/40"
+      className="relative flex min-h-screen after:absolute after:inset-0 after:bg-black/40 after:content-['']"
       style={{
         backgroundImage: "url('/background.jpg')",
         backgroundSize: "cover",
@@ -99,28 +99,28 @@ export default function Login(props: {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="w-[40%] my-20 min-h-96 rounded-xl backdrop-blur bg-white/30 mx-auto z-10 font-inter">
+      <div className="font-inter z-10 mx-auto my-20 min-h-96 w-[40%] rounded-xl bg-white/30 backdrop-blur">
         <div className="p-8">
-          <h1 className="text-5xl pb-2 font-bold text-center bg-clip-text text-transparent from-white to-purple-500 bg-gradient-to-r from-20%">
+          <h1 className="bg-gradient-to-r from-white from-20% to-purple-500 bg-clip-text pb-2 text-center text-5xl font-bold text-transparent">
             Sign In
           </h1>
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
             <div className="mb-5">
               <label
                 htmlFor="email"
-                className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
               >
                 Email
               </label>
               <input
                 type="email"
                 id="email"
-                className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                 placeholder="aralie@mail.com"
                 {...register("email")}
               />
               {formState.errors.email && (
-                <p className="mt-2 text-sm text-red-700 ">
+                <p className="mt-2 text-sm text-red-700">
                   <span className="font-medium">Oops!</span>{" "}
                   {formState.errors.email?.message?.toString()}
                 </p>
@@ -129,30 +129,30 @@ export default function Login(props: {
             <div className="mb-5">
               <label
                 htmlFor="password"
-                className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
               >
                 Password
               </label>
               <input
                 type="password"
                 id="password"
-                className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                 placeholder="********"
                 {...register("password")}
               />
               {formState.errors.password && (
-                <p className="mt-2 text-sm text-red-700 ">
+                <p className="mt-2 text-sm text-red-700">
                   <span className="font-medium">Oops!</span>{" "}
                   {formState.errors.password?.message?.toString()}
                 </p>
               )}
               {error && (
-                <p className="mt-2 text-sm text-red-700 ">
+                <p className="mt-2 text-sm text-red-700">
                   <span className="font-medium">Oops! </span> {error}
                 </p>
               )}
             </div>
-            <div className="text-center text-white text-sm font-extralight">
+            <div className="text-center text-sm font-extralight text-white">
               Don't have an account?{" "}
               <Link to={"/register"} className="font-bold text-purple-950">
                 Register
@@ -161,19 +161,19 @@ export default function Login(props: {
             </div>
             <button
               type="submit"
-              className="w-full mt-5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-800 shadow-lg shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2"
+              className="mt-5 mb-2 w-full rounded-lg bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 px-5 py-2.5 text-center text-sm font-medium text-white shadow-lg shadow-purple-800/80 hover:bg-gradient-to-br focus:ring-4 focus:ring-purple-800 focus:outline-none"
             >
               Sign In
             </button>
           </form>
-          <p className="my-5 text-[0.8rem] font-poppins text-center text-white before:content-['—————'] before:tracking-[-0.15em] before:mr-5 after:content-['—————'] after:tracking-[-0.15em] after:ml-5">
+          <p className="font-poppins my-5 text-center text-[0.8rem] text-white before:mr-5 before:tracking-[-0.15em] before:content-['—————'] after:ml-5 after:tracking-[-0.15em] after:content-['—————']">
             Or sign in with it.
           </p>
-          <div className="flex gap-6 justify-stretch">
+          <div className="flex justify-stretch gap-6">
             <button
               onClick={() => handleOAuth("google")}
               type="button"
-              className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
+              className="flex w-full cursor-pointer justify-center rounded-xl border border-zinc-200 bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 py-2 text-2xl active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
               <svg
@@ -205,14 +205,14 @@ export default function Login(props: {
 
             <button
               onClick={() => handleOAuth("github")}
-              className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-purple-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
+              className="flex w-full cursor-pointer justify-center rounded-xl border border-purple-200 bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 py-2 text-2xl active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
               <VscGithub />
             </button>
             <button
               onClick={() => handleOAuth("microsoft")}
-              className="bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 flex justify-center w-full py-2 text-2xl border border-zinc-200 rounded-xl cursor-pointer active:translate-y-0.5 active:shadow-none"
+              className="flex w-full cursor-pointer justify-center rounded-xl border border-zinc-200 bg-gradient-to-br from-purple-400 via-purple-200 to-purple-400 py-2 text-2xl active:translate-y-0.5 active:shadow-none"
               style={{ boxShadow: "0 3px 3px #c084fc " }}
             >
               <svg

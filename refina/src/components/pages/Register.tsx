@@ -23,7 +23,8 @@ export default function Register(props: {
   isAuthenticated: boolean;
   handleLogin: () => void;
 }) {
-  const backendURL = getMode() === "production" ? getBackendURL() : "http://localhost:8080"
+  const backendURL =
+    getMode() === "production" ? getBackendURL() : "http://localhost:8080";
 
   const navigate = useNavigate();
 
@@ -89,7 +90,7 @@ export default function Register(props: {
     const email = localStorage.getItem("email") || "";
     const code = Array.from(document.querySelectorAll("input")).reduce(
       (acc, input) => acc + input.value,
-      ""
+      "",
     );
 
     if (email === "") {
@@ -120,7 +121,7 @@ export default function Register(props: {
     <Navigate to={"/"} />
   ) : (
     <div
-      className="min-h-screen flex relative after:content-[''] after:absolute after:inset-0 after:bg-black/40"
+      className="relative flex min-h-screen after:absolute after:inset-0 after:bg-black/40 after:content-['']"
       style={{
         backgroundImage: "url('/background.jpg')",
         backgroundSize: "cover",
@@ -128,17 +129,17 @@ export default function Register(props: {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className="w-[45%] my-20 min-h-96 rounded-xl backdrop-blur bg-white/30 mx-auto z-10 font-inter flex flex-col justify-center">
+      <div className="font-inter z-10 mx-auto my-20 flex min-h-96 w-[45%] flex-col justify-center rounded-xl bg-white/30 backdrop-blur">
         <div className="p-8">
           {submited ? (
             <>
-              <h1 className="text-4xl pb-2 font-bold text-center bg-clip-text text-transparent from-white to-purple-500 bg-gradient-to-r from-20%">
+              <h1 className="bg-gradient-to-r from-white from-20% to-purple-500 bg-clip-text pb-2 text-center text-4xl font-bold text-transparent">
                 Verify Your Email Address
               </h1>
-              <h2 className="text-xl text-zinc-300 text-center font-light">
+              <h2 className="text-center text-xl font-light text-zinc-300">
                 Please enter the 6-digit code we sent to{" "}
               </h2>
-              <h3 className="text-xl text-white text-center font-bold -mt-1">
+              <h3 className="-mt-1 text-center text-xl font-bold text-white">
                 {localStorage.getItem("email")}
               </h3>
               <form
@@ -152,53 +153,53 @@ export default function Register(props: {
                 >
                   <InputOTPGroup className="flex justify-center">
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={0}
                     />
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={1}
                     />
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={2}
                     />
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={3}
                     />
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={4}
                     />
                     <InputOTPSlot
-                      className="h-16 w-16 shadow-none text-white text-3xl"
+                      className="h-16 w-16 text-3xl text-white shadow-none"
                       index={5}
                     />
                   </InputOTPGroup>
                 </InputOTP>
                 <p
                   id="helper-text-explanation"
-                  className="mt-2 text-sm font-light text-white text-center"
+                  className="mt-2 text-center text-sm font-light text-white"
                 >
                   Did't get OTP Code?{"  "}
                   <button
                     onClick={sendOTP}
                     type="button"
-                    className="font-bold text-purple-400 mx-auto"
+                    className="mx-auto font-bold text-purple-400"
                   >
                     Send Again
                   </button>
                 </p>
                 <button
                   type="submit"
-                  className="w-full mt-5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-800 shadow-lg shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+                  className="mt-5 w-full rounded-lg bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 px-5 py-2.5 text-center text-sm font-medium text-white shadow-lg shadow-purple-800/80 hover:bg-gradient-to-br focus:ring-4 focus:ring-purple-800 focus:outline-none"
                 >
                   {loading ? (
                     <div role="status">
                       <svg
                         aria-hidden="true"
-                        className="inline w-6 h-6 text-gray-200 animate-spin fill-purple-600"
+                        className="inline h-6 w-6 animate-spin fill-purple-600 text-gray-200"
                         viewBox="0 0 100 101"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -232,26 +233,26 @@ export default function Register(props: {
             </>
           ) : (
             <>
-              <h1 className="text-5xl pb-2 font-bold text-center bg-clip-text text-transparent from-white to-purple-500 bg-gradient-to-r from-20%">
+              <h1 className="bg-gradient-to-r from-white from-20% to-purple-500 bg-clip-text pb-2 text-center text-5xl font-bold text-transparent">
                 Sign Up
               </h1>
               <form onSubmit={onSubmit} className="mt-4 space-y-4 py-4">
                 <div className="mb-5">
                   <label
                     htmlFor="name"
-                    className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                    className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
                   >
                     Name
                   </label>
                   <input
                     type="text"
                     id="name"
-                    className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                    className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                     placeholder="Abigail Rachel"
                     {...register("name")}
                   />
                   {formState.errors.name && (
-                    <p className="mt-2 text-sm text-red-700 ">
+                    <p className="mt-2 text-sm text-red-700">
                       <span className="font-medium">Oops!</span>{" "}
                       {formState.errors.name?.message?.toString()}
                     </p>
@@ -260,19 +261,19 @@ export default function Register(props: {
                 <div className="mb-5">
                   <label
                     htmlFor="email"
-                    className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                    className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
                   >
                     Email
                   </label>
                   <input
                     type="email"
                     id="email"
-                    className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                    className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                     placeholder="aralie@mail.com"
                     {...register("email")}
                   />
                   {formState.errors.email && (
-                    <p className="mt-2 text-sm text-red-700 ">
+                    <p className="mt-2 text-sm text-red-700">
                       <span className="font-medium">Oops!</span>{" "}
                       {formState.errors.email?.message?.toString()}
                     </p>
@@ -281,19 +282,19 @@ export default function Register(props: {
                 <div className="mb-5">
                   <label
                     htmlFor="password"
-                    className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                    className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
                   >
                     Password
                   </label>
                   <input
                     type="password"
                     id="password"
-                    className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                    className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                     placeholder="********"
                     {...register("password")}
                   />
                   {formState.errors.password && (
-                    <p className="mt-2 text-sm text-red-700 ">
+                    <p className="mt-2 text-sm text-red-700">
                       <span className="font-medium">Oops!</span>{" "}
                       {formState.errors.password?.message?.toString()}
                     </p>
@@ -302,7 +303,7 @@ export default function Register(props: {
                 <div className="mb-5">
                   <label
                     htmlFor="password-confirm"
-                    className="block mb-2 text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-white to-purple-400 from-60% w-fit "
+                    className="mb-2 block w-fit bg-gradient-to-r from-white from-60% to-purple-400 bg-clip-text text-sm font-medium text-transparent"
                   >
                     Confirm Password
                   </label>
@@ -310,16 +311,16 @@ export default function Register(props: {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     type="password"
                     id="password-confirm"
-                    className="bg-black-50 border text-white  placeholder-zinc-400 text-sm rounded-lg focus:ring-purple-800 focus:border-purple-500 block w-full p-2.5 bg-gray-700 border-purple-500"
+                    className="bg-black-50 block w-full rounded-lg border border-purple-500 bg-gray-700 p-2.5 text-sm text-white placeholder-zinc-400 focus:border-purple-500 focus:ring-purple-800"
                     placeholder="********"
                   />
                   {error && (
-                    <p className="mt-2 text-sm text-red-700 ">
+                    <p className="mt-2 text-sm text-red-700">
                       <span className="font-medium">Oops! </span> {error}
                     </p>
                   )}
                 </div>
-                <div className="text-center text-white text-sm font-extralight">
+                <div className="text-center text-sm font-extralight text-white">
                   Already have an account?{" "}
                   <Link to={"/login"} className="font-bold text-purple-950">
                     Login
@@ -329,13 +330,13 @@ export default function Register(props: {
                 <button
                   disabled={loading}
                   type="submit"
-                  className="w-full mt-5 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-800 shadow-lg shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mb-2"
+                  className="mt-5 mb-2 w-full rounded-lg bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 px-5 py-2.5 text-center text-sm font-medium text-white shadow-lg shadow-purple-800/80 hover:bg-gradient-to-br focus:ring-4 focus:ring-purple-800 focus:outline-none"
                 >
                   {loading ? (
                     <div role="status">
                       <svg
                         aria-hidden="true"
-                        className="inline w-6 h-6 text-gray-200 animate-spin fill-purple-600"
+                        className="inline h-6 w-6 animate-spin fill-purple-600 text-gray-200"
                         viewBox="0 0 100 101"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -363,12 +364,12 @@ export default function Register(props: {
       {errorOTP && (
         <div
           id="toast-danger"
-          className="flex items-center w-full max-w-xs p-4 mb-4 text-gray-500 bg-white rounded-lg shadow fixed bottom-5 right-5 z-10"
+          className="fixed right-5 bottom-5 z-10 mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-500 shadow"
           role="alert"
         >
-          <div className="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-500 bg-red-100 rounded-lg">
+          <div className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-red-100 text-red-500">
             <svg
-              className="w-5 h-5"
+              className="h-5 w-5"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="currentColor"
@@ -383,13 +384,13 @@ export default function Register(props: {
             disabled={loading}
             onClick={() => setErrorOTP("")}
             type="button"
-            className="ms-auto -mx-1.5 -my-1.5 bg-white text-gray-400 hover:text-gray-900 rounded-lg focus:ring-2 focus:ring-gray-300 p-1.5 hover:bg-gray-100 inline-flex items-center justify-center h-8 w-8"
+            className="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300"
             data-dismiss-target="#toast-danger"
             aria-label="Close"
           >
             <span className="sr-only">Close</span>
             <svg
-              className="w-3 h-3"
+              className="h-3 w-3"
               aria-hidden="true"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"

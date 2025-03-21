@@ -39,9 +39,7 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
-    []
-  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const table = useReactTable({
     data,
@@ -53,7 +51,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     state: {
       columnVisibility,
-      columnFilters
+      columnFilters,
     },
   });
 
@@ -62,24 +60,26 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center">
         <Input
           placeholder="Search by description..."
-          value={(table.getColumn("description")?.getFilterValue() as string) ?? ""}
+          value={
+            (table.getColumn("description")?.getFilterValue() as string) ?? ""
+          }
           onChange={(event) =>
             table.getColumn("description")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm font-poppins border-[#00D47E] shadow-[#00D47E]"
+          className="font-poppins max-w-sm border-[#00D47E] shadow-[#00D47E]"
         />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="ml-auto bg-primary border-purple-600 font-poppins text-purple-400 hover:bg-purple-600 hover:text-primary rounded-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-sm shadow-purple-600"
+              className="bg-primary font-poppins hover:text-primary ml-auto rounded-sm border-purple-600 text-purple-400 shadow-sm shadow-purple-600 hover:bg-purple-600 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
             >
               Columns
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="bg-primary border border-purple-600 text-purple-300 font-poppins"
+            className="bg-primary font-poppins border border-purple-600 text-purple-300"
           >
             {table
               .getAllColumns()
@@ -105,7 +105,10 @@ export function DataTable<TData, TValue>({
         <Table className="font-poppins">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="border-none text-xs hover:bg-slate-900" key={headerGroup.id}>
+              <TableRow
+                className="border-none text-xs hover:bg-slate-900"
+                key={headerGroup.id}
+              >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
@@ -113,7 +116,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -133,7 +136,7 @@ export function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -155,7 +158,7 @@ export function DataTable<TData, TValue>({
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
-          className="bg-primary border-purple-600 font-poppins text-purple-400 hover:bg-purple-600 hover:text-primary active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-sm shadow-purple-600 rounded-sm"
+          className="bg-primary font-poppins hover:text-primary rounded-sm border-purple-600 text-purple-400 shadow-sm shadow-purple-600 hover:bg-purple-600 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
@@ -164,7 +167,7 @@ export function DataTable<TData, TValue>({
         </Button>
         <Button
           variant="outline"
-          className="bg-primary border-purple-600 font-poppins text-purple-400 hover:bg-purple-600 hover:text-primary rounded-sm active:translate-x-[2px] active:translate-y-[2px] active:shadow-none shadow-sm shadow-purple-600"
+          className="bg-primary font-poppins hover:text-primary rounded-sm border-purple-600 text-purple-400 shadow-sm shadow-purple-600 hover:bg-purple-600 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}

@@ -21,7 +21,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     useShallow((state) => ({
       username: state.username,
       email: state.email,
-    }))
+    })),
   );
 
   return (

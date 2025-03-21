@@ -126,6 +126,18 @@
 @theme {
   --font-poppins: "Poppins", sans-serif;
   --font-inter: "Inter", sans-serif;
+  --animate-accordion-down: "accordion-down 0.3s ease-out";
+  --animate-accordion-up: "accordion-up 0.3s ease-out";
+  /* keyframes: {
+    "accordion-down": {
+      from: { height: "0px", opacity: "0" },
+      to: { height: "var(--radix-accordion-content-height)", opacity: "1" },
+    },
+    "accordion-up": {
+      from: { height: "var(--radix-accordion-content-height)", opacity: "1" },
+      to: { height: "0px", opacity: "0" },
+    },
+  }, */
 }
 
 :root {

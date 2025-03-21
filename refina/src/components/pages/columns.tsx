@@ -212,14 +212,14 @@ export const columns: ColumnDef<transactionsType>[] = [
       const type: string = row.getValue("transaction_type");
       return (
         <h1
-          className={`flex items-center gap-2 font-light uppercase px-3 py-1 w-fit rounded-2xl border ${
-            type === "expense" ? "border-red-500 " : "border-green-500 "
+          className={`flex w-fit items-center gap-2 rounded-2xl border px-3 py-1 font-light uppercase ${
+            type === "expense" ? "border-red-500" : "border-green-500"
           }`}
         >
           {type}{" "}
           <span
             className={` ${
-              type === "expense" ? "text-red-500 " : "text-green-500 "
+              type === "expense" ? "text-red-500" : "text-green-500"
             }`}
           >
             {type === "expense" ? (
@@ -260,7 +260,7 @@ export const columns: ColumnDef<transactionsType>[] = [
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-purple-500 hover:text-primary"
+              className="hover:text-primary h-8 w-8 p-0 hover:bg-purple-500"
             >
               <span className="sr-only">Open menu</span>
               <MoreHorizontal className="h-4 w-4" />
@@ -268,7 +268,7 @@ export const columns: ColumnDef<transactionsType>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="bg-primary border border-purple-600 text-purple-300 font-poppins"
+            className="bg-primary font-poppins border border-purple-600 text-purple-300"
           >
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem

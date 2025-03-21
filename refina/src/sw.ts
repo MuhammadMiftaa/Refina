@@ -18,7 +18,7 @@ const imageRoute = new Route(
   },
   new CacheFirst({
     cacheName: "images",
-  })
+  }),
 );
 registerRoute(imageRoute);
 
@@ -29,7 +29,7 @@ const fontRoute = new Route(
   },
   new CacheFirst({
     cacheName: "fonts",
-  })
+  }),
 );
 registerRoute(fontRoute);
 
@@ -40,7 +40,7 @@ const fetchTasksRoute = new Route(
   },
   new NetworkFirst({
     cacheName: "api/fetch-tasks",
-  })
+  }),
 );
 registerRoute(fetchTasksRoute);
 
@@ -49,7 +49,7 @@ const navigationRoute = new NavigationRoute(
   new NetworkFirst({
     cacheName: "navigation",
     networkTimeoutSeconds: 3,
-  })
+  }),
 );
 registerRoute(navigationRoute);
 
@@ -65,7 +65,7 @@ const taskSubmitRoute = new Route(
   new NetworkOnly({
     plugins: [bgSyncPlugin],
   }),
-  "POST"
+  "POST",
 );
 registerRoute(taskSubmitRoute);
 
@@ -76,6 +76,6 @@ const editTaskRoute = new Route(
   new NetworkOnly({
     plugins: [bgSyncPlugin],
   }),
-  "PATCH"
+  "PATCH",
 );
 registerRoute(editTaskRoute);

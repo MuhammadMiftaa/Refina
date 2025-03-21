@@ -20,17 +20,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-export function TeamSwitcher(
-//   {
-//   teams,
-// }: {
-//   teams: {
-//     name: string;
-//     logo: React.ReactNode;
-//     plan: string;
-//   }[];
-// }
-) {
+export function TeamSwitcher() {
+  //   {
+  //   teams,
+  // }: {
+  //   teams: {
+  //     name: string;
+  //     logo: React.ReactNode;
+  //     plan: string;
+  //   }[];
+  // }
   const { isMobile } = useSidebar();
   // const [activeTeam, setActiveTeam] = React.useState(teams[0]);
 
@@ -39,19 +38,19 @@ export function TeamSwitcher(
       <SidebarMenuItem>
         {/* <DropdownMenu>
           <DropdownMenuTrigger asChild> */}
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-            >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg overflow-hidden bg-sidebar-primary text-sidebar-primary-foreground">
-                <img src="/logo.png" alt="Logo Refina" />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">Refina</span>
-                <span className="truncate text-xs">Verified</span>
-              </div>
-            </SidebarMenuButton>
-          {/* </DropdownMenuTrigger>
+        <SidebarMenuButton
+          size="lg"
+          className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+        >
+          <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center overflow-hidden rounded-lg">
+            <img src="/logo.png" alt="Logo Refina" />
+          </div>
+          <div className="grid flex-1 text-left text-sm leading-tight">
+            <span className="truncate font-semibold">Refina</span>
+            <span className="truncate text-xs">Verified</span>
+          </div>
+        </SidebarMenuButton>
+        {/* </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
             align="start"

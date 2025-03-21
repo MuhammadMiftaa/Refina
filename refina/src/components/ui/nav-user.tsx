@@ -50,7 +50,9 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">{GetInitials(user.name)}</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {GetInitials(user.name)}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">{user.name}</span>
@@ -102,7 +104,7 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <button
-                className="relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0 focus:bg-slate-900 focus:text-zinc-50"
+                className="relative flex cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-sm transition-colors outline-none select-none focus:bg-slate-900 focus:text-zinc-50 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0"
                 onClick={HandleLogout}
               >
                 <LogOut className="text-sm" />
