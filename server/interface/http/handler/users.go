@@ -527,9 +527,9 @@ func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
 }
 
 func (user_handler *usersHandler) GetUserWallets(c *gin.Context) {
-	id := c.Param("id")
+	token := c.GetHeader("Authorization")
 
-	userWallets, err := user_handler.usersService.GetUserWallets(id)
+	userWallets, err := user_handler.usersService.GetUserWallets(token)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,

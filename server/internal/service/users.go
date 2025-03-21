@@ -22,7 +22,7 @@ type UsersService interface {
 	VerifyUser(email string) (entity.Users, error)
 	DeleteUser(id string) (entity.Users, error)
 
-	GetUserWallets(id string) (dto.UserWalletsResponse, error)
+	GetUserWallets(token string) (dto.UserWalletsResponse, error)
 	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
 	GetUserTransactions(id string) (dto.UserTransactionsResponse, error)
 }
@@ -186,8 +186,13 @@ func (user_serv *usersService) DeleteUser(id string) (entity.Users, error) {
 	return user_serv.userRepository.DeleteUser(user)
 }
 
-func (user_serv *usersService) GetUserWallets(id string) (dto.UserWalletsResponse, error) {
-	userWallets, err := user_serv.userRepository.GetUserWallets(id)
+func (user_serv *usersService) GetUserWallets(token string) (dto.UserWalletsResponse, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return dto.UserWalletsResponse{}, errors.New("invalid token")
+	}
+
+	userWallets, err := user_serv.userRepository.GetUserWallets(userData.ID)
 	if err != nil || len(userWallets) == 0 {
 		return dto.UserWalletsResponse{}, errors.New("failed to get user wallets")
 	}
