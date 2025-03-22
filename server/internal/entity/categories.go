@@ -18,16 +18,3 @@ type Categories struct {
 	Parent   *Categories  `gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE"` // Relasi ke parent (opsional)
 	Children []Categories `gorm:"foreignKey:ParentID"`                                                             // Relasi ke children (opsional)
 }
-
-type CategoriesResponse struct {
-	ID       string       `json:"id"`
-	ParentID string       `json:"parent_id"`
-	Name     string       `json:"name"`
-	Type     CategoryType `json:"type"`
-}
-
-type CategoriesRequest struct {
-	ParentID string       `json:"parent_id"`
-	Name     string       `json:"name"`
-	Type     CategoryType `json:"type"`
-}

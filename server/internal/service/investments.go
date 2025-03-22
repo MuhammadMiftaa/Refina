@@ -4,18 +4,19 @@ import (
 	"context"
 	"errors"
 
+	"server/internal/dto"
 	"server/internal/entity"
 	"server/internal/helper"
 	"server/internal/repository"
 )
 
 type InvestmentsService interface {
-	GetAllInvestments(ctx context.Context) ([]entity.Investments, error)
-	GetInvestmentByID(ctx context.Context, id string) (entity.Investments, error)
-	GetInvestmentsByUserID(ctx context.Context, id string) ([]entity.Investments, error)
-	CreateInvestment(ctx context.Context, investment entity.InvestmentsRequest) (entity.Investments, error)
-	UpdateInvestment(ctx context.Context, id string, investment entity.InvestmentsRequest) (entity.Investments, error)
-	DeleteInvestment(ctx context.Context, id string) (entity.Investments, error)
+	GetAllInvestments(ctx context.Context) ([]dto.InvestmentsResponse, error)
+	GetInvestmentByID(ctx context.Context, id string) (dto.InvestmentsResponse, error)
+	GetInvestmentsByUserID(ctx context.Context, id string) ([]dto.InvestmentsResponse, error)
+	CreateInvestment(ctx context.Context, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error)
+	UpdateInvestment(ctx context.Context, id string, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error)
+	DeleteInvestment(ctx context.Context, id string) (dto.InvestmentsResponse, error)
 }
 
 type investmentsService struct {
@@ -30,41 +31,56 @@ func NewInvestmentService(txManager repository.TxManager, investmentsRepository 
 	}
 }
 
-func (investment_serv *investmentsService) GetAllInvestments(ctx context.Context) ([]entity.Investments, error) {
+func (investment_serv *investmentsService) GetAllInvestments(ctx context.Context) ([]dto.InvestmentsResponse, error) {
 	investments, err := investment_serv.investmentsRepository.GetAllInvestments(ctx, nil)
 	if err != nil {
 		return nil, errors.New("failed to get investments")
 	}
 
-	return investments, nil
-}
-
-func (investment_serv *investmentsService) GetInvestmentByID(ctx context.Context, id string) (entity.Investments, error) {
-	investment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
-	if err != nil {
-		return entity.Investments{}, errors.New("investment not found")
+	var investmentsResponse []dto.InvestmentsResponse
+	for _, investment := range investments {
+		investmentResponse := helper.ConvertToResponseType(investment).(dto.InvestmentsResponse)
+		investmentsResponse = append(investmentsResponse, investmentResponse)
 	}
 
-	return investment, nil
+	return investmentsResponse, nil
 }
 
-func (investment_serv *investmentsService) GetInvestmentsByUserID(ctx context.Context, id string) ([]entity.Investments, error) {
+func (investment_serv *investmentsService) GetInvestmentByID(ctx context.Context, id string) (dto.InvestmentsResponse, error) {
+	investment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
+	if err != nil {
+		return dto.InvestmentsResponse{}, errors.New("investment not found")
+	}
+
+	investmentResponse := helper.ConvertToResponseType(investment).(dto.InvestmentsResponse)
+
+	return investmentResponse, nil
+}
+
+func (investment_serv *investmentsService) GetInvestmentsByUserID(ctx context.Context, id string) ([]dto.InvestmentsResponse, error) {
 	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(ctx, nil, id)
 	if err != nil {
 		return nil, errors.New("failed to get investments")
 	}
-	return investments, nil
+
+	var investmentsResponse []dto.InvestmentsResponse
+	for _, investment := range investments {
+		investmentResponse := helper.ConvertToResponseType(investment).(dto.InvestmentsResponse)
+		investmentsResponse = append(investmentsResponse, investmentResponse)
+	}
+
+	return investmentsResponse, nil
 }
 
-func (investment_serv *investmentsService) CreateInvestment(ctx context.Context, investment entity.InvestmentsRequest) (entity.Investments, error) {
+func (investment_serv *investmentsService) CreateInvestment(ctx context.Context, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error) {
 	userID, err := helper.ParseUUID(investment.UserID)
 	if err != nil {
-		return entity.Investments{}, errors.New("invalid user id")
+		return dto.InvestmentsResponse{}, errors.New("invalid user id")
 	}
 
 	investmentTypeID, err := helper.ParseUUID(investment.InvestmentTypeID)
 	if err != nil {
-		return entity.Investments{}, err
+		return dto.InvestmentsResponse{}, err
 	}
 
 	newInvestment, err := investment_serv.investmentsRepository.CreateInvestment(ctx, nil, entity.Investments{
@@ -77,16 +93,18 @@ func (investment_serv *investmentsService) CreateInvestment(ctx context.Context,
 		Description:      investment.Description,
 	})
 	if err != nil {
-		return entity.Investments{}, err
+		return dto.InvestmentsResponse{}, err
 	}
 
-	return newInvestment, nil
+	investmentResponse := helper.ConvertToResponseType(newInvestment).(dto.InvestmentsResponse)
+
+	return investmentResponse, nil
 }
 
-func (investment_serv *investmentsService) UpdateInvestment(ctx context.Context, id string, investment entity.InvestmentsRequest) (entity.Investments, error) {
+func (investment_serv *investmentsService) UpdateInvestment(ctx context.Context, id string, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error) {
 	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
 	if err != nil {
-		return entity.Investments{}, errors.New("investment not found")
+		return dto.InvestmentsResponse{}, errors.New("investment not found")
 	}
 
 	if investment.Name != "" {
@@ -104,22 +122,26 @@ func (investment_serv *investmentsService) UpdateInvestment(ctx context.Context,
 
 	investmentUpdated, err := investment_serv.investmentsRepository.UpdateInvestment(ctx, nil, existingInvestment)
 	if err != nil {
-		return entity.Investments{}, errors.New("failed to update investment")
+		return dto.InvestmentsResponse{}, errors.New("failed to update investment")
 	}
 
-	return investmentUpdated, nil
+	investmentResponse := helper.ConvertToResponseType(investmentUpdated).(dto.InvestmentsResponse)
+
+	return investmentResponse, nil
 }
 
-func (investment_serv *investmentsService) DeleteInvestment(ctx context.Context, id string) (entity.Investments, error) {
+func (investment_serv *investmentsService) DeleteInvestment(ctx context.Context, id string) (dto.InvestmentsResponse, error) {
 	existingInvestment, err := investment_serv.investmentsRepository.GetInvestmentByID(ctx, nil, id)
 	if err != nil {
-		return entity.Investments{}, errors.New("investment not found")
+		return dto.InvestmentsResponse{}, errors.New("investment not found")
 	}
 
 	investmentDeleted, err := investment_serv.investmentsRepository.DeleteInvestment(ctx, nil, existingInvestment)
 	if err != nil {
-		return entity.Investments{}, errors.New("failed to delete investment")
+		return dto.InvestmentsResponse{}, errors.New("failed to delete investment")
 	}
 
-	return investmentDeleted, nil
+	investmentResponse := helper.ConvertToResponseType(investmentDeleted).(dto.InvestmentsResponse)
+
+	return investmentResponse, nil
 }

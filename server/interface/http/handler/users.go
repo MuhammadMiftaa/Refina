@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"server/internal/entity"
+	"server/internal/dto"
 	"server/internal/helper"
 	"server/internal/service"
 
@@ -32,7 +32,7 @@ func NewUsersHandler(usersService service.UsersService, otpService service.OTPSe
 }
 
 func (user_handler *usersHandler) Register(c *gin.Context) {
-	var userRequest entity.UsersRequest
+	var userRequest dto.UsersRequest
 	err := c.ShouldBindBodyWithJSON(&userRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -53,19 +53,16 @@ func (user_handler *usersHandler) Register(c *gin.Context) {
 		return
 	}
 
-	// MENGUBAH TIPE ENITITY KE TIPE RESPONSE
-	userResponse := helper.ConvertToResponseType(user)
-
 	c.JSON(http.StatusCreated, gin.H{
 		"statusCode": 201,
 		"status":     true,
 		"message":    "Register user data",
-		"data":       userResponse,
+		"data":       user,
 	})
 }
 
 func (user_handler *usersHandler) Login(c *gin.Context) {
-	var userRequest entity.UsersRequest
+	var userRequest dto.UsersRequest
 	err := c.ShouldBindBodyWithJSON(&userRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -351,18 +348,11 @@ func (user_handler *usersHandler) GetAllUsers(c *gin.Context) {
 		return
 	}
 
-	// MENGUBAH TIPE ENITITY KE TIPE RESPONSE
-	var usersResponse []entity.UsersResponse
-	for _, user := range users {
-		userResponse, _ := helper.ConvertToResponseType(user).(entity.UsersResponse)
-		usersResponse = append(usersResponse, userResponse)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get all users data",
-		"data":       usersResponse,
+		"data":       users,
 	})
 }
 
@@ -379,19 +369,16 @@ func (user_handler *usersHandler) GetUserByID(c *gin.Context) {
 		return
 	}
 
-	// MENGUBAH TIPE ENITITY KE TIPE RESPONSE
-	userResponse := helper.ConvertToResponseType(user)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get user data",
-		"data":       userResponse,
+		"data":       user,
 	})
 }
 
 func (user_handler *usersHandler) UpdateUser(c *gin.Context) {
-	var userRequest entity.UsersRequest
+	var userRequest dto.UsersRequest
 	err := c.ShouldBindBodyWithJSON(&userRequest)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -414,14 +401,11 @@ func (user_handler *usersHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// MENGUBAH TIPE ENITITY KE TIPE RESPONSE
-	userResponse := helper.ConvertToResponseType(user)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Update user data",
-		"data":       userResponse,
+		"data":       user,
 	})
 }
 
@@ -438,14 +422,11 @@ func (user_handler *usersHandler) DeleteUser(c *gin.Context) {
 		return
 	}
 
-	// MENGUBAH TIPE ENITITY KE TIPE RESPONSE
-	userResponse := helper.ConvertToResponseType(user)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Delete user data",
-		"data":       userResponse,
+		"data":       user,
 	})
 }
 
@@ -516,13 +497,11 @@ func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
 		return
 	}
 
-	userResponse := helper.ConvertToResponseType(user)
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "OTP verified successfully",
-		"data":       userResponse,
+		"data":       user,
 	})
 }
 

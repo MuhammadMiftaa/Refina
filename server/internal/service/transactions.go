@@ -4,18 +4,19 @@ import (
 	"context"
 	"errors"
 
+	"server/internal/dto"
 	"server/internal/entity"
 	"server/internal/helper"
 	"server/internal/repository"
 )
 
 type TransactionsService interface {
-	GetAllTransactions(ctx context.Context) ([]entity.Transactions, error)
-	GetTransactionByID(ctx context.Context, id string) (entity.Transactions, error)
-	GetTransactionsByWalletID(ctx context.Context, id string) ([]entity.Transactions, error)
-	CreateTransaction(ctx context.Context, transaction entity.TransactionsRequest) (entity.Transactions, error)
-	UpdateTransaction(ctx context.Context, id string, transaction entity.TransactionsRequest) (entity.Transactions, error)
-	DeleteTransaction(ctx context.Context, id string) (entity.Transactions, error)
+	GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error)
+	GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error)
+	GetTransactionsByWalletID(ctx context.Context, id string) ([]dto.TransactionsResponse, error)
+	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
+	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
+	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
 }
 
 type transactionsService struct {
@@ -34,37 +35,52 @@ func NewTransactionService(txManager repository.TxManager, transactionRepo repos
 	}
 }
 
-func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Context) ([]entity.Transactions, error) {
+func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error) {
 	transactions, err := transaction_serv.transactionRepo.GetAllTransactions(ctx, nil)
 	if err != nil {
 		return nil, errors.New("failed to get transactions")
 	}
 
-	return transactions, nil
-}
-
-func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (entity.Transactions, error) {
-	transaction, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
-	if err != nil {
-		return entity.Transactions{}, errors.New("transaction not found")
+	
+	var transactionsResponse []dto.TransactionsResponse
+	for _, transaction := range transactions {
+		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
+		transactionsResponse = append(transactionsResponse, transactionResponse)
 	}
 
-	return transaction, nil
+	return transactionsResponse, nil
 }
 
-func (transaction_serv *transactionsService) GetTransactionsByWalletID(ctx context.Context, id string) ([]entity.Transactions, error) {
+func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error) {
+	transaction, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
+	if err != nil {
+		return dto.TransactionsResponse{}, errors.New("transaction not found")
+	}
+
+	transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
+
+	return transactionResponse, nil
+}
+
+func (transaction_serv *transactionsService) GetTransactionsByWalletID(ctx context.Context, id string) ([]dto.TransactionsResponse, error) {
 	transactions, err := transaction_serv.transactionRepo.GetTransactionsByWalletID(ctx, nil, id)
 	if err != nil {
 		return nil, errors.New("failed to get transactions")
 	}
+	
+	var transactionsResponse []dto.TransactionsResponse
+	for _, transaction := range transactions {
+		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
+		transactionsResponse = append(transactionsResponse, transactionResponse)
+	}
 
-	return transactions, nil
+	return transactionsResponse, nil
 }
 
-func (transaction_serv *transactionsService) CreateTransaction(ctx context.Context, transaction entity.TransactionsRequest) (entity.Transactions, error) {
+func (transaction_serv *transactionsService) CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
 	tx, err := transaction_serv.txManager.Begin(ctx)
 	if err != nil {
-		return entity.Transactions{}, errors.New("failed to create transaction")
+		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
 	}
 
 	defer func() {
@@ -77,12 +93,12 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 	// Check if wallet and category exist
 	wallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID)
 	if err != nil {
-		return entity.Transactions{}, errors.New("wallet not found")
+		return dto.TransactionsResponse{}, errors.New("wallet not found")
 	}
 
 	category, err := transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID)
 	if err != nil {
-		return entity.Transactions{}, errors.New("category not found")
+		return dto.TransactionsResponse{}, errors.New("category not found")
 	}
 
 	// Check if transaction type is valid and update wallet balance
@@ -91,24 +107,24 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 	} else if category.Type == "income" {
 		wallet.Balance += transaction.Amount
 	} else {
-		return entity.Transactions{}, errors.New("invalid transaction type")
+		return dto.TransactionsResponse{}, errors.New("invalid transaction type")
 	}
 
 	// Parse ID from JSON to valid UUID
 	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
 	if err != nil {
-		return entity.Transactions{}, errors.New("invalid category id")
+		return dto.TransactionsResponse{}, errors.New("invalid category id")
 	}
 
 	WalletID, err := helper.ParseUUID(transaction.WalletID)
 	if err != nil {
-		return entity.Transactions{}, errors.New("invalid wallet id")
+		return dto.TransactionsResponse{}, errors.New("invalid wallet id")
 	}
 
 	// Update wallet balance
 	_, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, wallet)
 	if err != nil {
-		return entity.Transactions{}, errors.New("failed to update wallet")
+		return dto.TransactionsResponse{}, errors.New("failed to update wallet")
 	}
 
 	// Create transaction
@@ -120,29 +136,31 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 		Description:     transaction.Description,
 	})
 	if err != nil {
-		return entity.Transactions{}, errors.New("failed to create transaction")
+		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
 	}
 
 	// Commit transaksi jika semua sukses
-    if err := tx.Commit(); err != nil {
-        return entity.Transactions{}, errors.New("failed to commit transaction")
-    }
+	if err := tx.Commit(); err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
+	}
 
-	return transactionNew, nil
+	transactionResponse := helper.ConvertToResponseType(transactionNew).(dto.TransactionsResponse)
+
+	return transactionResponse, nil
 }
 
-func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction entity.TransactionsRequest) (entity.Transactions, error) {
+func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
 	// Check if transaction exist
 	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
 	if err != nil {
-		return entity.Transactions{}, errors.New("transaction not found")
+		return dto.TransactionsResponse{}, errors.New("transaction not found")
 	}
 
 	// Update transaction only if the field is not empty
 	if transaction.CategoryID != "" {
 		CategoryID, err := helper.ParseUUID(transaction.CategoryID)
 		if err != nil {
-			return entity.Transactions{}, errors.New("invalid category id")
+			return dto.TransactionsResponse{}, errors.New("invalid category id")
 		}
 
 		transactionExist.CategoryID = CategoryID
@@ -150,7 +168,7 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 	if transaction.WalletID != "" {
 		WalletID, err := helper.ParseUUID(transaction.WalletID)
 		if err != nil {
-			return entity.Transactions{}, errors.New("invalid wallet id")
+			return dto.TransactionsResponse{}, errors.New("invalid wallet id")
 		}
 
 		transactionExist.WalletID = WalletID
@@ -167,23 +185,27 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 
 	transactionUpdated, err := transaction_serv.transactionRepo.UpdateTransaction(ctx, nil, transactionExist)
 	if err != nil {
-		return entity.Transactions{}, errors.New("failed to update transaction")
+		return dto.TransactionsResponse{}, errors.New("failed to update transaction")
 	}
 
-	return transactionUpdated, nil
+	transactionResponse := helper.ConvertToResponseType(transactionUpdated).(dto.TransactionsResponse)
+
+	return transactionResponse, nil
 }
 
-func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Context, id string) (entity.Transactions, error) {
+func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error) {
 	// Check if transaction exist
 	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
 	if err != nil {
-		return entity.Transactions{}, errors.New("transaction not found")
+		return dto.TransactionsResponse{}, errors.New("transaction not found")
 	}
 
 	transactionDeleted, err := transaction_serv.transactionRepo.DeleteTransaction(ctx, nil, transactionExist)
 	if err != nil {
-		return entity.Transactions{}, errors.New("failed to delete transaction")
+		return dto.TransactionsResponse{}, errors.New("failed to delete transaction")
 	}
 
-	return transactionDeleted, nil
+	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(dto.TransactionsResponse)
+
+	return transactionResponse, nil
 }

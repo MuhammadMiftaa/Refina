@@ -59,13 +59,13 @@ func PasswordHashing(str string) (string, error) {
 func ConvertToResponseType(data interface{}) interface{} {
 	switch v := data.(type) {
 	case entity.Users:
-		return entity.UsersResponse{
+		return dto.UsersResponse{
 			ID:    v.ID.String(),
 			Name:  v.Name,
 			Email: v.Email,
 		}
 	case entity.Transactions:
-		return entity.TransactionsResponse{
+		return dto.TransactionsResponse{
 			ID:              v.ID.String(),
 			WalletID:        v.WalletID.String(),
 			CategoryID:      v.CategoryID.String(),
@@ -74,7 +74,7 @@ func ConvertToResponseType(data interface{}) interface{} {
 			Description:     v.Description,
 		}
 	case entity.Wallets:
-		return entity.WalletsResponse{
+		return dto.WalletsResponse{
 			ID:           v.ID.String(),
 			UserID:       v.UserID.String(),
 			WalletTypeID: v.WalletTypeID.String(),
@@ -83,7 +83,7 @@ func ConvertToResponseType(data interface{}) interface{} {
 			Balance:      v.Balance,
 		}
 	case entity.Investments:
-		return entity.InvestmentsResponse{
+		return dto.InvestmentsResponse{
 			ID:               v.ID.String(),
 			UserID:           v.UserID.String(),
 			InvestmentTypeID: v.InvestmentTypeID.String(),

@@ -1,6 +1,6 @@
 package dto
 
-type TransactionsResponse struct {
+type RawTransactionsResponse struct {
 	ID          string  `json:"id"`
 	Name        string  `json:"name"`
 	Type        string  `json:"type"`
@@ -16,7 +16,7 @@ type WalletWithTransactionsResponse struct {
 	Balance      float64                `json:"balance"`
 	Name         string                 `json:"name"`
 	Type         string                 `json:"type"`
-	Transactions []TransactionsResponse `json:"transactions"`
+	Transactions []RawTransactionsResponse `json:"transactions"`
 }
 
 type UserTransactionsResponse struct {

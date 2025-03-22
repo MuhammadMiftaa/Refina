@@ -3,8 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"server/internal/entity"
-	"server/internal/helper"
+	"server/internal/dto"
 	"server/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -31,17 +30,11 @@ func (investment_handler *investmentHandler) GetAllInvestments(c *gin.Context) {
 		return
 	}
 
-	var investmentsResponse []entity.InvestmentsResponse
-	for _, investment := range investments {
-		investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
-		investmentsResponse = append(investmentsResponse, investmentResponse)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get All Investments",
-		"data":       investmentsResponse,
+		"data":       investments,
 	})
 }
 
@@ -60,12 +53,11 @@ func (investment_handler *investmentHandler) GetInvestmentByID(c *gin.Context) {
 		return
 	}
 
-	investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get Investment by ID",
-		"data":       investmentResponse,
+		"data":       investment,
 	})
 }
 
@@ -84,24 +76,18 @@ func (investment_handler *investmentHandler) GetInvestmentsByUserID(c *gin.Conte
 		return
 	}
 
-	var investmentsResponse []entity.InvestmentsResponse
-	for _, investment := range investments {
-		investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
-		investmentsResponse = append(investmentsResponse, investmentResponse)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Get Investments by User ID",
-		"data":       investmentsResponse,
+		"data":       investments,
 	})
 }
 
 func (investment_handler *investmentHandler) CreateInvestment(c *gin.Context) {
 	ctx := c.Request.Context()
-	
-	var investmentRequest entity.InvestmentsRequest
+
+	var investmentRequest dto.InvestmentsRequest
 	if err := c.ShouldBindJSON(&investmentRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,
@@ -121,13 +107,11 @@ func (investment_handler *investmentHandler) CreateInvestment(c *gin.Context) {
 		return
 	}
 
-	investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Create Investment",
-		"data":       investmentResponse,
+		"data":       investment,
 	})
 }
 
@@ -136,7 +120,7 @@ func (investment_handler *investmentHandler) UpdateInvestment(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var investmentRequest entity.InvestmentsRequest
+	var investmentRequest dto.InvestmentsRequest
 	if err := c.ShouldBindJSON(&investmentRequest); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,
@@ -156,13 +140,11 @@ func (investment_handler *investmentHandler) UpdateInvestment(c *gin.Context) {
 		return
 	}
 
-	investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Update Investment",
-		"data":       investmentResponse,
+		"data":       investment,
 	})
 }
 
@@ -181,12 +163,10 @@ func (investment_handler *investmentHandler) DeleteInvestment(c *gin.Context) {
 		return
 	}
 
-	investmentResponse := helper.ConvertToResponseType(investment).(entity.InvestmentsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
 		"message":    "Delete Investment",
-		"data":       investmentResponse,
+		"data":       investment,
 	})
 }

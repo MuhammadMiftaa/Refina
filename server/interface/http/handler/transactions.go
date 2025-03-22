@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"server/internal/entity"
+	"server/internal/dto"
 	"server/internal/helper"
 	"server/internal/service"
 
@@ -34,17 +34,11 @@ func (transactionHandler *TransactionHandler) GetAllTransactions(c *gin.Context)
 		return
 	}
 
-	var transactionsResponse []entity.TransactionsResponse
-	for _, transaction := range transactions {
-		transactionResponse := helper.ConvertToResponseType(transaction).(entity.TransactionsResponse)
-		transactionsResponse = append(transactionsResponse, transactionResponse)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Get all transactions data",
-		"data":       transactionsResponse,
+		"data":       transactions,
 	})
 }
 
@@ -63,13 +57,11 @@ func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context)
 		return
 	}
 
-	transactionResponse := helper.ConvertToResponseType(transaction).(entity.TransactionsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Get transaction data by ID",
-		"data":       transactionResponse,
+		"data":       transaction,
 	})
 }
 
@@ -88,24 +80,18 @@ func (transactionHandler *TransactionHandler) GetTransactionsByWalletID(c *gin.C
 		return
 	}
 
-	var transactionsResponse []entity.TransactionsResponse
-	for _, transaction := range transactions {
-		transactionResponse := helper.ConvertToResponseType(transaction).(entity.TransactionsResponse)
-		transactionsResponse = append(transactionsResponse, transactionResponse)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Get transactions data by wallet ID",
-		"data":       transactionsResponse,
+		"data":       transactions,
 	})
 }
 
 func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var transaction entity.TransactionsRequest
+	var transaction dto.TransactionsRequest
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -125,13 +111,11 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 		return
 	}
 
-	transactionResponse := helper.ConvertToResponseType(transactionCreated).(entity.TransactionsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Create transaction data",
-		"data":       transactionResponse,
+		"data":       transactionCreated,
 	})
 }
 
@@ -183,7 +167,7 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 func (transactionHandler *TransactionHandler) UpdateTransaction(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	var transaction entity.TransactionsRequest
+	var transaction dto.TransactionsRequest
 	if err := c.ShouldBindJSON(&transaction); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -205,13 +189,11 @@ func (transactionHandler *TransactionHandler) UpdateTransaction(c *gin.Context) 
 		return
 	}
 
-	transactionResponse := helper.ConvertToResponseType(transactionUpdated).(entity.TransactionsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Update transaction data",
-		"data":       transactionResponse,
+		"data":       transactionUpdated,
 	})
 }
 
@@ -230,12 +212,10 @@ func (transactionHandler *TransactionHandler) DeleteTransaction(c *gin.Context) 
 		return
 	}
 
-	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(entity.TransactionsResponse)
-
 	c.JSON(http.StatusOK, gin.H{
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Delete transaction data",
-		"data":       transactionResponse,
+		"data":       transactionDeleted,
 	})
 }

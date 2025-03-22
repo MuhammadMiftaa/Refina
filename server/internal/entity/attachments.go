@@ -9,14 +9,3 @@ type Attachments struct {
 
 	Transaction Transactions `gorm:"foreignKey:TransactionID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
-
-type AttachmentsResponse struct {
-	ID            string `json:"id"`
-	TransactionID string `json:"transaction_id"`
-	Image         string `json:"image"`
-}
-
-type AttachmentsRequest struct {
-	TransactionID string `json:"transaction_id"`
-	Image         string `json:"image"`
-}

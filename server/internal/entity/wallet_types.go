@@ -15,16 +15,3 @@ type WalletTypes struct {
 	Type        WalletType `gorm:"type:varchar(50);not null"`
 	Description string     `gorm:"type:text"`
 }
-
-type WalletTypesResponse struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Type        WalletType `json:"type"`
-	Description string     `json:"description"`
-}
-
-type WalletTypesRequest struct {
-	Name        string     `json:"name"`
-	Type        WalletType `json:"type"`
-	Description string     `json:"description"`
-}
