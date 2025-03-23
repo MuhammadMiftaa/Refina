@@ -8,11 +8,10 @@ import Register from "./components/pages/Register";
 import { decodeJwt } from "jose";
 import { useProfile } from "./store/useProfile";
 import { useShallow } from "zustand/shallow";
-import { data } from "./helper/Data";
 import Wallets from "./components/pages/Wallets";
 import Transactions from "./components/pages/Transactions";
 import Investments from "./components/pages/Investments";
-import { createElement } from "react";
+import CreateWallet from "./components/pages/CreateWallet";
 
 function App() {
   const { setProfile } = useProfile(
@@ -35,29 +34,14 @@ function App() {
     }
   };
 
-  const components = {
-    Analytics,
-    Wallets,
-    Transactions,
-    Investments,
-  } as const;
-
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        {data.navMain.map((item) => (
-          <Route
-            key={item.title}
-            path={item.url}
-            element={
-              <ProtectedRoute isAuthenticated={isAuthenticated}>
-                {createElement(
-                  components[item.title as keyof typeof components],
-                )}
-              </ProtectedRoute>
-            }
-          />
-        ))}
+        <Route path={"/"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Analytics /></ProtectedRoute>}/>
+        <Route path={"/wallets"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Wallets /></ProtectedRoute>}/>
+        <Route path={"/wallets/create"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><CreateWallet /></ProtectedRoute>}/>
+        <Route path={"/transactions"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Transactions /></ProtectedRoute>}/>
+        <Route path={"/investments"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Investments /></ProtectedRoute>}/>
       </Route>
 
       <Route

@@ -86,6 +86,7 @@ func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 
 func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
 	var walletRequest dto.WalletsRequest
 	if err := c.ShouldBindJSON(&walletRequest); err != nil {
@@ -97,7 +98,7 @@ func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 		return
 	}
 
-	wallet, err := wallet_handler.walletService.CreateWallet(ctx, walletRequest)
+	wallet, err := wallet_handler.walletService.CreateWallet(ctx, token, walletRequest)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,

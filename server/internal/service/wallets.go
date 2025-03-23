@@ -14,7 +14,7 @@ type WalletsService interface {
 	GetAllWallets(ctx context.Context) ([]dto.WalletsResponse, error)
 	GetWalletByID(ctx context.Context, id string) (dto.WalletsResponse, error)
 	GetWalletsByUserID(ctx context.Context, id string) ([]dto.WalletsResponse, error)
-	CreateWallet(ctx context.Context, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
+	CreateWallet(ctx context.Context, token string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	UpdateWallet(ctx context.Context, id string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	DeleteWallet(ctx context.Context, id string) (dto.WalletsResponse, error)
 }
@@ -72,8 +72,13 @@ func (wallet_serv *walletsService) GetWalletsByUserID(ctx context.Context, id st
 	return walletsResponse, err
 }
 
-func (wallet_serv *walletsService) CreateWallet(ctx context.Context, wallet dto.WalletsRequest) (dto.WalletsResponse, error) {
-	UserID, err := helper.ParseUUID(wallet.UserID)
+func (wallet_serv *walletsService) CreateWallet(ctx context.Context, token string, wallet dto.WalletsRequest) (dto.WalletsResponse, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return dto.WalletsResponse{}, errors.New("invalid token")
+	}
+
+	UserID, err := helper.ParseUUID(userData.ID)
 	if err != nil {
 		return dto.WalletsResponse{}, errors.New("invalid user id")
 	}
