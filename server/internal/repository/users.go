@@ -88,7 +88,7 @@ func (user_repo *usersRepository) DeleteUser(user entity.Users) (entity.Users, e
 
 func (user_repo *usersRepository) GetUserWallets(id string) ([]entity.UserWallet, error) {
 	var userWallet []entity.UserWallet
-	err := user_repo.db.Table("users").Select("wallets.id, users.id AS user_id, users.name, users.email, wallets.number AS wallet_number, wallets.balance AS wallet_balance, wallet_types.name AS wallet_name, wallet_types.type AS wallet_type").
+	err := user_repo.db.Table("users").Select("wallets.id, users.id AS user_id, users.name, users.email, wallets.number AS wallet_number, wallets.balance AS wallet_balance, wallets.name AS wallet_name, wallet_types.name AS wallet_type_name, wallet_types.type AS wallet_type").
 		Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
 		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
 		Where("users.id = ?", id).

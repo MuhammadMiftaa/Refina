@@ -25,6 +25,7 @@ func SetupRouter(db *gorm.DB, redis *redis.Client) *gin.Engine {
 	routes.TransactionRoutes(v1, db)
 	routes.WalletRoutes(v1, db)
 	routes.InvestmentRoute(v1, db)
+	routes.WalletTypesRoutes(v1, db)
 
 	return router
 }

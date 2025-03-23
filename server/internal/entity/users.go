@@ -19,14 +19,15 @@ type Users struct {
 }
 
 type UserWallet struct {
-	ID            string
-	UserID        string
-	Name          string
-	Email         string
-	WalletNumber  string
-	WalletBalance float64
-	WalletName    string
-	WalletType    string
+	ID             string
+	UserID         string
+	Name           string
+	Email          string
+	WalletNumber   string
+	WalletBalance  float64
+	WalletName     string
+	WalletTypeName string
+	WalletType     string
 }
 
 type UserInvestment struct {

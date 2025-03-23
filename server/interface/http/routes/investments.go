@@ -2,6 +2,7 @@ package routes
 
 import (
 	"server/interface/http/handler"
+	"server/interface/http/middleware"
 	"server/internal/repository"
 	"server/internal/service"
 
@@ -15,7 +16,7 @@ func InvestmentRoute(version *gin.RouterGroup, db *gorm.DB) {
 	Investment_serv := service.NewInvestmentService(txManager, Investment_repo)
 	Investment_handler := handler.NewInvestmentHandler(Investment_serv)
 	
-	// version.Use(middleware.AuthMiddleware())
+	version.Use(middleware.AuthMiddleware())
 	version.GET("investments", Investment_handler.GetAllInvestments)
 	version.GET("investments/:id", Investment_handler.GetInvestmentByID)
 	version.GET("investments/user/:id", Investment_handler.GetInvestmentsByUserID)

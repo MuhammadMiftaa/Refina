@@ -123,7 +123,7 @@ func (user_serv *usersService) GetAllUsers() ([]dto.UsersResponse, error) {
 	users, err := user_serv.userRepository.GetAllUsers()
 	if err != nil {
 		return nil, err
-	}	
+	}
 
 	var usersResponse []dto.UsersResponse
 	for _, user := range users {
@@ -213,7 +213,7 @@ func (user_serv *usersService) VerifyUser(email string) (dto.UsersResponse, erro
 	if err != nil {
 		return dto.UsersResponse{}, err
 	}
-	
+
 	userResponse := helper.ConvertToResponseType(userExist).(dto.UsersResponse)
 
 	return userResponse, nil
@@ -253,11 +253,12 @@ func (user_serv *usersService) GetUserWallets(token string) (dto.UserWalletsResp
 	Wallets := make([]dto.WalletResponse, 0, len(userWallets))
 	for _, userWallet := range userWallets {
 		Wallet := dto.WalletResponse{
-			ID:      userWallet.ID,
-			Number:  userWallet.WalletNumber,
-			Balance: userWallet.WalletBalance,
-			Name:    userWallet.WalletName,
-			Type:    userWallet.WalletType,
+			ID:         userWallet.ID,
+			Number:     userWallet.WalletNumber,
+			Balance:    userWallet.WalletBalance,
+			Name:       userWallet.WalletName,
+			WalletType: userWallet.WalletTypeName,
+			Type:       userWallet.WalletType,
 		}
 		Wallets = append(Wallets, Wallet)
 	}

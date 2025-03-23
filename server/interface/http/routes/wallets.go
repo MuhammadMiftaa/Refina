@@ -2,7 +2,7 @@ package routes
 
 import (
 	"server/interface/http/handler"
-	// "server/interface/http/middleware"
+	"server/interface/http/middleware"
 	"server/internal/repository"
 	"server/internal/service"
 
@@ -16,7 +16,7 @@ func WalletRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	Wallet_serv := service.NewWalletService(txManager, Wallet_repo)
 	Wallet_handler := handler.NewWalletHandler(Wallet_serv)
 
-	// version.Use(middleware.AuthMiddleware())
+	version.Use(middleware.AuthMiddleware())
 	version.GET("wallets", Wallet_handler.GetAllWallets)
 	version.GET("wallets/:id", Wallet_handler.GetWalletByID)
 	version.GET("wallets/user/:id", Wallet_handler.GetWalletsByUserID)
