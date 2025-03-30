@@ -548,9 +548,9 @@ func (user_handler *usersHandler) GetUserInvestments(c *gin.Context) {
 }
 
 func (user_handler *usersHandler) GetUserTransactions(c *gin.Context) {
-	id := c.Param("id")
+	token := c.GetHeader("Authorization")
 
-	userTransactions, err := user_handler.usersService.GetUserTransactions(id)
+	userTransactions, err := user_handler.usersService.GetUserTransactions(token)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,

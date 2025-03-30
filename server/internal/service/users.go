@@ -24,7 +24,7 @@ type UsersService interface {
 
 	GetUserWallets(token string) (dto.UserWalletsResponse, error)
 	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
-	GetUserTransactions(id string) (dto.UserTransactionsResponse, error)
+	GetUserTransactions(token string) (dto.UserTransactionsResponse, error)
 }
 
 type usersService struct {
@@ -302,8 +302,13 @@ func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestment
 	}, nil
 }
 
-func (user_serv *usersService) GetUserTransactions(id string) (dto.UserTransactionsResponse, error) {
-	userTransactions, err := user_serv.userRepository.GetUserTransactions(id)
+func (user_serv *usersService) GetUserTransactions(token string) (dto.UserTransactionsResponse, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return dto.UserTransactionsResponse{}, errors.New("invalid token")
+	}
+
+	userTransactions, err := user_serv.userRepository.GetUserTransactions(userData.ID)
 	if err != nil || len(userTransactions) == 0 {
 		return dto.UserTransactionsResponse{}, errors.New("failed to get user transactions")
 	}

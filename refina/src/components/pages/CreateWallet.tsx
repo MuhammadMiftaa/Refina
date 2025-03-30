@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { WalletTypeType } from "@/types/Wallet";
+import { WalletTypeType } from "@/types/UserWallet";
 import Cookies from "js-cookie";
 import { useState } from "react";
 import { SubmitButton } from "../ui/submit-button";
@@ -49,15 +49,14 @@ type WalletFormType = z.infer<typeof WalletForm>;
 
 export default function CreateWallet() {
   const navigate = useNavigate();
-  const [type, setType] = useState("");
-  const [zeroBalance, setZeroBalance] = useState(false);
+  const form = useForm<WalletFormType>({
+    resolver: zodResolver(WalletForm),
+  });
   const { data } = useQuery({
     queryKey: ["wallet-types"],
     queryFn: fetchWalletTypes,
   });
-
   const WalletTypes: WalletTypeType[] = data?.data ?? [];
-
   const Type = [
     { value: "physical", label: "Physical", icon: <FaMoneyBillWave /> },
     { value: "bank", label: "Bank", icon: <CiBank /> },
@@ -65,9 +64,8 @@ export default function CreateWallet() {
     { value: "others", label: "Others", icon: <RxCrumpledPaper /> },
   ];
 
-  const form = useForm<WalletFormType>({
-    resolver: zodResolver(WalletForm),
-  });
+  const [type, setType] = useState("");
+  const [zeroBalance, setZeroBalance] = useState(false);
 
   const onSubmit = form.handleSubmit(async (data) => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/wallets`, {
@@ -91,9 +89,7 @@ export default function CreateWallet() {
   return (
     <div className="font-poppins min-h-screen w-full md:px-4">
       <div className="flex items-start justify-between gap-4 md:items-center">
-        <h1 className="text-3xl font-semibold md:text-4xl">
-          Create New Wallet
-        </h1>
+        <h1 className="text-3xl font-semibold md:text-4xl">Add a New Wallet</h1>
         <button
           className="cursor-pointer rounded-full bg-zinc-100 p-2 text-black/50 shadow duration-200 hover:text-black"
           onClick={() => navigate(-1)}
@@ -141,15 +137,15 @@ export default function CreateWallet() {
               disabled={!type}
               onValueChange={(value) => form.setValue("wallet_type_id", value)}
             >
-              <SelectTrigger className="h-fit w-full px-4 py-2 text-lg shadow-md">
+              <SelectTrigger className="h-fit min-h-11.5 w-full px-4 py-2 text-lg shadow-md">
                 <SelectValue
                   className="text-lg"
-                  placeholder="Select a Wallet Type"
+                  placeholder="Choose a Wallet Type"
                 />
               </SelectTrigger>
               <SelectContent>
                 {WalletTypes.filter((wt) => wt.type === type).map((wt) => (
-                  <SelectItem className="text-lg" value={wt.id}>
+                  <SelectItem key={wt.id} className="text-lg" value={wt.id}>
                     {wt.name}
                   </SelectItem>
                 ))}
@@ -167,7 +163,7 @@ export default function CreateWallet() {
               className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
               type="text"
               id="number"
-              placeholder="Enter Wallet Number"
+              placeholder="Wallet Number"
               {...form.register("number")}
             />
           </div>
@@ -181,7 +177,7 @@ export default function CreateWallet() {
             className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
             type="text"
             id="name"
-            placeholder="Enter Wallet Name"
+            placeholder="Wallet Name"
             {...form.register("name")}
           />
         </div>
@@ -191,12 +187,12 @@ export default function CreateWallet() {
             Balance
           </label>
           <input
-            className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md disabled:bg-gray-200 disabled:cursor-not-allowed"
+            className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md disabled:cursor-not-allowed disabled:bg-gray-200"
             type="number"
             id="balance"
             disabled={zeroBalance}
             value={zeroBalance ? 0 : form.watch("balance")}
-            placeholder="Enter Wallet Balance"
+            placeholder="Wallet Balance"
             {...form.register("balance", { valueAsNumber: true })}
           />
           <label className="group relative mt-2 flex cursor-pointer items-center justify-end">
@@ -207,14 +203,22 @@ export default function CreateWallet() {
             />
             <div className="h-5 w-5 rounded border-2 border-purple-500 bg-white from-purple-500 to-pink-500 transition-all duration-300 ease-in-out peer-checked:rotate-0 peer-checked:border-0 peer-checked:bg-gradient-to-br after:absolute after:top-1/2 after:left-1/2 after:h-4 after:w-4 after:-translate-x-1/2 after:-translate-y-1/2 after:bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cG9seWxpbmUgcG9pbnRzPSIyMCA2IDkgMTcgNCAxMiI+PC9wb2x5bGluZT48L3N2Zz4=')] after:bg-contain after:bg-no-repeat after:opacity-0 after:transition-opacity after:duration-300 after:content-[''] peer-checked:after:opacity-100 hover:shadow-[0_0_15px_rgba(168,85,247,0.5)]"></div>
             <span className="ml-3 text-sm font-medium text-gray-900">
-              Zero Balance
+              Set balance to zero
             </span>
           </label>
         </div>
 
         <div className="flex w-full items-center justify-center gap-4">
-          <CancelButton text="Reset" />
-          <SubmitButton text="Save" />
+          <CancelButton
+            text="Clear Form"
+            onclick={() => {
+              form.reset();
+              setZeroBalance(false);
+              setType("");
+              form.reset({ balance: 0 });
+            }}
+          />
+          <SubmitButton text="Add Wallet" />
         </div>
       </form>
     </div>

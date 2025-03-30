@@ -9,7 +9,7 @@ cleanupOutdatedCaches();
 
 precacheAndRoute(self.__WB_MANIFEST);
 
-self.skipWaiting();
+// self.skipWaiting();
 
 // cache images
 const imageRoute = new Route(

@@ -17,17 +17,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "../ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AspectRatio } from "../ui/aspect-ratio";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "../ui/accordion";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
-import { WalletType } from "@/types/Wallet";
+import { WalletType } from "@/types/UserWallet";
+import { handleCopy, shortenMoney } from "@/helper/Helper";
+import { TransactionType } from "@/types/UserTransaction";
 
 async function fetchWallets() {
   const token = Cookies.get("token");
@@ -47,22 +43,26 @@ async function fetchWallets() {
   return res.json();
 }
 
+async function fetchTransactions() {
+  const token = Cookies.get("token");
+
+  const res = await fetch("http://localhost:8080/v1/users/transactions", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch wallets");
+  }
+
+  return res.json();
+}
+
 export default function Wallets() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [showNumber, setShowNumber] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
-  const { data, isError, isLoading } = useQuery({
-    queryKey: ["wallets"],
-    queryFn: fetchWallets,
-  });
-  const Wallets: WalletType = data?.data ?? {
-    user_id: "",
-    name: "",
-    email: "",
-    wallets: [],
-  };
-
   const WalletType = [
     {
       value: "all",
@@ -86,13 +86,95 @@ export default function Wallets() {
     },
   ];
 
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Terjadi kesalahan saat mengambil data.</p>;
+  const { data: walletData, isLoading: walletLoading } = useQuery({
+    queryKey: ["wallets"],
+    queryFn: fetchWallets,
+  });
+  const { data: transactionData, isLoading: transactionLoading } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: fetchTransactions,
+  });
+
+  const Wallets: WalletType = walletData?.data ?? {
+    user_id: "",
+    name: "",
+    email: "",
+    wallets: [],
+  };
+
+  const Transactions: TransactionType = transactionData?.data ?? {
+    user_id: "",
+    name: "",
+    email: "",
+    wallets: [],
+  };
+
+  const [type, setType] = useState("all");
+  const [search, setSearch] = useState("");
+  const [showNumbers, setShowNumbers] = useState<{ [key: string]: boolean }>(
+    {},
+  );
+  const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
+    {},
+  );
+  const [wallets, setWallets] = useState(Wallets.wallets);
+  const [transactions, setTransactions] = useState(Transactions.wallets);
+
+  useEffect(() => {
+    setWallets(Wallets.wallets);
+  }, [Wallets]);
+
+  useEffect(() => {
+    setTransactions(Transactions.wallets);
+  }, [Transactions]);
+
+  useEffect(() => {
+    const filtered = Wallets.wallets
+      .filter((wallet) => (type !== "all" ? wallet.type === type : true))
+      .filter((wallet) =>
+        search !== "" ? wallet.name.toLowerCase().includes(search) : true,
+      );
+
+    setWallets(filtered);
+
+    if (Transactions.wallets.length > 0) {
+      const walletIDSet = new Set(filtered.map((wallet) => wallet.id));
+
+      const filteredTransactions = Transactions.wallets.filter((wallet) =>
+        walletIDSet.has(wallet.id),
+      );
+
+      setTransactions(filteredTransactions);
+    }
+  }, [type, search]);
+
+  const toggleShowNumber = (id: string) => {
+    setShowNumbers((prev) => ({
+      ...prev,
+      [id]: !prev[id], // Toggle showNumber untuk wallet tertentu
+    }));
+  };
+
+  const copyWalletNumber = (id: string, number: string) => {
+    handleCopy(number);
+    setCopiedStates((prev) => ({
+      ...prev,
+      [id]: true, // Set copied hanya untuk wallet tertentu
+    }));
+    setTimeout(() => {
+      setCopiedStates((prev) => ({
+        ...prev,
+        [id]: false, // Reset copied setelah 2 detik
+      }));
+    }, 2000);
+  };
+
+  if (walletLoading || transactionLoading) return <Skeleton />;
 
   return (
     <div className="font-poppins min-h-screen w-full md:px-4">
-      <div className="flex items-start md:items-center justify-between gap-4">
-        <h1 className="text-3xl md:text-4xl font-semibold">Your Wallet</h1>
+      <div className="flex items-start justify-between gap-4 md:items-center">
+        <h1 className="text-3xl font-semibold md:text-4xl">Your Wallet</h1>
         <button
           className="cursor-pointer rounded-full bg-zinc-100 p-2 text-black/50 shadow duration-200 hover:text-black"
           onClick={() => navigate("/wallets/create")}
@@ -106,7 +188,7 @@ export default function Wallets() {
           <Wallet className="w-8 md:w-fit" size={48} />
           <div>
             <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              4
+              {wallets.length}
             </h1>
             <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
               Total Wallets
@@ -117,7 +199,10 @@ export default function Wallets() {
           <Banknote className="w-8 md:w-fit" size={48} />
           <div>
             <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              RP 15.5 M
+              RP{" "}
+              {shortenMoney(
+                wallets.reduce((acc, wallet) => acc + wallet.balance, 0),
+              )}
             </h1>
             <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
               Total Balance
@@ -128,7 +213,10 @@ export default function Wallets() {
           <ReceiptText className="w-8 md:w-fit" size={48} />
           <div>
             <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              24
+              {transactions.reduce(
+                (acc, wallet) => acc + wallet.transactions.length,
+                0,
+              )}
             </h1>
             <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
               Total Transactions
@@ -138,7 +226,7 @@ export default function Wallets() {
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-4">
-        <Select>
+        <Select onValueChange={(value) => setType(value)}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Wallet Type" />
           </SelectTrigger>
@@ -152,88 +240,136 @@ export default function Wallets() {
         </Select>
         <Input
           placeholder="Find Wallet..."
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => setSearch(event.target.value.toLowerCase())}
           className="max-w-sm shadow"
+          value={search}
         />
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-        {Wallets?.wallets?.map((wallet) => (
-          <div className="min-h-72 rounded-2xl bg-slate-100 p-4 shadow-xl">
-            <h1 className="pt-2 pb-4 pl-2 text-2xl font-semibold">
-              {wallet.name}
-            </h1>
-            <AspectRatio
-              ratio={1.586 / 1}
-              className="relative flex min-h-64 flex-col justify-between rounded-xl bg-linear-to-br/hsl from-indigo-500 to-teal-400 p-10"
-            >
-              <img
-                className="absolute top-16 right-10 w-20"
-                src="/mandiri.svg"
-                alt=""
-              />
-              <div className="flex flex-col text-white">
-                <h1 className="text-zinc-300">Balance</h1>
-                <h2 className="text-4xl font-semibold">RP {wallet.balance}</h2>
-              </div>
-              <div className="flex flex-col">
+      {wallets.length !== 0 ? (
+        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+          {wallets.map((wallet) => (
+            <div className="min-h-72 rounded-2xl bg-slate-100 p-4 shadow-xl">
+              <h1 className="pt-2 pb-4 pl-2 text-2xl font-semibold">
+                {wallet.name}
+              </h1>
+              <AspectRatio
+                ratio={1.586 / 1}
+                className="relative flex min-h-64 flex-col justify-between rounded-xl bg-linear-to-br/hsl from-indigo-500 to-teal-400 p-10"
+              >
+                {/* <img
+                  className="absolute top-16 right-10 w-20"
+                  src="/mandiri.svg"
+                  alt=""
+                /> */}
                 <div className="flex flex-col text-white">
-                  <h1 className="text-zinc-300">Name</h1>
-                  <h2 className="-mt-1 text-xl">{Wallets.name}</h2>
+                  <h1 className="text-zinc-300">Balance</h1>
+                  <h2 className="text-4xl font-semibold">
+                    RP {wallet.balance}
+                  </h2>
                 </div>
-                <div className="mt-5 flex w-full flex-row items-center justify-between text-white">
-                  <div>
-                    <h1 className="text-zinc-300">Account Number</h1>
-                    <h2 className="-mt-1 text-xl">{wallet.number}</h2>
+                <div className="flex flex-col">
+                  <div className="flex flex-col text-white">
+                    <h1 className="text-zinc-300">Name</h1>
+                    <h2 className="-mt-1 text-xl">{Wallets.name}</h2>
                   </div>
-                  <div className="flex gap-4">
-                    <button
-                      onClick={() => setShowNumber(!showNumber)}
-                      className="relative h-6 w-6"
-                    >
-                      {showNumber ? (
-                        <Eye className="absolute top-0" />
-                      ) : (
-                        <EyeClosed className="absolute top-0" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setIsCopied(!isCopied)}
-                      className="relative h-6 w-6"
-                    >
-                      {isCopied ? (
-                        <Check className="absolute top-0" />
-                      ) : (
-                        <Copy className="absolute top-0" />
-                      )}
-                    </button>
+                  <div className="mt-5 flex w-full flex-row items-center justify-between text-white">
+                    <div>
+                      <h1 className="text-zinc-300">Account Number</h1>
+                      <h2 className="-mt-1 text-xl">
+                        {wallet.number.slice(0, 4)}–
+                        {showNumbers[wallet.id]
+                          ? wallet.number.slice(4, 8)
+                          : "****"}
+                        –{wallet.number.slice(8)}
+                      </h2>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={() => toggleShowNumber(wallet.id)}
+                        className="relative h-6 w-6"
+                      >
+                        {showNumbers[wallet.id] ? (
+                          <Eye className="absolute top-0" />
+                        ) : (
+                          <EyeClosed className="absolute top-0" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() =>
+                          copyWalletNumber(wallet.id, wallet.number)
+                        }
+                        className="relative h-6 w-6"
+                      >
+                        {copiedStates[wallet.id] ? (
+                          <Check className="absolute top-0" />
+                        ) : (
+                          <Copy className="absolute top-0" />
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </AspectRatio>
-            <Accordion type="single" collapsible>
-              <AccordionItem value="item-1">
-                <AccordionTrigger>Is it accessible?</AccordionTrigger>
-                <AccordionContent>
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolor
-                  adipisci reiciendis accusamus consectetur nobis doloribus!
-                  Esse nostrum consectetur quas veniam at ullam possimus
-                  reiciendis earum molestiae error voluptatum praesentium, fuga,
-                  magni dicta sed iusto facilis labore repellendus dolor rerum
-                  et, laboriosam illo pariatur! Mollitia provident ut modi,
-                  eligendi optio ducimus, laboriosam, consectetur harum aut
-                  neque a. Incidunt eius repellendus cum dicta error iusto,
-                  dolore dolorum rem? Asperiores rem pariatur tempora voluptates
-                  praesentium eum tenetur, sapiente aliquam libero ipsa soluta,
-                  maxime officiis beatae itaque. Provident nostrum magnam
-                  deserunt illum labore ullam vero hic aut, eligendi est
-                  laudantium consectetur ipsa corporis placeat!
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        ))}
+              </AspectRatio>
+              {/* <Accordion type="single" collapsible>
+                <AccordionItem value="item-1">
+                  <AccordionTrigger>Is it accessible?</AccordionTrigger>
+                  <AccordionContent>
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit.
+                    Dolor adipisci reiciendis accusamus consectetur nobis
+                    doloribus! Esse nostrum consectetur quas veniam at ullam
+                    possimus reiciendis earum molestiae error voluptatum
+                    praesentium, fuga, magni dicta sed iusto facilis labore
+                    repellendus dolor rerum et, laboriosam illo pariatur!
+                    Mollitia provident ut modi, eligendi optio ducimus,
+                    laboriosam, consectetur harum aut neque a. Incidunt eius
+                    repellendus cum dicta error iusto, dolore dolorum rem?
+                    Asperiores rem pariatur tempora voluptates praesentium eum
+                    tenetur, sapiente aliquam libero ipsa soluta, maxime
+                    officiis beatae itaque. Provident nostrum magnam deserunt
+                    illum labore ullam vero hic aut, eligendi est laudantium
+                    consectetur ipsa corporis placeat!
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion> */}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <NotFound />
+      )}
+    </div>
+  );
+}
+
+function Skeleton() {
+  return (
+    <div className="min-h-screen w-full">
+      <div className="h-15 w-full animate-pulse rounded-md bg-gray-200 md:w-100" />
+      <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="h-30 w-full animate-pulse rounded-md bg-gray-200" />
+        <div className="h-30 w-full animate-pulse rounded-md bg-gray-200" />
+        <div className="col-span-2 h-30 w-full animate-pulse rounded-md bg-gray-200 md:col-span-1" />
       </div>
+      <div className="mt-4 flex justify-between gap-4">
+        <div className="h-10 w-full animate-pulse rounded-md bg-gray-200 md:w-50" />
+        <div className="h-10 w-full animate-pulse rounded-md bg-gray-200 md:w-50" />
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="h-72 w-full animate-pulse rounded-md bg-gray-200" />
+        <div className="h-72 w-full animate-pulse rounded-md bg-gray-200" />
+      </div>
+    </div>
+  );
+}
+
+function NotFound() {
+  return (
+    <div className="flex min-h-90 w-full flex-col items-center justify-center">
+      <img className="h-50" src="/assets/notfound.svg" alt="wallet not found" />
+      <h1 className="-mt-5 text-lg font-light md:mt-0 md:text-2xl">
+        No matching wallets found.
+      </h1>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import styled from "styled-components";
 
-export const CancelButton = ({ text }: { text: string }) => {
+export const CancelButton = ({ text, onclick }: { text: string; onclick?: () => void; }) => {
   return (
-    <StyledWrapper className="w-full md:w-70">
-      <button className="btn-donate">{text}</button>
+    <StyledWrapper onClick={onclick} className="w-full md:w-70">
+      <button type="button" className="btn-donate">{text}</button>
     </StyledWrapper>
   );
 };
