@@ -15,6 +15,6 @@ type Categories struct {
 	Name     string       `gorm:"type:varchar(50);not null"`
 	Type     CategoryType `gorm:"type:varchar(50);not null"`
 
-	Parent   *Categories  `gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE"` // Relasi ke parent (opsional)
-	Children []Categories `gorm:"foreignKey:ParentID"`                                                             // Relasi ke children (opsional)
+	Parent   *Categories  `gorm:"foreignKey:ParentID;references:ID;constraint:OnDelete:SET NULL,OnUpdate:CASCADE"`
+	Children []Categories `gorm:"foreignKey:ParentID"`                                                            
 }

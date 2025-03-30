@@ -12,6 +12,7 @@ import (
 type CategoriesRepository interface {
 	GetAllCategories(ctx context.Context, tx Transaction) ([]entity.Categories, error)
 	GetCategoryByID(ctx context.Context, tx Transaction, id string) (entity.Categories, error)
+	GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]entity.Categories, error)
 	CreateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
 	UpdateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
 	DeleteCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
@@ -44,7 +45,7 @@ func (category_repo *categoryRepository) GetAllCategories(ctx context.Context, t
 	}
 
 	var categories []entity.Categories
-	if err := db.Find(&categories).Error; err != nil {
+	if err := db.Preload("Parent").Preload("Children").Find(&categories).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,11 +59,25 @@ func (category_repo *categoryRepository) GetCategoryByID(ctx context.Context, tx
 	}
 
 	var category entity.Categories
-	if err := db.First(&category, "id = ?", id).Error; err != nil {
+	if err := db.Preload("Parent").Preload("Children").First(&category, "id = ?", id).Error; err != nil {
 		return entity.Categories{}, err
 	}
 
 	return category, nil
+}
+
+func (category_repo *categoryRepository) GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]entity.Categories, error) {
+	db, err := category_repo.getDB(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	var categories []entity.Categories
+	if err := db.Preload("Parent").Preload("Children").Where("type = ?", typeCategory).Find(&categories).Error; err != nil {
+		return nil, err
+	}
+
+	return categories, nil
 }
 
 func (category_repo *categoryRepository) CreateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error) {
