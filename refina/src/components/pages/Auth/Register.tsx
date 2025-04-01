@@ -9,7 +9,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { getBackendURL, getMode } from "../../lib/readenv";
+import { getBackendURL, getMode } from "../../../lib/readenv";
 
 const postFormSchema = z.object({
   name: z.string(),

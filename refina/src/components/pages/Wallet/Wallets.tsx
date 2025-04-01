@@ -16,9 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "../ui/input";
+import { Input } from "../../ui/input";
 import { useEffect, useState } from "react";
-import { AspectRatio } from "../ui/aspect-ratio";
+import { AspectRatio } from "../../ui/aspect-ratio";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { WalletType } from "@/types/UserWallet";

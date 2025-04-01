@@ -10,13 +10,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "../../ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { WalletTypeType } from "@/types/UserWallet";
 import Cookies from "js-cookie";
 import { useState } from "react";
-import { SubmitButton } from "../ui/submit-button";
-import { CancelButton } from "../ui/cancel-button";
+import { SubmitButton } from "../../ui/submit-button";
+import { CancelButton } from "../../ui/cancel-button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

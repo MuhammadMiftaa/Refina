@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { VscGithub } from "react-icons/vsc";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
-import { getBackendURL, getMode } from "../../lib/readenv";
+import { getBackendURL, getMode } from "../../../lib/readenv";
 import Cookies from "js-cookie";
 import { decodeJwt } from "jose";
 import { useProfile } from "@/store/useProfile";

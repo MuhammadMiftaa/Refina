@@ -3,15 +3,16 @@ import { useState } from "react";
 import Cookies from "js-cookie";
 import MainLayout from "./components/layouts/MainLayout";
 import Analytics from "./components/pages/Analytics";
-import Login from "./components/pages/Login";
-import Register from "./components/pages/Register";
+import Login from "./components/pages/Auth/Login";
+import Register from "./components/pages/Auth/Register";
 import { decodeJwt } from "jose";
 import { useProfile } from "./store/useProfile";
 import { useShallow } from "zustand/shallow";
-import Wallets from "./components/pages/Wallets";
-import Transactions from "./components/pages/Transactions";
+import Wallets from "./components/pages/Wallet/Wallets";
+import Transactions from "./components/pages/Transaction/Transactions";
 import Investments from "./components/pages/Investments";
-import CreateWallet from "./components/pages/CreateWallet";
+import CreateWallet from "./components/pages/Wallet/CreateWallet";
+import AddTransaction from "./components/pages/Transaction/AddTransaction";
 
 function App() {
   const { setProfile } = useProfile(
@@ -37,11 +38,54 @@ function App() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
-        <Route path={"/"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Analytics /></ProtectedRoute>}/>
-        <Route path={"/wallets"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Wallets /></ProtectedRoute>}/>
-        <Route path={"/wallets/create"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><CreateWallet /></ProtectedRoute>}/>
-        <Route path={"/transactions"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Transactions /></ProtectedRoute>}/>
-        <Route path={"/investments"} element={<ProtectedRoute isAuthenticated={isAuthenticated}><Investments /></ProtectedRoute>}/>
+        <Route
+          path={"/"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Analytics />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={"/wallets"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Wallets />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={"/wallets/create"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <CreateWallet />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={"/transactions"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Transactions />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={"/transactions/add/:type"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <AddTransaction />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={"/investments"}
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated}>
+              <Investments />
+            </ProtectedRoute>
+          }
+        />
       </Route>
 
       <Route

@@ -24,6 +24,14 @@ export function shortenMoney(value: number): string {
   }
 }
 
+export function formatCurrency(amount: string | number): string {
+  const numericAmount = typeof amount === "string" ? parseFloat(amount) : amount;
+  if (isNaN(numericAmount)) {
+    throw new Error("Invalid number format");
+  }
+  return numericAmount.toLocaleString("id-ID");
+}
+
 export async function handleCopy(textToCopy: string) {
   try {
     await navigator.clipboard.writeText(textToCopy);
