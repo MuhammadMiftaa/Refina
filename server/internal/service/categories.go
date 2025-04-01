@@ -11,9 +11,9 @@ import (
 )
 
 type CategoriesService interface {
-	GetAllCategories(ctx context.Context) (map[string][]string, error)
+	GetAllCategories(ctx context.Context) ([]dto.CategoriesResponse, error)
 	GetCategoryByID(ctx context.Context, id string) (dto.CategoriesResponse, error)
-	GetCategoriesByType(ctx context.Context, typeCategory string) (map[string][]string, error)
+	GetCategoriesByType(ctx context.Context, typeCategory string) ([]dto.CategoriesResponse, error)
 	CreateCategory(ctx context.Context, category dto.CategoriesRequest) (dto.CategoriesResponse, error)
 	UpdateCategory(ctx context.Context, id string, category dto.CategoriesRequest) (dto.CategoriesResponse, error)
 	DeleteCategory(ctx context.Context, id string) (dto.CategoriesResponse, error)
@@ -31,21 +31,40 @@ func NewCategoriesService(txManager repository.TxManager, categoryRepository rep
 	}
 }
 
-func (category_serv *categoriesService) GetAllCategories(ctx context.Context) (map[string][]string, error) {
+func (category_serv *categoriesService) GetAllCategories(ctx context.Context) ([]dto.CategoriesResponse, error) {
 	categories, err := category_serv.categoryRepository.GetAllCategories(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	groupedCategories := make(map[string][]string)
+	var groupedCategories []dto.CategoriesResponse
 	for _, category := range categories {
 		if category.ParentID == nil {
-			if _, exists := groupedCategories[category.Name]; !exists {
-				groupedCategories[category.Name] = []string{}
+			exists := false
+			for _, group := range groupedCategories {
+				if group.GroupName == category.Name {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				groupName := category.Name
+				groupedCategories = append(groupedCategories, dto.CategoriesResponse{
+					GroupName: groupName,
+					Type:      dto.CategoryType(category.Type),
+					Category:  []dto.Category{},
+				})
 			}
 		} else {
 			if category.Parent != nil {
-				groupedCategories[category.Parent.Name] = append(groupedCategories[category.Parent.Name], category.Name)
+				for i, group := range groupedCategories {
+					if group.GroupName == category.Parent.Name {
+						groupedCategories[i].Category = append(groupedCategories[i].Category, dto.Category{
+							ID:   category.ID.String(),
+							Name: category.Name,
+						})
+					}
+				}
 			}
 		}
 	}
@@ -62,39 +81,59 @@ func (category_serv *categoriesService) GetCategoryByID(ctx context.Context, id 
 	var response dto.CategoriesResponse
 
 	if category.Parent != nil {
+		var categories []dto.Category
+		categories = append(categories, dto.Category{
+			ID:   category.ID.String(),
+			Name: category.Name,
+		})
 		response = dto.CategoriesResponse{
-			ID:          category.ID.String(),
-			Category:    category.Parent.Name,
-			SubCategory: category.Name,
-			Type:        dto.CategoryType(category.Type),
+			GroupName: category.Parent.Name,
+			Type:      dto.CategoryType(category.Type),
+			Category:  categories,
 		}
 	} else {
 		response = dto.CategoriesResponse{
-			ID:          category.ID.String(),
-			Category:    category.Name,
-			SubCategory: "",
-			Type:        dto.CategoryType(category.Type),
+			GroupName: category.Name,
 		}
 	}
 
 	return response, nil
 }
 
-func (category_serv *categoriesService) GetCategoriesByType(ctx context.Context, typeCategory string) (map[string][]string, error) {
+func (category_serv *categoriesService) GetCategoriesByType(ctx context.Context, typeCategory string) ([]dto.CategoriesResponse, error) {
 	categories, err := category_serv.categoryRepository.GetCategoriesByType(ctx, nil, typeCategory)
 	if err != nil {
 		return nil, err
 	}
 
-	groupedCategories := make(map[string][]string)
+	var groupedCategories []dto.CategoriesResponse
 	for _, category := range categories {
 		if category.ParentID == nil {
-			if _, exists := groupedCategories[category.Name]; !exists {
-				groupedCategories[category.Name] = []string{}
+			exists := false
+			for _, group := range groupedCategories {
+				if group.GroupName == category.Name {
+					exists = true
+					break
+				}
+			}
+			if !exists {
+				groupName := category.Name
+				groupedCategories = append(groupedCategories, dto.CategoriesResponse{
+					GroupName: groupName,
+					Category:  []dto.Category{},
+					Type:      dto.CategoryType(category.Type),
+				})
 			}
 		} else {
 			if category.Parent != nil {
-				groupedCategories[category.Parent.Name] = append(groupedCategories[category.Parent.Name], category.Name)
+				for i, group := range groupedCategories {
+					if group.GroupName == category.Parent.Name {
+						groupedCategories[i].Category = append(groupedCategories[i].Category, dto.Category{
+							ID:   category.ID.String(),
+							Name: category.Name,
+						})
+					}
+				}
 			}
 		}
 	}
@@ -104,6 +143,7 @@ func (category_serv *categoriesService) GetCategoriesByType(ctx context.Context,
 
 func (category_serv *categoriesService) CreateCategory(ctx context.Context, category dto.CategoriesRequest) (dto.CategoriesResponse, error) {
 	var newCategory entity.Categories
+	var parentName string
 	var err error
 	if category.ParentID != "" {
 		parent, err := category_serv.categoryRepository.GetCategoryByID(ctx, nil, category.ParentID)
@@ -111,10 +151,12 @@ func (category_serv *categoriesService) CreateCategory(ctx context.Context, cate
 			return dto.CategoriesResponse{}, err
 		}
 
+		parentName = parent.Name
+
 		newCategory, err = category_serv.categoryRepository.CreateCategory(ctx, nil, entity.Categories{
 			ParentID: &parent.ID,
 			Name:     category.Name,
-			Type:     entity.CategoryType(category.Type),
+			Type:     parent.Type,
 		})
 		if err != nil {
 			return dto.CategoriesResponse{}, err
@@ -130,19 +172,20 @@ func (category_serv *categoriesService) CreateCategory(ctx context.Context, cate
 	}
 
 	var response dto.CategoriesResponse
-	if newCategory.Parent != nil {
+	if category.ParentID != "" {
+		var categories []dto.Category
+		categories = append(categories, dto.Category{
+			ID:   newCategory.ID.String(),
+			Name: newCategory.Name,
+		})
 		response = dto.CategoriesResponse{
-			ID:          newCategory.ID.String(),
-			Category:    newCategory.Parent.Name,
-			SubCategory: newCategory.Name,
-			Type:        dto.CategoryType(newCategory.Type),
+			GroupName: parentName,
+			Type:      dto.CategoryType(newCategory.Type),
+			Category:  categories,
 		}
 	} else {
 		response = dto.CategoriesResponse{
-			ID:          newCategory.ID.String(),
-			Category:    newCategory.Name,
-			SubCategory: "",
-			Type:        dto.CategoryType(newCategory.Type),
+			GroupName: newCategory.Name,
 		}
 	}
 
@@ -170,7 +213,7 @@ func (category_serv *categoriesService) UpdateCategory(ctx context.Context, id s
 	if category.Name != "" {
 		existCategory.Name = category.Name
 	}
-	if category.Type != "" {
+	if category.Type != "" && category.ParentID == "" {
 		existCategory.Type = entity.CategoryType(category.Type)
 	}
 
@@ -178,21 +221,22 @@ func (category_serv *categoriesService) UpdateCategory(ctx context.Context, id s
 	if err != nil {
 		return dto.CategoriesResponse{}, err
 	}
-	
+
 	var response dto.CategoriesResponse
-	if newCategory.Parent != nil {
+	if existCategory.ParentID != nil {
+		var categories []dto.Category
+		categories = append(categories, dto.Category{
+			ID:   newCategory.ID.String(),
+			Name: newCategory.Name,
+		})
 		response = dto.CategoriesResponse{
-			ID:          newCategory.ID.String(),
-			Category:    newCategory.Parent.Name,
-			SubCategory: newCategory.Name,
-			Type:        dto.CategoryType(newCategory.Type),
+			GroupName: existCategory.Parent.Name,
+			Type:      dto.CategoryType(newCategory.Type),
+			Category:  categories,
 		}
 	} else {
 		response = dto.CategoriesResponse{
-			ID:          newCategory.ID.String(),
-			Category:    newCategory.Name,
-			SubCategory: "",
-			Type:        dto.CategoryType(newCategory.Type),
+			GroupName: newCategory.Name,
 		}
 	}
 
@@ -211,19 +255,20 @@ func (category_serv *categoriesService) DeleteCategory(ctx context.Context, id s
 	}
 
 	var response dto.CategoriesResponse
-	if deletedCategory.Parent != nil {
+	if existCategory.ParentID != nil {
+		var categories []dto.Category
+		categories = append(categories, dto.Category{
+			ID:   deletedCategory.ID.String(),
+			Name: deletedCategory.Name,
+		})
 		response = dto.CategoriesResponse{
-			ID:          deletedCategory.ID.String(),
-			Category:    deletedCategory.Parent.Name,
-			SubCategory: deletedCategory.Name,
-			Type:        dto.CategoryType(deletedCategory.Type),
+			GroupName: existCategory.Parent.Name,
+			Type:      dto.CategoryType(deletedCategory.Type),
+			Category:  categories,
 		}
 	} else {
 		response = dto.CategoriesResponse{
-			ID:          deletedCategory.ID.String(),
-			Category:    deletedCategory.Name,
-			SubCategory: "",
-			Type:        dto.CategoryType(deletedCategory.Type),
+			GroupName: deletedCategory.Name,
 		}
 	}
 	return response, nil

@@ -7,11 +7,15 @@ const (
 	Expense CategoryType = "expense"
 )
 
+type Category struct {
+	ID   string       `json:"id"`
+	Name string       `json:"name"`
+}
+
 type CategoriesResponse struct {
-	ID          string       `json:"id"`
-	Category    string       `json:"category"`
-	SubCategory string       `json:"sub_category"`
-	Type        CategoryType `json:"type"`
+	GroupName string     `json:"group_name"`
+	Category  []Category `json:"category"`
+	Type CategoryType `json:"type"`
 }
 
 type CategoriesRequest struct {
