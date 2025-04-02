@@ -6,12 +6,13 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import { CategoryType } from "@/types/Category";
 import { WalletType } from "@/types/UserWallet";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { formatCurrency } from "@/helper/Helper";
 import styled from "styled-components";
 import { NumericFormat } from "react-number-format";
 import { CancelButton } from "@/components/ui/cancel-button";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { FileUpload } from "@/components/ui/file-upload";
 
 async function fetchCategories(type: string) {
   const token = Cookies.get("token");
@@ -83,7 +84,12 @@ export default function AddTransaction() {
     category_id: "",
     date: new Date(),
     description: "",
+    // FUND TRANSFER
+    from_wallet_id: "",
+    to_wallet_id: "",
+    admin_fee: 0,
   });
+  const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
     const flatMap = Categories.flatMap((group) =>
@@ -99,6 +105,72 @@ export default function AddTransaction() {
   useEffect(() => {
     setWallets(Wallets.wallets);
   }, [Wallets]);
+
+  const handleFileUpload = (file: File[]) => {
+    const Files = [...files, ...file];
+    setFiles(Files);
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const token = Cookies.get("token") || "";
+
+    const data =
+      type === "fund_transfer"
+        ? {
+            ...userInput,
+            cash_in_category_id: categories.find((c) => c.name === "Cash In")
+              ?.id,
+            cash_out_category_id: categories.find((c) => c.name === "Cash Out")
+              ?.id,
+          }
+        : userInput;
+
+    try {
+      const res = await fetch("http://localhost:8080/v1/transactions/" + type, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to add transaction");
+      }
+
+      const resData = await res.json();
+
+      await uploadAttachment(resData.data.id, files, token);
+
+      navigate("/transactions");
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+    }
+  };
+
+  const uploadAttachment = async (ID: string, files: File[], token: string) => {
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData();
+      formData.append("attachment", file);
+
+      const res = await fetch(
+        "http://localhost:8080/v1/transactions/attachment/" + ID,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: formData,
+        },
+      );
+
+      if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
+    });
+
+    await Promise.all(uploadPromises);
+  };
 
   if (categoriesLoading || walletsLoading) {
     return <div>Loading...</div>;
@@ -116,222 +188,560 @@ export default function AddTransaction() {
         </button>
       </div>
 
-      <form className="font-poppins mt-8 flex w-full flex-col gap-4 md:gap-10">
-        <div className="flex w-full flex-col">
-          <label className="mb-2" htmlFor="type">
-            Type
-          </label>
-          <Autocomplete
-            className="rounded-lg border-gray-200 shadow-md"
-            options={categories.sort(
-              (a, b) => -b.group_name.localeCompare(a.group_name),
-            )}
-            groupBy={(option) => option.group_name}
-            getOptionLabel={(option) => option.name}
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
-                fontFamily: "Poppins, sans-serif",
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#4f46e5", // Warna hover indigo-600
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#4f46e5", // Warna focus indigo-600
-                  borderWidth: "2px",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                fontFamily: "Poppins, sans-serif",
-                color: "#6b7280", // Warna label gray-500
-                "&.Mui-focused": {
-                  color: "#4f46e5", // Warna label saat focus
-                },
-              },
-            }}
-            onChange={(_, newValue) => {
-              setUserInput((prev) => ({
-                ...prev,
-                category_id: newValue?.id || "",
-              }));
-            }}
-            renderInput={(params) => (
-              <TextField
-                className="font-poppins"
-                {...params}
-                label="Transaction type"
+      <form
+        onSubmit={(e) => handleSubmit(e)}
+        className="font-poppins mt-8 flex w-full flex-col gap-4 md:gap-10"
+      >
+        {type !== "fund_transfer" ? (
+          <>
+            <div className="flex w-full flex-col">
+              <label className="mb-2" htmlFor="type">
+                Type
+              </label>
+              <Autocomplete
+                className="rounded-lg border-gray-200 shadow-md"
+                options={categories.sort(
+                  (a, b) => -b.group_name.localeCompare(a.group_name),
+                )}
+                groupBy={(option) => option.group_name}
+                getOptionLabel={(option) => option.name}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
+                    fontFamily: "Poppins, sans-serif",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#4f46e5", // Warna hover indigo-600
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#4f46e5", // Warna focus indigo-600
+                      borderWidth: "2px",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontFamily: "Poppins, sans-serif",
+                    color: "#6b7280", // Warna label gray-500
+                    "&.Mui-focused": {
+                      color: "#4f46e5", // Warna label saat focus
+                    },
+                  },
+                }}
+                onChange={(_, newValue) => {
+                  setUserInput((prev) => ({
+                    ...prev,
+                    category_id: newValue?.id || "",
+                  }));
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    className="font-poppins"
+                    {...params}
+                    label="Transaction type"
+                  />
+                )}
+                renderGroup={(params) => (
+                  <li key={params.key}>
+                    <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
+                      {params.group}
+                    </h1>
+                    <h2 className="font-poppins">{params.children}</h2>
+                  </li>
+                )}
               />
-            )}
-            renderGroup={(params) => (
-              <li key={params.key}>
-                <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
-                  {params.group}
-                </h1>
-                <h2 className="font-poppins">{params.children}</h2>
-              </li>
-            )}
-          />
-        </div>
+            </div>
 
-        <div className="flex w-full flex-col">
-          <label className="mb-2">Amount (IDR)</label>
-          <NumericFormat
-            value={userInput.amount}
-            onValueChange={(values) => {
-              console.info("DANCOK", userInput);
-              const { floatValue } = values;
-              setUserInput((prev) => ({
-                ...prev,
-                amount: floatValue || 0,
-              }));
-            }}
-            customInput={TextField}
-            valueIsNumericString
-            thousandSeparator=","
-            prefix="Rp. "
-            sx={{
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
-                fontFamily: "Poppins, sans-serif",
-                fontSize: "2rem",
-                textAlign: "center",
-                "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#4f46e5", // Warna hover indigo-600
-                },
-                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                  borderColor: "#4f46e5", // Warna focus indigo-600
-                  borderWidth: "2px",
-                },
-              },
-              "& .MuiInputLabel-root": {
-                fontFamily: "Poppins, sans-serif",
-                color: "#6b7280", // Warna label gray-500
-                "&.Mui-focused": {
-                  color: "#4f46e5", // Warna label saat focus
-                },
-              },
-            }}
-          />
-        </div>
+            <div className="flex w-full flex-col">
+              <label className="mb-2">Amount (IDR)</label>
+              <NumericFormat
+                value={userInput.amount}
+                onValueChange={(values) => {
+                  const { floatValue } = values;
+                  setUserInput((prev) => ({
+                    ...prev,
+                    amount: floatValue || 0,
+                  }));
+                }}
+                customInput={TextField}
+                valueIsNumericString
+                thousandSeparator=","
+                prefix="Rp. "
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
+                    fontFamily: "Poppins, sans-serif",
+                    fontSize: "2rem",
+                    textAlign: "center",
+                    "&:hover .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#4f46e5", // Warna hover indigo-600
+                    },
+                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                      borderColor: "#4f46e5", // Warna focus indigo-600
+                      borderWidth: "2px",
+                    },
+                  },
+                  "& .MuiInputLabel-root": {
+                    fontFamily: "Poppins, sans-serif",
+                    color: "#6b7280", // Warna label gray-500
+                    "&.Mui-focused": {
+                      color: "#4f46e5", // Warna label saat focus
+                    },
+                  },
+                }}
+              />
+            </div>
 
-        <div className="flex w-full flex-col">
-          <label className="mb-2">Wallets</label>
-          <div className="grid grid-cols-2 gap-4">
-            {wallets.map((wallet) => (
-              <label
-                htmlFor={wallet.id}
-                className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 px-6 py-3 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
-                key={wallet.id}
-              >
-                {/* <input
-                  className="hidden"
-                  onChange={(e) =>
-                    setUserInput((prev) => ({
-                      ...prev,
-                      wallet_id: e.target.value,
-                    }))
-                  }
-                  type="radio"
-                  id={wallet.id}
-                  name="type"
-                  value={wallet.id}
-                /> */}
-                <CheckboxStyle>
-                  <label className="neon-checkbox">
-                    <input
-                      onChange={(e) =>
-                        setUserInput((prev) => ({
-                          ...prev,
-                          wallet_id: e.target.value,
-                        }))
-                      }
-                      type="radio"
-                      id={wallet.id}
-                      name="type"
-                      value={wallet.id}
+            <div className="flex w-full flex-col">
+              <label className="mb-2">Wallets</label>
+              <div className="grid grid-cols-2 gap-4">
+                {wallets.map((wallet) => (
+                  <label
+                    htmlFor={wallet.id}
+                    className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
+                    key={wallet.id}
+                  >
+                    <img
+                      className="absolute top-5 right-5 w-14"
+                      src="/mandiri.svg"
+                      alt=""
                     />
-                    <div className="neon-checkbox__frame">
-                      <div className="neon-checkbox__box">
-                        <div className="neon-checkbox__check-container">
-                          <svg
-                            viewBox="0 0 24 24"
-                            className="neon-checkbox__check"
-                          >
-                            <path d="M3,12.5l7,7L21,5" />
-                          </svg>
-                        </div>
-                        <div className="neon-checkbox__glow" />
-                        <div className="neon-checkbox__borders">
-                          <span />
-                          <span />
-                          <span />
-                          <span />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <CheckboxStyle className="h-6 w-6">
+                          <label className="neon-checkbox">
+                            <input
+                              onChange={(e) =>
+                                setUserInput((prev) => ({
+                                  ...prev,
+                                  wallet_id: e.target.value,
+                                }))
+                              }
+                              type="radio"
+                              id={wallet.id}
+                              name="wallet-type"
+                              value={wallet.id}
+                            />
+                            <div className="neon-checkbox__frame">
+                              <div className="neon-checkbox__box">
+                                <div className="neon-checkbox__check-container">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    className="neon-checkbox__check"
+                                  >
+                                    <path d="M3,12.5l7,7L21,5" />
+                                  </svg>
+                                </div>
+                                <div className="neon-checkbox__glow" />
+                                <div className="neon-checkbox__borders">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                              <div className="neon-checkbox__effects">
+                                <div className="neon-checkbox__particles">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                                <div className="neon-checkbox__rings">
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                </div>
+                                <div className="neon-checkbox__sparks">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                        </CheckboxStyle>
+                        <div>
+                          <span className="line-clamp-1 text-lg font-semibold uppercase">
+                            {wallet.name}
+                          </span>
                         </div>
                       </div>
-                      <div className="neon-checkbox__effects">
-                        <div className="neon-checkbox__particles">
-                          <span />
-                          <span />
-                          <span />
-                          <span /> <span />
-                          <span />
-                          <span />
-                          <span /> <span />
-                          <span />
-                          <span />
-                          <span />
-                        </div>
-                        <div className="neon-checkbox__rings">
-                          <div className="ring" />
-                          <div className="ring" />
-                          <div className="ring" />
-                        </div>
-                        <div className="neon-checkbox__sparks">
-                          <span />
-                          <span />
-                          <span />
-                          <span />
+                      <div className="flex items-end justify-between gap-4">
+                        <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
+                          {wallet.number === "—"
+                            ? wallet.number
+                            : wallet.number.slice(0, 4) +
+                              "–" +
+                              wallet.number.slice(4, 8) +
+                              "–" +
+                              wallet.number.slice(8)}
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-right text-lg font-semibold">
+                            RP {formatCurrency(wallet.balance)}
+                          </span>
+                          <span className="-mt-2 text-sm text-zinc-500">
+                            Balance
+                          </span>
                         </div>
                       </div>
                     </div>
                   </label>
-                </CheckboxStyle>
-                <img
-                  className="absolute top-5 right-5 w-10"
-                  src="/mandiri.svg"
-                  alt=""
+                ))}
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col">
+              <label htmlFor="">Description</label>
+              <input
+                className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
+                type="text"
+                id="name"
+                placeholder="Transaction Description"
+                onChange={(e) =>
+                  setUserInput((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex w-full flex-col">
+              <label className="mb-2">From Wallets</label>
+              <div className="grid grid-cols-2 gap-4">
+                {wallets.map((wallet) => (
+                  <label
+                    htmlFor={`from-${wallet.id}`}
+                    className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
+                    key={wallet.id}
+                  >
+                    <img
+                      className="absolute top-5 right-5 w-14"
+                      src="/mandiri.svg"
+                      alt=""
+                    />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <CheckboxStyle className="h-6 w-6">
+                          <label className="neon-checkbox">
+                            <input
+                              onChange={(e) =>
+                                setUserInput((prev) => ({
+                                  ...prev,
+                                  from_wallet_id: e.target.value,
+                                }))
+                              }
+                              type="radio"
+                              id={`from-${wallet.id}`}
+                              name="from-wallet-type"
+                              value={wallet.id}
+                            />
+                            <div className="neon-checkbox__frame">
+                              <div className="neon-checkbox__box">
+                                <div className="neon-checkbox__check-container">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    className="neon-checkbox__check"
+                                  >
+                                    <path d="M3,12.5l7,7L21,5" />
+                                  </svg>
+                                </div>
+                                <div className="neon-checkbox__glow" />
+                                <div className="neon-checkbox__borders">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                              <div className="neon-checkbox__effects">
+                                <div className="neon-checkbox__particles">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                                <div className="neon-checkbox__rings">
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                </div>
+                                <div className="neon-checkbox__sparks">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                        </CheckboxStyle>
+                        <div>
+                          <span className="line-clamp-1 text-lg font-semibold uppercase">
+                            {wallet.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-end justify-between gap-4">
+                        <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
+                          {wallet.number === "—"
+                            ? wallet.number
+                            : wallet.number.slice(0, 4) +
+                              "–" +
+                              wallet.number.slice(4, 8) +
+                              "–" +
+                              wallet.number.slice(8)}
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-right text-lg font-semibold">
+                            RP {formatCurrency(wallet.balance)}
+                          </span>
+                          <span className="-mt-2 text-sm text-zinc-500">
+                            Balance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex w-full basis-2/3 flex-col">
+                <label className="mb-2">Amount (IDR)</label>
+                <NumericFormat
+                  value={userInput.amount}
+                  onValueChange={(values) => {
+                    const { floatValue } = values;
+                    setUserInput((prev) => ({
+                      ...prev,
+                      amount: floatValue || 0,
+                    }));
+                  }}
+                  customInput={TextField}
+                  valueIsNumericString
+                  thousandSeparator=","
+                  prefix="Rp. "
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
+                      fontFamily: "Poppins, sans-serif",
+                      fontSize: "2rem",
+                      textAlign: "center",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#4f46e5", // Warna hover indigo-600
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#4f46e5", // Warna focus indigo-600
+                        borderWidth: "2px",
+                      },
+                    },
+                    "& .MuiInputLabel-root": {
+                      fontFamily: "Poppins, sans-serif",
+                      color: "#6b7280", // Warna label gray-500
+                      "&.Mui-focused": {
+                        color: "#4f46e5", // Warna label saat focus
+                      },
+                    },
+                  }}
                 />
-                <div className="">
-                  <span className="line-clamp-1">{wallet.name}</span>
-                  <span className="line-clamp-1">{wallet.number}</span>
-                  <div className="flex flex-col items-end">
-                    <span className="text-right font-semibold">
-                      RP {formatCurrency(wallet.balance)}
-                    </span>
-                    <span className="-mt-2 text-sm text-zinc-600">Balance</span>
-                  </div>
+              </div>
+              {type === "fund_transfer" && (
+                <div className="flex w-full basis-1/3 flex-col">
+                  <label className="mb-2">Admin Fee (IDR)</label>
+                  <NumericFormat
+                    value={userInput.admin_fee}
+                    onValueChange={(values) => {
+                      const { floatValue } = values;
+                      setUserInput((prev) => ({
+                        ...prev,
+                        admin_fee: floatValue || 0,
+                      }));
+                    }}
+                    customInput={TextField}
+                    valueIsNumericString
+                    thousandSeparator=","
+                    prefix="Rp. "
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
+                        fontFamily: "Poppins, sans-serif",
+                        fontSize: "2rem",
+                        textAlign: "center",
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#4f46e5", // Warna hover indigo-600
+                        },
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: "#4f46e5", // Warna focus indigo-600
+                          borderWidth: "2px",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        fontFamily: "Poppins, sans-serif",
+                        color: "#6b7280", // Warna label gray-500
+                        "&.Mui-focused": {
+                          color: "#4f46e5", // Warna label saat focus
+                        },
+                      },
+                    }}
+                  />
                 </div>
-              </label>
-            ))}
+              )}
+            </div>
+
+            <div className="flex w-full flex-col">
+              <label className="mb-2">To Wallets</label>
+              <div className="grid grid-cols-2 gap-4">
+                {wallets.map((wallet) => (
+                  <label
+                    htmlFor={`to-${wallet.id}`}
+                    className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
+                    key={wallet.id}
+                  >
+                    <img
+                      className="absolute top-5 right-5 w-14"
+                      src="/mandiri.svg"
+                      alt=""
+                    />
+                    <div className="flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <CheckboxStyle className="h-6 w-6">
+                          <label className="neon-checkbox">
+                            <input
+                              onChange={(e) =>
+                                setUserInput((prev) => ({
+                                  ...prev,
+                                  to_wallet_id: e.target.value,
+                                }))
+                              }
+                              type="radio"
+                              id={`to-${wallet.id}`}
+                              name="to-wallet-type"
+                              value={wallet.id}
+                            />
+                            <div className="neon-checkbox__frame">
+                              <div className="neon-checkbox__box">
+                                <div className="neon-checkbox__check-container">
+                                  <svg
+                                    viewBox="0 0 24 24"
+                                    className="neon-checkbox__check"
+                                  >
+                                    <path d="M3,12.5l7,7L21,5" />
+                                  </svg>
+                                </div>
+                                <div className="neon-checkbox__glow" />
+                                <div className="neon-checkbox__borders">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                              <div className="neon-checkbox__effects">
+                                <div className="neon-checkbox__particles">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span /> <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                                <div className="neon-checkbox__rings">
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                  <div className="ring" />
+                                </div>
+                                <div className="neon-checkbox__sparks">
+                                  <span />
+                                  <span />
+                                  <span />
+                                  <span />
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                        </CheckboxStyle>
+                        <div>
+                          <span className="line-clamp-1 text-lg font-semibold uppercase">
+                            {wallet.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-end justify-between gap-4">
+                        <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
+                          {wallet.number === "—"
+                            ? wallet.number
+                            : wallet.number.slice(0, 4) +
+                              "–" +
+                              wallet.number.slice(4, 8) +
+                              "–" +
+                              wallet.number.slice(8)}
+                        </span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-right text-lg font-semibold">
+                            RP {formatCurrency(wallet.balance)}
+                          </span>
+                          <span className="-mt-2 text-sm text-zinc-500">
+                            Balance
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col">
+              <label htmlFor="">Description</label>
+              <input
+                className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
+                type="text"
+                id="name"
+                placeholder="Transaction Description"
+                onChange={(e) =>
+                  setUserInput((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </>
+        )}
+
+        <div className="flex min-h-96 w-full flex-col items-center justify-center">
+          <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
+            <p className="relative z-20 text-base font-bold text-neutral-700 dark:text-neutral-300">
+              Upload Receipt/Invoice (optional)
+            </p>
+            <p className="relative z-20 text-base font-normal text-neutral-400 dark:text-neutral-400">
+              Drag or drop your files here or click to upload
+            </p>
           </div>
+          <FileUpload onChange={handleFileUpload} />
         </div>
 
-        <div className="flex w-full flex-col">
-          <label htmlFor="">Description</label>
-          <input
-            className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
-            type="text"
-            id="name"
-            placeholder="Transaction Description"
-            onChange={(e) =>
-              setUserInput((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-            }
-          />
-        </div>
-
-        <div className="flex w-full items-center justify-center gap-4">
+        <div className="flex w-full items-center justify-center gap-4 py-8">
           <CancelButton
             text="Clear Form"
             // onclick={() => {
@@ -354,9 +764,7 @@ const CheckboxStyle = styled.div`
     --primary-dark: #00cc88;
     --primary-light: #88ffdd;
     --size: 30px;
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
+    position: relative;
     width: var(--size);
     height: var(--size);
     cursor: pointer;

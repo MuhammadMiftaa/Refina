@@ -51,6 +51,10 @@ export default function CreateWallet() {
   const navigate = useNavigate();
   const form = useForm<WalletFormType>({
     resolver: zodResolver(WalletForm),
+    defaultValues: {
+      number: "—",
+      balance: 0,
+    }
   });
   const { data } = useQuery({
     queryKey: ["wallet-types"],
@@ -206,6 +210,11 @@ export default function CreateWallet() {
               Set balance to zero
             </span>
           </label>
+          {form.formState.errors.balance && (
+            <span className="mt-2 text-sm text-red-500">
+              {form.formState.errors.balance.message}
+            </span>
+          )}
         </div>
 
         <div className="flex w-full items-center justify-center gap-4">

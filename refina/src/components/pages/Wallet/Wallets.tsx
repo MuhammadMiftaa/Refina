@@ -22,7 +22,7 @@ import { AspectRatio } from "../../ui/aspect-ratio";
 import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { WalletType } from "@/types/UserWallet";
-import { handleCopy, shortenMoney } from "@/helper/Helper";
+import { formatCurrency, handleCopy, shortenMoney } from "@/helper/Helper";
 import { TransactionType } from "@/types/UserTransaction";
 
 async function fetchWallets() {
@@ -129,22 +129,24 @@ export default function Wallets() {
   }, [Transactions]);
 
   useEffect(() => {
-    const filtered = Wallets.wallets
-      .filter((wallet) => (type !== "all" ? wallet.type === type : true))
-      .filter((wallet) =>
-        search !== "" ? wallet.name.toLowerCase().includes(search) : true,
-      );
+    if (wallets) {
+      const filtered = Wallets.wallets
+        .filter((wallet) => (type !== "all" ? wallet.type === type : true))
+        .filter((wallet) =>
+          search !== "" ? wallet.name.toLowerCase().includes(search) : true,
+        );
 
-    setWallets(filtered);
+      setWallets(filtered);
 
-    if (Transactions.wallets.length > 0) {
-      const walletIDSet = new Set(filtered.map((wallet) => wallet.id));
+      if (Transactions.wallets.length > 0) {
+        const walletIDSet = new Set(filtered.map((wallet) => wallet.id));
 
-      const filteredTransactions = Transactions.wallets.filter((wallet) =>
-        walletIDSet.has(wallet.id),
-      );
+        const filteredTransactions = Transactions.wallets.filter((wallet) =>
+          walletIDSet.has(wallet.id),
+        );
 
-      setTransactions(filteredTransactions);
+        setTransactions(filteredTransactions);
+      }
     }
   }, [type, search]);
 
@@ -182,109 +184,96 @@ export default function Wallets() {
           <Plus />
         </button>
       </div>
-
-      <div className="mt-4 grid grid-cols-2 items-center gap-4 md:grid-cols-3 md:gap-8">
-        <div className="flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:flex-row md:gap-4 md:rounded-2xl md:p-6">
-          <Wallet className="w-8 md:w-fit" size={48} />
-          <div>
-            <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              {wallets.length}
-            </h1>
-            <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
-              Total Wallets
-            </h2>
+      {wallets && wallets?.length > 0 ? (
+        <>
+          <div className="mt-4 grid grid-cols-2 items-center gap-4 md:grid-cols-3 md:gap-8">
+            <div className="flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:flex-row md:gap-4 md:rounded-2xl md:p-6">
+              <Wallet className="w-8 md:w-fit" size={48} />
+              <div>
+                <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
+                  {wallets.length}
+                </h1>
+                <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
+                  Total Wallets
+                </h2>
+              </div>
+            </div>
+            <div className="col-span-2 row-start-2 flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:col-span-1 md:col-start-2 md:row-start-1 md:flex-row md:gap-4 md:rounded-2xl md:p-6">
+              <Banknote className="w-8 md:w-fit" size={48} />
+              <div>
+                <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
+                  RP{" "}
+                  {shortenMoney(
+                    wallets.reduce((acc, wallet) => acc + wallet.balance, 0),
+                  )}
+                </h1>
+                <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
+                  Total Balance
+                </h2>
+              </div>
+            </div>
+            <div className="flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:flex-row md:gap-4 md:rounded-2xl md:p-6">
+              <ReceiptText className="w-8 md:w-fit" size={48} />
+              <div>
+                <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
+                  {transactions?.reduce(
+                    (acc, wallet) => acc + wallet.transactions.length,
+                    0,
+                  ) || 0}
+                </h1>
+                <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
+                  Total Transactions
+                </h2>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="col-span-2 row-start-2 flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:col-span-1 md:col-start-2 md:row-start-1 md:flex-row md:gap-4 md:rounded-2xl md:p-6">
-          <Banknote className="w-8 md:w-fit" size={48} />
-          <div>
-            <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              RP{" "}
-              {shortenMoney(
-                wallets.reduce((acc, wallet) => acc + wallet.balance, 0),
-              )}
-            </h1>
-            <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
-              Total Balance
-            </h2>
-          </div>
-        </div>
-        <div className="flex w-full flex-col items-center gap-0 rounded-lg bg-zinc-100 p-2 shadow-md md:flex-row md:gap-4 md:rounded-2xl md:p-6">
-          <ReceiptText className="w-8 md:w-fit" size={48} />
-          <div>
-            <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-              {transactions.reduce(
-                (acc, wallet) => acc + wallet.transactions.length,
-                0,
-              )}
-            </h1>
-            <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
-              Total Transactions
-            </h2>
-          </div>
-        </div>
-      </div>
 
-      <div className="mt-8 flex items-center justify-between gap-4">
-        <Select onValueChange={(value) => setType(value)}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Wallet Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {WalletType.map((item) => (
-              <SelectItem key={item.value} value={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          placeholder="Find Wallet..."
-          onChange={(event) => setSearch(event.target.value.toLowerCase())}
-          className="max-w-sm shadow"
-          value={search}
-        />
-      </div>
+          <div className="mt-8 flex items-center justify-between gap-4">
+            <Select onValueChange={(value) => setType(value)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Wallet Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {WalletType.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Find Wallet..."
+              onChange={(event) => setSearch(event.target.value.toLowerCase())}
+              className="max-w-sm shadow"
+              value={search}
+            />
+          </div>
 
-      {wallets.length !== 0 ? (
-        <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-          {wallets.map((wallet) => (
-            <div className="min-h-72 rounded-2xl bg-slate-100 p-4 shadow-xl">
-              <h1 className="pt-2 pb-4 pl-2 text-2xl font-semibold">
-                {wallet.name}
-              </h1>
-              <AspectRatio
-                ratio={1.586 / 1}
-                className="relative flex min-h-64 flex-col justify-between rounded-xl bg-linear-to-br/hsl from-indigo-500 to-teal-400 p-10"
+          <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {wallets.map((wallet) => (
+              <div
+                key={wallet.id}
+                className="min-h-72 rounded-2xl bg-slate-100 p-4 shadow-xl"
               >
-                {/* <img
+                <h1 className="pt-2 pb-4 pl-2 text-2xl font-semibold">
+                  {wallet.name}
+                </h1>
+                <AspectRatio
+                  ratio={1.586 / 1}
+                  className="relative flex min-h-64 flex-col justify-between rounded-xl bg-linear-to-br/hsl from-indigo-500 to-teal-400 p-10"
+                >
+                  {/* <img
                   className="absolute top-16 right-10 w-20"
                   src="/mandiri.svg"
                   alt=""
                 /> */}
-                <div className="flex flex-col text-white">
-                  <h1 className="text-zinc-300">Balance</h1>
-                  <h2 className="text-4xl font-semibold">
-                    RP {wallet.balance}
-                  </h2>
-                </div>
-                <div className="flex flex-col">
                   <div className="flex flex-col text-white">
-                    <h1 className="text-zinc-300">Name</h1>
-                    <h2 className="-mt-1 text-xl">{Wallets.name}</h2>
-                  </div>
-                  <div className="mt-5 flex w-full flex-row items-center justify-between text-white">
-                    <div>
-                      <h1 className="text-zinc-300">Account Number</h1>
-                      <h2 className="-mt-1 text-xl">
-                        {wallet.number.slice(0, 4)}–
-                        {showNumbers[wallet.id]
-                          ? wallet.number.slice(4, 8)
-                          : "****"}
-                        –{wallet.number.slice(8)}
-                      </h2>
-                    </div>
-                    <div className="flex gap-4">
+                    <h1 className="text-zinc-300">Balance</h1>
+                    <h2 className="flex items-center justify-between gap-2 text-4xl font-semibold">
+                      RP{" "}
+                      {showNumbers[wallet.id]
+                        ? formatCurrency(wallet.balance)
+                        : "*****"}
                       <button
                         onClick={() => toggleShowNumber(wallet.id)}
                         className="relative h-6 w-6"
@@ -295,23 +284,44 @@ export default function Wallets() {
                           <EyeClosed className="absolute top-0" />
                         )}
                       </button>
-                      <button
-                        onClick={() =>
-                          copyWalletNumber(wallet.id, wallet.number)
-                        }
-                        className="relative h-6 w-6"
-                      >
-                        {copiedStates[wallet.id] ? (
-                          <Check className="absolute top-0" />
-                        ) : (
-                          <Copy className="absolute top-0" />
-                        )}
-                      </button>
+                    </h2>
+                  </div>
+                  <div className="flex flex-col">
+                    <div className="flex flex-col text-white">
+                      <h1 className="text-zinc-300">Name</h1>
+                      <h2 className="-mt-1 text-xl">{Wallets.name}</h2>
+                    </div>
+                    <div className="mt-5 flex w-full flex-row items-center justify-between text-white">
+                      <div>
+                        <h1 className="text-zinc-300">Account Number</h1>
+                        <h2 className="-mt-1 text-xl">
+                          {wallet.number === "—"
+                            ? wallet.number
+                            : wallet.number.slice(0, 4) +
+                              "–" +
+                              wallet.number.slice(4, 8) +
+                              "–" +
+                              wallet.number.slice(8)}
+                        </h2>
+                      </div>
+                      <div className="flex gap-4">
+                        <button
+                          onClick={() =>
+                            copyWalletNumber(wallet.id, wallet.number)
+                          }
+                          className="relative h-6 w-6"
+                        >
+                          {copiedStates[wallet.id] ? (
+                            <Check className="absolute top-0" />
+                          ) : (
+                            <Copy className="absolute top-0" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </AspectRatio>
-              {/* <Accordion type="single" collapsible>
+                </AspectRatio>
+                {/* <Accordion type="single" collapsible>
                 <AccordionItem value="item-1">
                   <AccordionTrigger>Is it accessible?</AccordionTrigger>
                   <AccordionContent>
@@ -332,9 +342,10 @@ export default function Wallets() {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion> */}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        </>
       ) : (
         <NotFound />
       )}
@@ -365,7 +376,7 @@ function Skeleton() {
 
 function NotFound() {
   return (
-    <div className="flex min-h-90 w-full flex-col items-center justify-center">
+    <div className="flex h-[80vh] w-full flex-col items-center justify-center">
       <img className="h-50" src="/assets/notfound.svg" alt="wallet not found" />
       <h1 className="-mt-5 text-lg font-light md:mt-0 md:text-2xl">
         No matching wallets found.
