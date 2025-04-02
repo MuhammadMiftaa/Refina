@@ -15,6 +15,7 @@ type TransactionsService interface {
 	GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error)
 	GetTransactionsByWalletID(ctx context.Context, id string) ([]dto.TransactionsResponse, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
+	FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
 }
@@ -41,7 +42,6 @@ func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Cont
 		return nil, errors.New("failed to get transactions")
 	}
 
-	
 	var transactionsResponse []dto.TransactionsResponse
 	for _, transaction := range transactions {
 		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
@@ -67,7 +67,7 @@ func (transaction_serv *transactionsService) GetTransactionsByWalletID(ctx conte
 	if err != nil {
 		return nil, errors.New("failed to get transactions")
 	}
-	
+
 	var transactionsResponse []dto.TransactionsResponse
 	for _, transaction := range transactions {
 		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
@@ -147,6 +147,106 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 	transactionResponse := helper.ConvertToResponseType(transactionNew).(dto.TransactionsResponse)
 
 	return transactionResponse, nil
+}
+
+func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error) {
+	tx, err := transaction_serv.txManager.Begin(ctx)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to create transaction")
+	}
+
+	defer func() {
+		// Rollback otomatis jika transaksi belum di-commit
+		if r := recover(); r != nil || err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Check if wallet and category exist
+	fromWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.FromWalletID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("from wallet not found")
+	}
+
+	toWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.ToWalletID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("to wallet not found")
+	}
+
+	if fromWallet.ID == toWallet.ID {
+		return dto.FundTransferResponse{}, errors.New("from wallet and to wallet cannot be the same")
+	}
+
+	fromWallet.Balance -= (transaction.Amount + transaction.AdminFee)
+	toWallet.Balance += transaction.Amount
+
+	// Parse ID from JSON to valid UUID
+	FromWalletID, err := helper.ParseUUID(transaction.FromWalletID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("invalid from wallet id")
+	}
+
+	ToWalletID, err := helper.ParseUUID(transaction.ToWalletID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("invalid to wallet id")
+	}
+
+	// Parse CategoryID from JSON to valid UUID
+	FromCategoryID, err := helper.ParseUUID(transaction.CashOutCategoryID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("invalid from category id")
+	}
+
+	ToCategoryID, err := helper.ParseUUID(transaction.CashInCategoryID)
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("invalid to category id")
+	}
+
+	// Update wallet balance
+	if _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, fromWallet); err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to update from wallet")
+	}
+	if _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, toWallet); err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to update to wallet")
+	}
+
+	transactionNewFrom, err := transaction_serv.transactionRepo.CreateTransaction(ctx, tx, entity.Transactions{
+		WalletID:        FromWalletID,
+		CategoryID:      FromCategoryID,
+		Amount:          transaction.Amount + transaction.AdminFee,
+		TransactionDate: transaction.Date,
+		Description:     "fund transfer to " + transaction.ToWalletID + "(Cash Out)",
+	})
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to create from transaction")
+	}
+
+	transactionNewTo, err := transaction_serv.transactionRepo.CreateTransaction(ctx, tx, entity.Transactions{
+		WalletID:        ToWalletID,
+		CategoryID:      ToCategoryID,
+		Amount:          transaction.Amount,
+		TransactionDate: transaction.Date,
+		Description:     "fund transfer from " + transaction.FromWalletID + "(Cash In)",
+	})
+	if err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to create to transaction")
+	}
+
+	if err := tx.Commit(); err != nil {
+		return dto.FundTransferResponse{}, errors.New("failed to commit transaction")
+	}
+
+	response := dto.FundTransferResponse{
+		CashOutTransactionID: transactionNewFrom.ID.String(),
+		CashInTransactionID:  transactionNewTo.ID.String(),
+		FromWalletID:         transaction.FromWalletID,
+		ToWalletID:           transaction.ToWalletID,
+		Amount:               transaction.Amount,
+		Date:                 transaction.Date,
+		Description:          transaction.Description,
+	}
+
+	return response, nil
 }
 
 func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {

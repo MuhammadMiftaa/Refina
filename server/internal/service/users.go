@@ -243,15 +243,20 @@ func (user_serv *usersService) GetUserWallets(token string) (dto.UserWalletsResp
 	}
 
 	userWallets, err := user_serv.userRepository.GetUserWallets(userData.ID)
-	if err != nil || len(userWallets) == 0 {
+	if err != nil {
 		return dto.UserWalletsResponse{}, errors.New("failed to get user wallets")
 	}
-
+	if len(userWallets) == 0 {
+		return dto.UserWalletsResponse{}, nil
+	}
 	UserID := userWallets[0].UserID
 	Name := userWallets[0].Name
 	Email := userWallets[0].Email
 	Wallets := make([]dto.WalletResponse, 0, len(userWallets))
 	for _, userWallet := range userWallets {
+		if userWallet.ID == "" {
+			continue
+		}
 		Wallet := dto.WalletResponse{
 			ID:         userWallet.ID,
 			Number:     userWallet.WalletNumber,
@@ -273,8 +278,11 @@ func (user_serv *usersService) GetUserWallets(token string) (dto.UserWalletsResp
 
 func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestmentsResponse, error) {
 	userInvestments, err := user_serv.userRepository.GetUserInvestments(id)
-	if err != nil || len(userInvestments) == 0 {
+	if err != nil {
 		return dto.UserInvestmentsResponse{}, errors.New("failed to get user investments")
+	}
+	if len(userInvestments) == 0 {
+		return dto.UserInvestmentsResponse{}, nil
 	}
 
 	UserID := userInvestments[0].UserID
@@ -282,6 +290,9 @@ func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestment
 	Email := userInvestments[0].Email
 	Investments := make([]dto.InvestmentResponse, 0, len(userInvestments))
 	for _, userInvestment := range userInvestments {
+		if userInvestment.ID == "" {
+			continue
+		}
 		Investment := dto.InvestmentResponse{
 			ID:         userInvestment.ID,
 			Type:       userInvestment.InvestmentType,
@@ -309,8 +320,11 @@ func (user_serv *usersService) GetUserTransactions(token string) (dto.UserTransa
 	}
 
 	userTransactions, err := user_serv.userRepository.GetUserTransactions(userData.ID)
-	if err != nil || len(userTransactions) == 0 {
+	if err != nil {
 		return dto.UserTransactionsResponse{}, errors.New("failed to get user transactions")
+	}
+	if len(userTransactions) == 0 {
+		return dto.UserTransactionsResponse{}, nil
 	}
 
 	UserID := userTransactions[0].UserID
@@ -320,6 +334,9 @@ func (user_serv *usersService) GetUserTransactions(token string) (dto.UserTransa
 	walletMap := make(map[string]dto.WalletWithTransactionsResponse)
 
 	for _, ut := range userTransactions {
+		if ut.TransactionID == "" {
+			continue
+		}
 		_, exists := walletMap[ut.WalletID]
 		if !exists {
 			walletMap[ut.WalletID] = dto.WalletWithTransactionsResponse{

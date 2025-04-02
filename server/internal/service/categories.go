@@ -186,6 +186,7 @@ func (category_serv *categoriesService) CreateCategory(ctx context.Context, cate
 	} else {
 		response = dto.CategoriesResponse{
 			GroupName: newCategory.Name,
+			Type:      dto.CategoryType(newCategory.Type),
 		}
 	}
 
