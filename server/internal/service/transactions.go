@@ -3,11 +3,19 @@ package service
 import (
 	"context"
 	"errors"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"server/internal/dto"
 	"server/internal/entity"
 	"server/internal/helper"
 	"server/internal/repository"
+
+	"github.com/google/uuid"
 )
 
 type TransactionsService interface {
@@ -16,6 +24,7 @@ type TransactionsService interface {
 	GetTransactionsByWalletID(ctx context.Context, id string) ([]dto.TransactionsResponse, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error)
+	UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
 }
@@ -25,14 +34,16 @@ type transactionsService struct {
 	transactionRepo repository.TransactionsRepository
 	walletRepo      repository.WalletsRepository
 	categoryRepo    repository.CategoriesRepository
+	attachmentRepo  repository.AttachmentsRepository
 }
 
-func NewTransactionService(txManager repository.TxManager, transactionRepo repository.TransactionsRepository, walletRepo repository.WalletsRepository, categoryRepo repository.CategoriesRepository) TransactionsService {
+func NewTransactionService(txManager repository.TxManager, transactionRepo repository.TransactionsRepository, walletRepo repository.WalletsRepository, categoryRepo repository.CategoriesRepository, attachmentRepo repository.AttachmentsRepository) TransactionsService {
 	return &transactionsService{
 		txManager:       txManager,
 		transactionRepo: transactionRepo,
 		walletRepo:      walletRepo,
 		categoryRepo:    categoryRepo,
+		attachmentRepo:  attachmentRepo,
 	}
 }
 
@@ -132,7 +143,7 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 		WalletID:        WalletID,
 		CategoryID:      CategoryID,
 		Amount:          transaction.Amount,
-		TransactionDate: transaction.TransactionDate,
+		TransactionDate: transaction.Date,
 		Description:     transaction.Description,
 	})
 	if err != nil {
@@ -249,6 +260,67 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 	return response, nil
 }
 
+func (transaction_serv *transactionsService) UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error) {
+	if handler.Size > (10 << 20) {
+		return dto.AttachmentsResponse{}, errors.New("file size exceeds 10MB")
+	}
+
+	allowedExtensions := map[string]bool{
+		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
+		".pdf": true,
+	}
+	ext := strings.ToLower(filepath.Ext(handler.Filename))
+	if !allowedExtensions[ext] {
+		return dto.AttachmentsResponse{}, errors.New("invalid file type")
+	}
+
+	path := "../refina/src/assets/attachments"
+	absolutePath, _ := filepath.Abs(path)
+
+	if err := helper.StorageIsExist(absolutePath); err != nil {
+		return dto.AttachmentsResponse{}, errors.New("storage not found")
+	}
+	// Pastikan file bisa dibaca ulang
+	file.Seek(0, 0)
+
+	// Create file name with timestamp
+	fileName := time.Now().Format("-20060102150405") + uuid.New().String() + filepath.Ext(handler.Filename)
+	filePath := filepath.Join(absolutePath, fileName)
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return dto.AttachmentsResponse{}, errors.New("failed to create file")
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, file)
+	if err != nil {
+		return dto.AttachmentsResponse{}, errors.New("failed to save file")
+	}
+
+	// Save attachment to database
+	TransactionUUID, err := uuid.Parse(transactionID)
+	if err != nil {
+		return dto.AttachmentsResponse{}, errors.New("invalid transaction id")
+	}
+
+	attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
+		Image:         filePath,
+		TransactionID: TransactionUUID,
+	})
+	if err != nil {
+		return dto.AttachmentsResponse{}, errors.New("failed to create attachment")
+	}
+
+	attachmentResponse := dto.AttachmentsResponse{
+		ID:            attachment.ID.String(),
+		Image:         attachment.Image,
+		TransactionID: attachment.TransactionID.String(),
+		CreatedAt:     attachment.CreatedAt.String(),
+	}
+
+	return attachmentResponse, nil
+}
+
 func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
 	// Check if transaction exist
 	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
@@ -276,8 +348,8 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 	if transaction.Amount != 0 {
 		transactionExist.Amount = transaction.Amount
 	}
-	if !transaction.TransactionDate.IsZero() {
-		transactionExist.TransactionDate = transaction.TransactionDate
+	if !transaction.Date.IsZero() {
+		transactionExist.TransactionDate = transaction.Date
 	}
 	if transaction.Description != "" {
 		transactionExist.Description = transaction.Description

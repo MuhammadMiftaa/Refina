@@ -66,12 +66,12 @@ func ConvertToResponseType(data interface{}) interface{} {
 		}
 	case entity.Transactions:
 		return dto.TransactionsResponse{
-			ID:              v.ID.String(),
-			WalletID:        v.WalletID.String(),
-			CategoryID:      v.CategoryID.String(),
-			Amount:          v.Amount,
-			TransactionDate: v.TransactionDate,
-			Description:     v.Description,
+			ID:          v.ID.String(),
+			WalletID:    v.WalletID.String(),
+			CategoryID:  v.CategoryID.String(),
+			Amount:      v.Amount,
+			Date:        v.TransactionDate,
+			Description: v.Description,
 		}
 	case entity.Wallets:
 		return dto.WalletsResponse{

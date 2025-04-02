@@ -1,13 +1,9 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
-	"path/filepath"
-	"time"
 
 	"server/internal/dto"
-	"server/internal/helper"
 	"server/internal/service"
 
 	"github.com/gin-gonic/gin"
@@ -147,11 +143,11 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 }
 
 func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
-	path := "../refina/src/assets/attachments"
-	absoultePath, _ := filepath.Abs(path)
+	ID := c.Param("id")
+	ctx := c.Request.Context()
 
 	// Check if attachment is exist
-	file, err := c.FormFile("attachment")
+	file, handler, err := c.Request.FormFile("attachment")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -160,21 +156,10 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 		})
 		return
 	}
+	defer file.Close()
 
-	// Check if storage is exist
-	if err = helper.StorageIsExist(absoultePath); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":     false,
-			"statusCode": 500,
-			"message":    errors.New("storage not found").Error(),
-		})
-		return
-	}
-
-	// Create file name with timestamp
-	fileName := time.Now().Format("20060102150405") + filepath.Ext(file.Filename)
-	filePath := filepath.Join(absoultePath, fileName)
-	if err = c.SaveUploadedFile(file, filePath); err != nil {
+	attachment, err := transactionHandler.transactionServ.UploadAttachment(ctx, ID, file, handler)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":     false,
 			"statusCode": 500,
@@ -187,7 +172,7 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 		"status":     true,
 		"statusCode": 200,
 		"message":    "Upload attachment success",
-		"data":       filePath,
+		"data":       attachment,
 	})
 }
 
