@@ -56,10 +56,10 @@ export default function Transactions() {
 
   return (
     <div className="font-poppins min-h-screen w-full md:px-4">
-      <div className="flex items-start justify-between gap-4 md:items-center">
+      <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Your Transaction</h1>
         {wallets.length > 0 && (
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 flex-wrap">
             <FundTransfer
               onclick={() => navigate("/transactions/add/fund_transfer")}
             />

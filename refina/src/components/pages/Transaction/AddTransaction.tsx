@@ -90,6 +90,7 @@ export default function AddTransaction() {
     admin_fee: 0,
   });
   const [files, setFiles] = useState<File[]>([]);
+  const [clearFiles, setClearFiles] = useState(false);
 
   useEffect(() => {
     const flatMap = Categories.flatMap((group) =>
@@ -105,6 +106,14 @@ export default function AddTransaction() {
   useEffect(() => {
     setWallets(Wallets.wallets);
   }, [Wallets]);
+
+  useEffect(() => {
+    if (clearFiles) {
+      setClearFiles(true);
+
+      setTimeout(() => setClearFiles(false), 1000);
+    }
+  }, [clearFiles]);
 
   const handleFileUpload = (file: File[]) => {
     const Files = [...files, ...file];
@@ -268,7 +277,10 @@ export default function AddTransaction() {
                   "& .MuiOutlinedInput-root": {
                     borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                     fontFamily: "Poppins, sans-serif",
-                    fontSize: "2rem",
+                    fontSize: {
+                      xs: "1.5rem", // Mobile (0px and up)
+                      md: "2rem", // Desktop (900px and up)
+                    },
                     textAlign: "center",
                     "&:hover .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#4f46e5", // Warna hover indigo-600
@@ -291,7 +303,7 @@ export default function AddTransaction() {
 
             <div className="flex w-full flex-col">
               <label className="mb-2">Wallets</label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {wallets.map((wallet) => (
                   <label
                     htmlFor={wallet.id}
@@ -318,6 +330,7 @@ export default function AddTransaction() {
                               id={wallet.id}
                               name="wallet-type"
                               value={wallet.id}
+                              checked={userInput.wallet_id === wallet.id}
                             />
                             <div className="neon-checkbox__frame">
                               <div className="neon-checkbox__box">
@@ -397,12 +410,13 @@ export default function AddTransaction() {
             </div>
 
             <div className="flex w-full flex-col">
-              <label htmlFor="">Description</label>
+              <label className="mb-2">Description</label>
               <input
                 className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
                 type="text"
                 id="name"
                 placeholder="Transaction Description"
+                value={userInput.description}
                 onChange={(e) =>
                   setUserInput((prev) => ({
                     ...prev,
@@ -416,7 +430,7 @@ export default function AddTransaction() {
           <>
             <div className="flex w-full flex-col">
               <label className="mb-2">From Wallets</label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {wallets.map((wallet) => (
                   <label
                     htmlFor={`from-${wallet.id}`}
@@ -443,6 +457,7 @@ export default function AddTransaction() {
                               id={`from-${wallet.id}`}
                               name="from-wallet-type"
                               value={wallet.id}
+                              checked={userInput.from_wallet_id === wallet.id}
                             />
                             <div className="neon-checkbox__frame">
                               <div className="neon-checkbox__box">
@@ -521,7 +536,7 @@ export default function AddTransaction() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center gap-4 md:flex-row">
               <div className="flex w-full basis-2/3 flex-col">
                 <label className="mb-2">Amount (IDR)</label>
                 <NumericFormat
@@ -541,7 +556,10 @@ export default function AddTransaction() {
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                       fontFamily: "Poppins, sans-serif",
-                      fontSize: "2rem",
+                      fontSize: {
+                        xs: "1.5rem", // Mobile (0px and up)
+                        md: "2rem", // Desktop (900px and up)
+                      },
                       textAlign: "center",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#4f46e5", // Warna hover indigo-600
@@ -581,7 +599,10 @@ export default function AddTransaction() {
                       "& .MuiOutlinedInput-root": {
                         borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                         fontFamily: "Poppins, sans-serif",
-                        fontSize: "2rem",
+                        fontSize: {
+                          xs: "1.5rem", // Mobile (0px and up)
+                          md: "2rem", // Desktop (900px and up)
+                        },
                         textAlign: "center",
                         "&:hover .MuiOutlinedInput-notchedOutline": {
                           borderColor: "#4f46e5", // Warna hover indigo-600
@@ -606,7 +627,7 @@ export default function AddTransaction() {
 
             <div className="flex w-full flex-col">
               <label className="mb-2">To Wallets</label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {wallets.map((wallet) => (
                   <label
                     htmlFor={`to-${wallet.id}`}
@@ -633,6 +654,7 @@ export default function AddTransaction() {
                               id={`to-${wallet.id}`}
                               name="to-wallet-type"
                               value={wallet.id}
+                              checked={userInput.to_wallet_id === wallet.id}
                             />
                             <div className="neon-checkbox__frame">
                               <div className="neon-checkbox__box">
@@ -712,12 +734,13 @@ export default function AddTransaction() {
             </div>
 
             <div className="flex w-full flex-col">
-              <label htmlFor="">Description</label>
+              <label className="mb-2">Description</label>
               <input
                 className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
                 type="text"
                 id="name"
                 placeholder="Transaction Description"
+                value={userInput.description}
                 onChange={(e) =>
                   setUserInput((prev) => ({
                     ...prev,
@@ -730,26 +753,34 @@ export default function AddTransaction() {
         )}
 
         <div className="flex min-h-96 w-full flex-col items-center justify-center">
-          <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
-            <p className="relative z-20 text-base font-bold text-neutral-700 dark:text-neutral-300">
+        <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
+            <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
               Upload Receipt/Invoice (optional)
             </p>
-            <p className="relative z-20 text-base font-normal text-neutral-400 dark:text-neutral-400">
+            <p className="relative z-20 text-center text-base font-normal text-neutral-400 dark:text-neutral-400">
               Drag or drop your files here or click to upload
             </p>
           </div>
-          <FileUpload onChange={handleFileUpload} />
+          <FileUpload onChange={handleFileUpload} clearFiles={clearFiles} />
         </div>
 
         <div className="flex w-full items-center justify-center gap-4 py-8">
           <CancelButton
             text="Clear Form"
-            // onclick={() => {
-            //   form.reset();
-            //   setZeroBalance(false);
-            //   setType("");
-            //   form.reset({ balance: 0 });
-            // }}
+            onclick={() => {
+              setUserInput({
+                ...userInput,
+                admin_fee: 0,
+                amount: 0,
+                category_id: "",
+                description: "",
+                from_wallet_id: "",
+                to_wallet_id: "",
+                wallet_id: "",
+              });
+              setFiles([]);
+              setClearFiles(true);
+            }}
           />
           <SubmitButton text="Add Transaction" />
         </div>
