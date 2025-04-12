@@ -61,12 +61,12 @@ func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context)
 	})
 }
 
-func (transactionHandler *TransactionHandler) GetTransactionsByWalletID(c *gin.Context) {
+func (transactionHandler *TransactionHandler) GetTransactionsByUserID(c *gin.Context) {
+	token := c.GetHeader("Authorization")
+
 	ctx := c.Request.Context()
 
-	id := c.Param("id")
-
-	transactions, err := transactionHandler.transactionServ.GetTransactionsByWalletID(ctx, id)
+	transactions, err := transactionHandler.transactionServ.GetTransactionsByUserID(ctx, token)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
