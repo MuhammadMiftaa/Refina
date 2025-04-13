@@ -6,6 +6,7 @@ import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import styled from "styled-components";
+import { DataTable } from "../data-table";
 
 async function fetchWallets() {
   const token = Cookies.get("token");
@@ -25,12 +26,33 @@ async function fetchWallets() {
   return res.json();
 }
 
+async function fetchTransactions() {
+  const token = Cookies.get("token");
+
+  const res = await fetch("http://localhost:8080/v1/transactions/user", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch transactions");
+  }
+
+  return res.json();
+}
+
 export default function Transactions() {
   const navigate = useNavigate();
 
   const { data: walletData, isLoading: walletLoading } = useQuery({
     queryKey: ["wallets"],
     queryFn: fetchWallets,
+  });
+  const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
+    queryKey: ["transactions"],
+    queryFn: fetchTransactions,
   });
 
   const Wallets: WalletType = walletData?.data ?? {
@@ -56,10 +78,10 @@ export default function Transactions() {
 
   return (
     <div className="font-poppins min-h-screen w-full md:px-4">
-      <div className="flex flex-col md:flex-row items-start justify-between gap-4 md:items-center">
+      <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Your Transaction</h1>
         {wallets.length > 0 && (
-          <div className="flex items-center gap-5 flex-wrap">
+          <div className="flex flex-wrap items-center gap-5">
             <FundTransfer
               onclick={() => navigate("/transactions/add/fund_transfer")}
             />
@@ -71,6 +93,10 @@ export default function Transactions() {
             />
           </div>
         )}
+      </div>
+
+      <div className="bg-primary mt-6 rounded-2xl p-4">
+        <DataTable columns={columns} data={transactions} />
       </div>
     </div>
   );
