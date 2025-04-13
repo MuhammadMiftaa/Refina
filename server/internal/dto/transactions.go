@@ -3,12 +3,18 @@ package dto
 import "time"
 
 type TransactionsResponse struct {
-	ID          string    `json:"id"`
-	WalletID    string    `json:"wallet_id"`
-	CategoryID  string    `json:"category_id"`
+	ID string `json:"id"`
+
+	UserName     string `json:"user_name"`
+	WalletName   string `json:"wallet_name"`
+	WalletType   string `json:"wallet_type"`
+	CategoryName string `json:"category_name"`
+	CategoryType string `json:"category_type"`
+
 	Amount      float64   `json:"amount"`
 	Date        time.Time `json:"date"`
 	Description string    `json:"description"`
+	Image       string    `json:"image"`
 }
 
 type TransactionsRequest struct {

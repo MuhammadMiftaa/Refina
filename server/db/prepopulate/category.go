@@ -1,8 +1,6 @@
 package prepopulate
 
 import (
-	"fmt"
-	"log"
 	"sync"
 
 	"server/internal/entity"
@@ -49,11 +47,11 @@ func CategoryTypeSeeder(db *gorm.DB) {
 
 		// Cek apakah parent category sudah ada
 		if err := db.Where("name = ?", parentName).First(&existingParent).Error; err == nil {
-			fmt.Printf("Parent category %s already exists, skipping...\n", parentName)
+			// fmt.Printf("Parent category %s already exists, skipping...\n", parentName)
 			parentIDs[parentName] = existingParent.ID
 			continue
 		} else if err != gorm.ErrRecordNotFound {
-			log.Printf("Error checking parent category %s: %v\n", parentName, err)
+			// log.Printf("Error checking parent category %s: %v\n", parentName, err)
 			continue
 		}
 
@@ -67,10 +65,10 @@ func CategoryTypeSeeder(db *gorm.DB) {
 		}
 
 		if err := db.Create(&category).Error; err != nil {
-			log.Printf("Error inserting parent category %s: %v\n", parentName, err)
+			// log.Printf("Error inserting parent category %s: %v\n", parentName, err)
 			continue
 		}
-		fmt.Printf("Inserted parent category: %s with ID: %s\n", parentName, parentID)
+		// fmt.Printf("Inserted parent category: %s with ID: %s\n", parentName, parentID)
 
 		// Insert child categories secara paralel menggunakan goroutine
 		for _, childName := range data.Items {
@@ -82,10 +80,10 @@ func CategoryTypeSeeder(db *gorm.DB) {
 
 				// Cek apakah child category sudah ada
 				if err := db.Where("name = ? AND parent_id = ?", childName, parentID).First(&existingChild).Error; err == nil {
-					fmt.Printf("Child category %s (Parent: %s) already exists, skipping...\n", childName, parentID)
+					// fmt.Printf("Child category %s (Parent: %s) already exists, skipping...\n", childName, parentID)
 					return
 				} else if err != gorm.ErrRecordNotFound {
-					log.Printf("Error checking child category %s: %v\n", childName, err)
+					// log.Printf("Error checking child category %s: %v\n", childName, err)
 					return
 				}
 
@@ -98,9 +96,9 @@ func CategoryTypeSeeder(db *gorm.DB) {
 				}
 
 				if err := db.Create(&child).Error; err != nil {
-					log.Printf("Error inserting child category %s: %v\n", childName, err)
+					// log.Printf("Error inserting child category %s: %v\n", childName, err)
 				} else {
-					fmt.Printf("Inserted child category: %s (Parent: %s)\n", childName, parentID)
+					// fmt.Printf("Inserted child category: %s (Parent: %s)\n", childName, parentID)
 				}
 			}(parentID, childName, data.Type)
 		}

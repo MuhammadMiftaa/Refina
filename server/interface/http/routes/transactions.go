@@ -23,7 +23,7 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	version.Use(middleware.AuthMiddleware())
 	version.GET("transactions", Transaction_handler.GetAllTransactions)
 	version.GET("transactions/:id", Transaction_handler.GetTransactionByID)
-	version.GET("transactions/wallet/", Transaction_handler.GetTransactionsByUserID)
+	version.GET("transactions/user", Transaction_handler.GetTransactionsByUserID)
 	version.POST("transactions/:type", Transaction_handler.CreateTransaction)
 	version.POST("transactions/attachment/:id", Transaction_handler.UploadAttachment)
 	version.PUT("transactions/:id", Transaction_handler.UpdateTransaction)

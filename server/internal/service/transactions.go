@@ -21,7 +21,7 @@ import (
 type TransactionsService interface {
 	GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error)
 	GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error)
-	GetTransactionsByUserID(ctx context.Context, token string) ([]entity.TransactionsList, error)
+	GetTransactionsByUserID(ctx context.Context, token string) ([]dto.TransactionsResponse, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error)
 	UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error)
@@ -63,7 +63,7 @@ func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Cont
 }
 
 func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error) {
-	transaction, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
+	transaction, err := transaction_serv.transactionRepo.GetTransactionByIDJoin(ctx, nil, id)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("transaction not found")
 	}
@@ -73,7 +73,7 @@ func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Cont
 	return transactionResponse, nil
 }
 
-func (transaction_serv *transactionsService) GetTransactionsByUserID(ctx context.Context, token string) ([]entity.TransactionsList, error) {
+func (transaction_serv *transactionsService) GetTransactionsByUserID(ctx context.Context, token string) ([]dto.TransactionsResponse, error) {
 	userData, err := helper.VerifyToken(token[7:])
 	if err != nil {
 		return nil, errors.New("invalid token")
@@ -84,13 +84,13 @@ func (transaction_serv *transactionsService) GetTransactionsByUserID(ctx context
 		return nil, errors.New("failed to get transactions")
 	}
 
-	// var transactionsResponse []dto.TransactionsResponse
-	// for _, transaction := range transactions {
-	// 	transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
-	// 	transactionsResponse = append(transactionsResponse, transactionResponse)
-	// }
+	var transactionsResponse []dto.TransactionsResponse
+	for _, transaction := range transactions {
+		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
+		transactionsResponse = append(transactionsResponse, transactionResponse)
+	}
 
-	return transactions, nil
+	return transactionsResponse, nil
 }
 
 func (transaction_serv *transactionsService) CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {

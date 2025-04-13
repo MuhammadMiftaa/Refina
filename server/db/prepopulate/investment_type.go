@@ -1,8 +1,6 @@
 package prepopulate
 
 import (
-	"fmt"
-	"log"
 	"sync"
 
 	"server/internal/entity"
@@ -37,10 +35,10 @@ func InvestmentTypesSeeder(db *gorm.DB) {
 
 			// Cek apakah data sudah ada
 			if err := db.Where("name = ?", name).First(&existing).Error; err == nil {
-				fmt.Printf("Investment type %s already exists, skipping...\n", name)
+				// fmt.Printf("Investment type %s already exists, skipping...\n", name)
 				return
 			} else if err != gorm.ErrRecordNotFound {
-				log.Printf("Error checking investment type %s: %v\n", name, err)
+				// log.Printf("Error checking investment type %s: %v\n", name, err)
 				return
 			}
 
@@ -52,9 +50,9 @@ func InvestmentTypesSeeder(db *gorm.DB) {
 			}
 
 			if err := db.Create(&investment).Error; err != nil {
-				log.Printf("Error inserting investment type %s: %v\n", name, err)
+				// log.Printf("Error inserting investment type %s: %v\n", name, err)
 			} else {
-				fmt.Printf("Inserted investment type: %s\n", name)
+				// fmt.Printf("Inserted investment type: %s\n", name)
 			}
 		}(inv.Name, inv.Unit)
 	}

@@ -1,7 +1,6 @@
 package prepopulate
 
 import (
-	"fmt"
 	"sync"
 
 	"gorm.io/gorm"
@@ -99,14 +98,14 @@ func WalletTypesSeeder(db *gorm.DB) {
 			result := db.Where("name = ?", w.Name).First(&existing)
 			if result.Error != nil {
 				db.Create(&w)
-				fmt.Println("Inserted:", w.Name)
+				// fmt.Println("Inserted:", w.Name)
 			} else {
-				fmt.Println("Already exists:", w.Name)
+				// fmt.Println("Already exists:", w.Name)
 			}
 		}(walletType)
 	}
 
 	// Tunggu semua goroutine selesai
 	wg.Wait()
-	fmt.Println("Prepopulate selesai!")
+	// fmt.Println("Prepopulate selesai!")
 }
