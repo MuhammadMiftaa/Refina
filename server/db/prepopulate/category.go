@@ -36,6 +36,9 @@ func CategoryTypeSeeder(db *gorm.DB) {
 		"Zonasi & Amal":            {Expense, []string{"Zakat", "Sedekah", "Donasi Sosial", "Wakaf", "Bantuan Bencana Alam", "Donasi Pendidikan"}},
 		"Teknologi & Gadget":       {Expense, []string{"Pembelian Gadget", "Perbaikan & Aksesori Gadget", "Langganan Software", "Upgrade Perangkat", "Biaya E-commerce"}},
 		"Lainnya":                  {Expense, []string{"Hadiah & Ucapan", "Biaya Tak Terduga", "Biaya Hukum & Notaris", "Denda & Tilang", "Biaya Pernikahan", "Keanggotaan", "Biaya Perjalanan Dinas"}},
+		"Investasi":                {Expense, []string{"Emas", "Saham", "Reksadana", "Obligasi", "Deposito", "Properti", "Cryptocurrency", "Peer-to-Peer Lending"}},
+		"Utang":                    {Expense, []string{"Kartu Kredit", "Pinjaman Pribadi", "Cicilan Kendaraan", "Cicilan Rumah", "Pinjaman Online", "Utang Teman/Orang Tua"}},
+		"Bisnis":                   {Expense, []string{"Modal Usaha", "Biaya Operasional", "Pemasaran & Iklan", "Gaji Karyawan", "Sewa Tempat Usaha", "Peralatan & Inventaris", "Biaya Transportasi Bisnis"}},
 	}
 
 		var wg sync.WaitGroup

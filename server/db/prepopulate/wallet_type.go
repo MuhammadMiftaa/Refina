@@ -75,6 +75,7 @@ func WalletTypesSeeder(db *gorm.DB) {
 		{Name: "DBS PayLah! (DBS Indonesia)", Type: EWallet},
 		{Name: "LinkAja Syariah", Type: EWallet},
 		{Name: "Dana Syariah", Type: EWallet},
+		{Name: "Pluang", Type: EWallet},
 
 		// Physical
 		{Name: "Dompet Fisik (Cash)", Type: Physical},

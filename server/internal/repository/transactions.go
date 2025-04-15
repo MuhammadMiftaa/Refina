@@ -67,7 +67,7 @@ func (trasaction_repo *transactionsRepository) GetTransactionByID(ctx context.Co
 	}
 
 	var transaction entity.Transactions
-	err = db.Where("id = ?", id).First(&transaction).Error
+	err = db.Preload("Category").Preload("Wallet").Where("id = ?", id).First(&transaction).Error
 	if err != nil {
 		return entity.Transactions{}, errors.New("transaction not found")
 	}
@@ -108,7 +108,7 @@ func (transaction_repo *transactionsRepository) GetTransactionsByUserID(ctx cont
 	err = db.Table("users").Select("transactions.id AS transaction_id, users.name AS user_name, wallets.name AS wallet_name, wallet_types.name AS wallet_type, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
 		Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
 		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Joins("LEFT JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL").
+		Joins("INNER JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL").
 		Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
 		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
 		Where("users.id = ?", id).

@@ -371,17 +371,55 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 }
 
 func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error) {
+	tx, err := transaction_serv.txManager.Begin(ctx)
+	if err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
+	}
+
+	defer func() {
+		if r := recover(); r != nil || err != nil {
+			tx.Rollback()
+		}
+	}()
+	
 	// Check if transaction exist
-	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
+	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, tx, id)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("transaction not found")
 	}
 
-	transactionDeleted, err := transaction_serv.transactionRepo.DeleteTransaction(ctx, nil, transactionExist)
+	// Update wallet balance
+	if transactionExist.Category.Type == "expense" {
+		transactionExist.Wallet.Balance += transactionExist.Amount
+	} else if transactionExist.Category.Type == "income" {
+		transactionExist.Wallet.Balance -= transactionExist.Amount
+	} else {
+		if transactionExist.Category.Name == "Cash Out" {
+			transactionExist.Wallet.Balance += transactionExist.Amount
+		} else if transactionExist.Category.Name == "Cash In" {
+			transactionExist.Wallet.Balance -= transactionExist.Amount
+		} else {
+			return dto.TransactionsResponse{}, errors.New("invalid transaction type")
+		}
+	}
+
+	// Update wallet balance
+	_, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, transactionExist.Wallet)
+	if err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to update wallet")
+	}
+
+	// Delete transaction
+	transactionDeleted, err := transaction_serv.transactionRepo.DeleteTransaction(ctx, tx, transactionExist)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("failed to delete transaction")
 	}
 
+	// Commit transaksi jika semua sukses
+	if err := tx.Commit(); err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
+	}
+	
 	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(dto.TransactionsResponse)
 
 	return transactionResponse, nil
