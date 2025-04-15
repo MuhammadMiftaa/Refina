@@ -181,16 +181,16 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 	// Check if wallet and category exist
 	fromWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.FromWalletID)
 	if err != nil {
-		return dto.FundTransferResponse{}, errors.New("from wallet not found")
+		return dto.FundTransferResponse{}, errors.New("source wallet not found")
 	}
 
 	toWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.ToWalletID)
 	if err != nil {
-		return dto.FundTransferResponse{}, errors.New("to wallet not found")
+		return dto.FundTransferResponse{}, errors.New("destination wallet not found")
 	}
 
 	if fromWallet.ID == toWallet.ID {
-		return dto.FundTransferResponse{}, errors.New("from wallet and to wallet cannot be the same")
+		return dto.FundTransferResponse{}, errors.New("source wallet and destination wallet cannot be the same")
 	}
 
 	fromWallet.Balance -= (transaction.Amount + transaction.AdminFee)
@@ -419,7 +419,7 @@ func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Conte
 	if err := tx.Commit(); err != nil {
 		return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
 	}
-	
+
 	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(dto.TransactionsResponse)
 
 	return transactionResponse, nil

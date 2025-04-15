@@ -11,8 +11,9 @@ import (
 
 func CategoryTypeSeeder(db *gorm.DB) {
 	const (
-		Income  entity.CategoryType = "income"
-		Expense entity.CategoryType = "expense"
+		Income       entity.CategoryType = "income"
+		Expense      entity.CategoryType = "expense"
+		FundTransfer entity.CategoryType = "fund_transfer"
 	)
 
 	// Data kategori utama dan child
@@ -39,9 +40,11 @@ func CategoryTypeSeeder(db *gorm.DB) {
 		"Investasi":                {Expense, []string{"Emas", "Saham", "Reksadana", "Obligasi", "Deposito", "Properti", "Cryptocurrency", "Peer-to-Peer Lending"}},
 		"Utang":                    {Expense, []string{"Kartu Kredit", "Pinjaman Pribadi", "Cicilan Kendaraan", "Cicilan Rumah", "Pinjaman Online", "Utang Teman/Orang Tua"}},
 		"Bisnis":                   {Expense, []string{"Modal Usaha", "Biaya Operasional", "Pemasaran & Iklan", "Gaji Karyawan", "Sewa Tempat Usaha", "Peralatan & Inventaris", "Biaya Transportasi Bisnis"}},
+
+		"Pindah Dana": {FundTransfer, []string{"Cash In", "Cash Out"}},
 	}
 
-		var wg sync.WaitGroup
+	var wg sync.WaitGroup
 	parentIDs := make(map[string]uuid.UUID)
 
 	// Insert kategori utama dengan pengecekan duplikasi
