@@ -151,7 +151,20 @@ export default function AddTransaction() {
 
       const resData = await res.json();
 
-      await uploadAttachment(resData.data.id, files, token);
+      if (type === "fund_transfer") {
+        await uploadAttachment(
+          resData.data.cash_in_transaction_id,
+          files,
+          token,
+        );
+        await uploadAttachment(
+          resData.data.cash_out_transaction_id,
+          files,
+          token,
+        );
+      } else {
+        await uploadAttachment(resData.data.id, files, token);
+      }
 
       navigate("/transactions");
     } catch (error) {
@@ -224,6 +237,9 @@ export default function AddTransaction() {
                     "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                       borderColor: "#4f46e5", // Warna focus indigo-600
                       borderWidth: "2px",
+                      "&::before": {
+                        display: "none",
+                      }
                     },
                   },
                   "& .MuiInputLabel-root": {
@@ -753,7 +769,7 @@ export default function AddTransaction() {
         )}
 
         <div className="flex min-h-96 w-full flex-col items-center justify-center">
-        <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
+          <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
             <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
               Upload Receipt/Invoice (optional)
             </p>

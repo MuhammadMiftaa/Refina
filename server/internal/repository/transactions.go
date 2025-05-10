@@ -113,7 +113,8 @@ func (transaction_repo *transactionsRepository) GetTransactionsByUserID(ctx cont
 		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
 		Where("users.id = ?", id).
 		Where("users.deleted_at IS NULL").
-		Find(&transactions).Error
+		Find(&transactions).
+		Order("transactions.transaction_date DESC").Error
 	if err != nil {
 		return nil, errors.New("user transactions not found")
 	}

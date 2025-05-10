@@ -36,12 +36,15 @@ func UserRoutes(version *gin.RouterGroup, db *gorm.DB, redis *redis.Client) {
 	}
 
 	version.Use(middleware.AuthMiddleware())
-	version.GET("users", User_handler.GetAllUsers)
-	version.GET("users/:id", User_handler.GetUserByID)
-	version.PUT("users/:id", User_handler.UpdateUser)
-	version.DELETE("users/:id", User_handler.DeleteUser)
 
-	version.GET("users/wallets", User_handler.GetUserWallets)
-	version.GET("users/:id/investments", User_handler.GetUserInvestments)
-	version.GET("users/transactions", User_handler.GetUserTransactions)
+	users := version.Group("/users")
+	{
+		users.GET("/", User_handler.GetAllUsers)
+		users.GET(":id", User_handler.GetUserByID)
+		users.PUT(":id", User_handler.UpdateUser)
+		users.DELETE(":id", User_handler.DeleteUser)
+		users.GET("wallets", User_handler.GetUserWallets)
+		users.GET(":id/investments", User_handler.GetUserInvestments)
+		users.GET("transactions", User_handler.GetUserTransactions)
+	}
 }

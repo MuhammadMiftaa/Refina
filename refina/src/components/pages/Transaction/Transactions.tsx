@@ -7,6 +7,20 @@ import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import styled from "styled-components";
 import { DataTable } from "../data-table";
+import { UserTransactionsType } from "@/types/Transactions";
+import { MoreHorizontal } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "../../../components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "../../../components/ui/dropdown-menu";
+import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
+import { formatRawDate, generateColorByType } from "@/helper/Helper";
+import { PiArrowsLeftRightLight } from "react-icons/pi";
 
 async function fetchWallets() {
   const token = Cookies.get("token");
@@ -62,13 +76,15 @@ export default function Transactions() {
     wallets: [],
   };
 
+  const Transactions: UserTransactionsType[] = transactionsData?.data ?? [];
+
   const [wallets, setWallets] = useState(Wallets.wallets);
 
   useEffect(() => {
     setWallets(Wallets.wallets);
   }, [Wallets]);
 
-  if (walletLoading) {
+  if (walletLoading || transactionsLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="loader"></div>
@@ -95,8 +111,8 @@ export default function Transactions() {
         )}
       </div>
 
-      <div className="bg-primary mt-6 rounded-2xl p-4">
-        <DataTable columns={columns} data={transactions} />
+      <div className="mt-6 rounded-2xl p-4">
+        <DataTable columns={columns} data={Transactions} />
       </div>
     </div>
   );
@@ -179,3 +195,143 @@ const StyledWrapper = styled.div`
     box-shadow: 2px 2px 0px rgb(0, 0, 0);
   }
 `;
+
+const columns: ColumnDef<UserTransactionsType>[] = [
+  {
+    accessorKey: "description",
+    header: "Description",
+  },
+  {
+    accessorKey: "wallet_name",
+    header: "Wallet Name",
+  },
+  {
+    accessorKey: "date",
+    header: () => <div className="text-center">Date</div>,
+    cell: ({ row }: { row: any }) => {
+      const date: string = row.getValue("date");
+      const formattedDate = formatRawDate(date);
+
+      return (
+        <div className="flex flex-col items-center">
+          <h1 className="font-light">{formattedDate[1]}</h1>
+          <p className="text-sm text-nowrap text-zinc-500">
+            {formattedDate[0]}, {formattedDate[2]}
+          </p>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "category_type",
+    header: () => <div className="text-center">Type</div>,
+    cell: ({ row }: { row: any }) => {
+      const type: string = row.getValue("category_type");
+      return (
+        <h1
+          className={`mx-auto flex w-fit items-center gap-2 rounded-2xl border px-3 py-1 font-light text-nowrap uppercase text-${generateColorByType(type)} border-${generateColorByType(type)}`}
+        >
+          {type.replace(/_/g, " ")}{" "}
+          <span className={`text-${generateColorByType(type)}`}>
+            {type === "expense" ? (
+              <BsArrowUpRightCircle />
+            ) : type === "income" ? (
+              <BsArrowDownLeftCircle />
+            ) : (
+              <PiArrowsLeftRightLight />
+            )}
+          </span>
+        </h1>
+      );
+    },
+  },
+  {
+    accessorKey: "category_name",
+    header: "Category",
+  },
+  {
+    accessorKey: "amount",
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }: { row: any }) => {
+      const amount = parseFloat(row.getValue("amount"));
+      const formatted = new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        minimumFractionDigits: 0,
+      }).format(amount);
+
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }: { row: any }) => {
+      const transaction = row.original;
+      const [deleteConfirm, setDeleteConfirm] = useState(false);
+
+      const deleteTransaction = async (id: string) => {
+        const token = Cookies.get("token") || "";
+    
+        try {
+          const res = await fetch("http://localhost:8080/v1/transactions/" + id, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+    
+          if (!res.ok) {
+            throw new Error("Failed to add transaction");
+          }
+
+          setDeleteConfirm(false);
+        } catch (error) {
+          console.error("Error deleting transaction:", error);
+          setDeleteConfirm(false);
+        }
+      };
+    
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="font-poppins border">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem
+              className=""
+              onClick={() => navigator.clipboard.writeText(transaction.id)}
+            >
+              Copy transaction ID
+            </DropdownMenuItem>
+            <DropdownMenuItem className="">Update Transaction</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setDeleteConfirm(true)}
+              className=""
+            >
+              Delete Transaction
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+
+          <div
+            className={`fixed inset-0 flex items-center justify-center bg-zinc-800/70 duration-100 ${deleteConfirm ? "scale-100" : "scale-0"}`}
+          >
+            <div className="flex flex-col p-7 rounded-xl bg-sky-100 text-black">
+              <h1 className="font-bold text-lg">Are you sure to delete this transaction?</h1>
+              <hr />
+              <p>This action cannot be canceled.</p>
+              <div className="mt-4 flex justify-end gap-3">
+                <button onClick={() => setDeleteConfirm(false)} className="py-1 px-4 text-lg cursor-pointer rounded-lg bg-zinc-300 hover:bg-zinc-600 hover:text-white duration-300">Cancel</button>
+                <button onClick={() => deleteTransaction(transaction.id)} className="py-1 px-4 text-lg cursor-pointer rounded-lg bg-red-500 hover:bg-black hover:text-white duration-300">Delete</button>
+              </div>
+            </div>
+          </div>
+        </DropdownMenu>
+      );
+    },
+  },
+];

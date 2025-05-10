@@ -1,7 +1,11 @@
-export type transactionsType = {
+export type UserTransactionsType = {
   id: string;
+  user_name: string;
+  wallet_name: string;
+  wallet_type: string;
+  category_name: string;
+  category_type: "expense" | "income";
   amount: number;
-  transaction_type: "expense" | "income";
   date: string;
   description: string;
   category: string;

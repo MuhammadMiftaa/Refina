@@ -231,7 +231,7 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 		CategoryID:      FromCategoryID,
 		Amount:          transaction.Amount + transaction.AdminFee,
 		TransactionDate: transaction.Date,
-		Description:     "fund transfer to " + transaction.ToWalletID + "(Cash Out)",
+		Description:     "fund transfer to " + toWallet.Name + "(Cash Out)",
 	})
 	if err != nil {
 		return dto.FundTransferResponse{}, errors.New("failed to create from transaction")
@@ -242,7 +242,7 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 		CategoryID:      ToCategoryID,
 		Amount:          transaction.Amount,
 		TransactionDate: transaction.Date,
-		Description:     "fund transfer from " + transaction.FromWalletID + "(Cash In)",
+		Description:     "fund transfer from " + fromWallet.Name + "(Cash In)",
 	})
 	if err != nil {
 		return dto.FundTransferResponse{}, errors.New("failed to create to transaction")

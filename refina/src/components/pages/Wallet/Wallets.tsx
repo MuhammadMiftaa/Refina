@@ -138,7 +138,7 @@ export default function Wallets() {
 
       setWallets(filtered);
 
-      if (Transactions.wallets.length > 0) {
+      if (Transactions?.wallets?.length > 0) {
         const walletIDSet = new Set(filtered.map((wallet) => wallet.id));
 
         const filteredTransactions = Transactions.wallets.filter((wallet) =>
