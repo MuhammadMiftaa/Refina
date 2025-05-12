@@ -1,0 +1,723 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 17rc1
+-- Dumped by pg_dump version 17rc1
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: attachments; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.attachments (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    transaction_id uuid NOT NULL,
+    image text
+);
+
+
+ALTER TABLE public.attachments OWNER TO postgres;
+
+--
+-- Name: categories; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.categories (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    parent_id uuid,
+    name character varying(50) NOT NULL,
+    type character varying(50) NOT NULL
+);
+
+
+ALTER TABLE public.categories OWNER TO postgres;
+
+--
+-- Name: investment_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.investment_types (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    name character varying(50) NOT NULL,
+    unit text
+);
+
+
+ALTER TABLE public.investment_types OWNER TO postgres;
+
+--
+-- Name: investments; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.investments (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    investment_type_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    name character varying(50) NOT NULL,
+    amount numeric(18,2) NOT NULL,
+    quantity numeric(18,2) NOT NULL,
+    investment_date timestamp without time zone NOT NULL,
+    description text
+);
+
+
+ALTER TABLE public.investments OWNER TO postgres;
+
+--
+-- Name: transactions; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.transactions (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    wallet_id uuid NOT NULL,
+    category_id uuid NOT NULL,
+    amount numeric(18,2) NOT NULL,
+    transaction_date timestamp without time zone NOT NULL,
+    description text
+);
+
+
+ALTER TABLE public.transactions OWNER TO postgres;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.users (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    name character varying(100) NOT NULL,
+    email character varying(100) NOT NULL,
+    password character varying(100) NOT NULL,
+    role character varying(100) DEFAULT 'user'::character varying NOT NULL,
+    email_verfied_at timestamp without time zone
+);
+
+
+ALTER TABLE public.users OWNER TO postgres;
+
+--
+-- Name: wallet_types; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.wallet_types (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    name character varying(50) NOT NULL,
+    type character varying(50) NOT NULL,
+    description text
+);
+
+
+ALTER TABLE public.wallet_types OWNER TO postgres;
+
+--
+-- Name: wallets; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.wallets (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    deleted_at timestamp with time zone,
+    user_id uuid NOT NULL,
+    wallet_type_id uuid NOT NULL,
+    name character varying(50) NOT NULL,
+    balance numeric(18,2) NOT NULL,
+    number character varying(50) NOT NULL
+);
+
+
+ALTER TABLE public.wallets OWNER TO postgres;
+
+--
+-- Data for Name: attachments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.attachments (id, created_at, updated_at, deleted_at, transaction_id, image) FROM stdin;
+cf494e85-84e4-4740-a1d5-50de4324e9d2	2025-04-02 15:58:39.961593+07	2025-04-02 15:58:39.961593+07	\N	032726ce-8fc1-4595-87c2-c8c61063ce44	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-20250402155839a248ae8a-7ab8-4810-a239-8e6b4841eb90.png
+7778a649-ed0b-41f7-a27a-08f4f525b1aa	2025-04-02 15:58:39.966604+07	2025-04-02 15:58:39.966604+07	\N	032726ce-8fc1-4595-87c2-c8c61063ce44	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-202504021558397ba7ad10-55d3-4285-9f21-0394075d90bb.jpg
+20e85779-b2f8-4b63-98f7-501bcc3786df	2025-04-07 09:37:02.388633+07	2025-04-07 09:37:02.388633+07	\N	4a52b8f6-1941-4b3c-8966-c17a49488a38	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-202504070937025b9bb1e9-360f-44d4-991b-bd556446952c.jpg
+23aba04d-e451-4a07-98ad-2edaafd4be2e	2025-04-12 12:54:54.887269+07	2025-04-12 12:54:54.887269+07	\N	ba3b9152-544e-4ec1-9474-2af9fe83a97d	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-20250412125454a7de7d27-d175-4398-8765-9bc5010b854c.jpg
+6595b450-5821-405d-bbeb-96ca97ee9a11	2025-04-13 15:01:46.684871+07	2025-04-13 15:01:46.684871+07	\N	298979c6-1b98-4eff-be57-5f6bc86181c1	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-20250413150146e39b346a-6936-422a-adaf-337967525c14.jpg
+0099637a-b520-431b-8631-4a414f98db44	2025-04-13 15:01:46.723169+07	2025-04-13 15:01:46.723169+07	\N	e5b7bdf8-45d3-438c-9985-a651bf5da53d	C:\\VSCode\\Go\\refina\\refina\\src\\assets\\attachments\\-202504131501464a76890f-2d09-41ec-94c1-88f3581109b6.jpg
+\.
+
+
+--
+-- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.categories (id, created_at, updated_at, deleted_at, parent_id, name, type) FROM stdin;
+86453a2c-b4ca-42e9-b4d0-dcc718ede024	2025-03-04 15:58:55.867954+07	2025-03-04 15:58:55.867954+07	\N	\N	Transportasi & Kendaraan	expense
+78662c66-1299-4486-902c-7ea8543aa6fc	2025-03-04 15:58:55.873377+07	2025-03-04 15:58:55.873377+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Cicilan Kendaraan	expense
+0c759c4a-41d8-4f4c-9e6c-7ddebba28420	2025-03-04 15:58:55.873377+07	2025-03-04 15:58:55.873377+07	\N	\N	Kebutuhan Pokok	expense
+38bd3956-434c-4387-ad9c-9bc3938215ca	2025-03-04 15:58:55.876787+07	2025-03-04 15:58:55.876787+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Belanja Bulanan	expense
+00338e72-62e6-43d8-91d2-18e4f5438eca	2025-03-04 15:58:55.876787+07	2025-03-04 15:58:55.876787+07	\N	\N	Fashion & Perawatan Diri	expense
+9d560a79-0c9c-430f-b2f4-2a1d83a69008	2025-03-04 15:58:55.877944+07	2025-03-04 15:58:55.877944+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Belanja Pakaian/Aksesoris	expense
+e55a9430-68f1-406a-91a4-67aad81c8b44	2025-03-04 15:58:55.947543+07	2025-03-04 15:58:55.947543+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Servis & Perawatan Rutin	expense
+552de2ae-6900-42ef-ace5-bfbdc1fce31a	2025-03-04 15:58:55.967181+07	2025-03-04 15:58:55.967181+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Parkir & Tol	expense
+f35cb6b8-9445-493b-8725-7a449cf35e84	2025-03-04 15:58:55.969685+07	2025-03-04 15:58:55.969685+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Asuransi Kendaraan	expense
+e370e303-d21f-4b46-9813-786279e239c3	2025-03-04 15:58:55.970347+07	2025-03-04 15:58:55.970347+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Biaya SIM & Surat-surat Lainnya	expense
+ae009d3c-d03a-4e2e-a505-891f4adcdef7	2025-03-04 15:58:56.009639+07	2025-03-04 15:58:56.009639+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Makanan & Minuman	expense
+99315feb-1226-4ab9-b982-bc177aec3d2c	2025-03-04 15:58:56.015779+07	2025-03-04 15:58:56.015779+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Perawatan Hewan Peliharaan	expense
+296bca0d-9745-45fd-9501-4f752ab51ca6	2025-03-04 15:58:56.015779+07	2025-03-04 15:58:56.015779+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Internet & Telepon	expense
+86f87192-05ef-4cd2-a16e-b847a67864fe	2025-03-04 15:58:56.050792+07	2025-03-04 15:58:56.050792+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Perlengkapan Kebersihan	expense
+c54b2d78-0308-4efd-876e-b4e3b9aea54b	2025-03-04 15:58:56.050792+07	2025-03-04 15:58:56.050792+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Bahan Bakar & Pengisian Daya	expense
+d9c4076d-a778-48e5-9914-6c679f9362ab	2025-03-04 15:58:56.077186+07	2025-03-04 15:58:56.077186+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Transportasi Harian	expense
+19195683-7b2a-4330-aef4-82ca6a8b07ba	2025-03-04 15:58:56.085226+07	2025-03-04 15:58:56.085226+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Listrik, Air, & Gas	expense
+91737b7e-428c-4a95-9d14-fa2de368eefc	2025-03-04 15:58:56.095312+07	2025-03-04 15:58:56.095312+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Sewa Kostum/Pakaian	expense
+40190689-2071-42e7-9dde-626fe6682c68	2025-03-04 15:58:56.095312+07	2025-03-04 15:58:56.095312+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Perhiasan & Jam Tangan	expense
+e1af1a1f-1608-4202-8f97-f9ab8881aa82	2025-03-04 15:58:56.097545+07	2025-03-04 15:58:56.097545+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Salon & Barbershop	expense
+9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	2025-03-04 15:58:56.101814+07	2025-03-04 15:58:56.101814+07	\N	\N	Kesehatan	expense
+f5c9edf2-f425-416f-a342-5e570ac5ff04	2025-03-04 15:58:56.113036+07	2025-03-04 15:58:56.113036+07	\N	\N	Hiburan & Rekreasi	expense
+44dcaf31-5e6d-4910-a78c-a6be3513bab4	2025-03-04 15:58:56.11456+07	2025-03-04 15:58:56.11456+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Asuransi Kesehatan	expense
+809b3626-38ac-4b34-b662-d2fb44846d23	2025-03-04 15:58:56.116093+07	2025-03-04 15:58:56.116093+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Layanan Kesehatan	expense
+219b3106-3211-48f7-a383-f05bfff592c2	2025-03-04 15:58:56.126383+07	2025-03-04 15:58:56.126383+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Langganan Digital	expense
+2e7ec450-2547-415c-94d5-03be88d25bf7	2025-03-04 15:58:56.146691+07	2025-03-04 15:58:56.146691+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Perawatan Tubuh	expense
+ceb9624d-0a53-48a9-8e08-81c1dc8ea96d	2025-03-04 15:58:56.147215+07	2025-03-04 15:58:56.147215+07	\N	86453a2c-b4ca-42e9-b4d0-dcc718ede024	Pajak Kendaraan	expense
+b65dcd38-447d-48ce-a442-384bfa2cebef	2025-03-04 15:58:56.148961+07	2025-03-04 15:58:56.148961+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Laundry & Dry Cleaning	expense
+14ce5686-60f8-468c-a6ca-979fd738b97e	2025-03-04 15:58:56.154516+07	2025-03-04 15:58:56.154516+07	\N	0c759c4a-41d8-4f4c-9e6c-7ddebba28420	Rokok & Alkohol	expense
+5ec4ffe1-28ee-41ef-9a35-d806c7b8876b	2025-03-04 15:58:56.20388+07	2025-03-04 15:58:56.20388+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Peralatan Kesehatan	expense
+c92e4723-ef04-4c74-9aa1-39a7ed85391b	2025-03-04 15:58:56.22197+07	2025-03-04 15:58:56.22197+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Obat-obatan & Resep Dokter	expense
+5ef45b6c-0a48-4d76-a5fa-377db03fa448	2025-03-04 15:58:56.233543+07	2025-03-04 15:58:56.233543+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Kesehatan Mental	expense
+585bb27f-3068-471e-ac94-06ac5433870c	2025-03-04 15:58:56.233543+07	2025-03-04 15:58:56.233543+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Medical Check-up	expense
+9bcb4688-4491-4ecc-8542-5cd9cab31dc4	2025-03-04 15:58:56.260026+07	2025-03-04 15:58:56.260026+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Suplemen & Vitamin	expense
+2da1642b-21d6-4029-8d7f-8eece438f77e	2025-03-04 15:58:56.273036+07	2025-03-04 15:58:56.273036+07	\N	9bf8ebd7-d343-4ef6-9fbc-5fdf7d755291	Donor Darah/Organ	expense
+fb6c5f86-9bd0-49a4-a0fc-2d6f85fbb52a	2025-03-04 15:58:56.279038+07	2025-03-04 15:58:56.279038+07	\N	00338e72-62e6-43d8-91d2-18e4f5438eca	Kosmetik & Skincare	expense
+94002613-7ac8-4b62-be30-a7586a33a378	2025-03-04 15:58:56.294445+07	2025-03-04 15:58:56.294445+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Event & Konser	expense
+79898316-6cbc-410f-b29e-50f3ee1ed66f	2025-03-04 15:58:56.305807+07	2025-03-04 15:58:56.305807+07	\N	\N	Zonasi & Amal	expense
+fc94ff6a-b0d6-4380-938f-77a9bd30f9e9	2025-03-04 15:58:56.312303+07	2025-03-04 15:58:56.312303+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Donasi Pendidikan	expense
+5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	2025-03-04 15:58:56.312303+07	2025-03-04 15:58:56.312303+07	\N	\N	Teknologi & Gadget	expense
+2240402c-50ad-4e8e-bc54-7aee8f12ce40	2025-03-04 15:58:56.320061+07	2025-03-04 15:58:56.320061+07	\N	5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	Perbaikan & Aksesori Gadget	expense
+59d19fac-50b5-44ea-9a37-1f4ca1a2856a	2025-03-04 15:58:56.320061+07	2025-03-04 15:58:56.320061+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Koleksi & Kesenangan Pribadi	expense
+34ab9958-f478-443d-976e-b9f5147c5a12	2025-03-04 15:58:56.321079+07	2025-03-04 15:58:56.321079+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Hobi	expense
+e900fe87-c4fc-4671-ba97-62d681a49643	2025-03-04 15:58:56.328083+07	2025-03-04 15:58:56.328083+07	\N	\N	Pendapatan Lainnya	income
+635fdfd1-31f4-472c-8d52-e59a66c31351	2025-03-04 15:58:56.340122+07	2025-03-04 15:58:56.340122+07	\N	e900fe87-c4fc-4671-ba97-62d681a49643	Pendapatan Investasi	income
+a367f356-831d-457d-8e65-c4234054e9d8	2025-03-04 15:58:56.341116+07	2025-03-04 15:58:56.341116+07	\N	\N	Pendapatan Sampingan	income
+205ae397-e277-4576-b47e-fb9d6108190e	2025-03-04 15:58:56.344569+07	2025-03-04 15:58:56.344569+07	\N	a367f356-831d-457d-8e65-c4234054e9d8	Pendapatan dari Afiliasi	income
+b1072a11-2665-4b62-a394-98307dc66ae4	2025-03-04 15:58:56.344569+07	2025-03-04 15:58:56.344569+07	\N	\N	Perumahan	expense
+29629542-1592-4342-9fbd-7a443b3f0b72	2025-03-04 15:58:56.345611+07	2025-03-04 15:58:56.345611+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Liburan	expense
+01899e1d-93c1-4088-9b6d-1dd5d3ef7371	2025-03-04 15:58:56.347597+07	2025-03-04 15:58:56.347597+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Biaya Keamanan	expense
+2039958c-42da-4d78-8b20-176bf5716e70	2025-03-04 15:58:56.345611+07	2025-03-04 15:58:56.345611+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Nongkrong di Kafe/Restoran	expense
+221e09c7-a30c-4d82-aca6-cfdcd3a12aba	2025-03-04 15:58:56.348593+07	2025-03-04 15:58:56.348593+07	\N	\N	Tagihan & Utilitas	expense
+398b9095-80ab-4880-a043-1b20e22092e4	2025-03-04 15:58:56.354508+07	2025-03-04 15:58:56.354508+07	\N	\N	Lainnya	expense
+6d5bf1d4-f3a9-4ba4-910d-315db91fa04a	2025-03-04 15:58:56.351596+07	2025-03-04 15:58:56.351596+07	\N	f5c9edf2-f425-416f-a342-5e570ac5ff04	Nonton Bioskop/Streaming	expense
+c7082370-6cb7-4432-af32-eb42643d7687	2025-03-04 15:58:56.363767+07	2025-03-04 15:58:56.363767+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Tagihan Kartu Kredit	expense
+3cbc0364-9a51-4707-bdc8-1fb70a75813d	2025-03-04 15:58:56.36631+07	2025-03-04 15:58:56.36631+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Biaya Perjalanan Dinas	expense
+ca457f82-d35d-47db-9745-53ca6c22cb38	2025-03-04 15:58:56.368315+07	2025-03-04 15:58:56.368315+07	\N	\N	Gaji/Pendapatan Tetap	income
+94e06887-016c-4773-8c6d-4e77dec449c6	2025-03-04 15:58:56.368315+07	2025-03-04 15:58:56.368315+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Biaya Tak Terduga	expense
+c20eec2a-5f0c-49e3-920c-6de226fa156f	2025-03-04 15:58:56.369324+07	2025-03-04 15:58:56.369324+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Denda & Tilang	expense
+bc08ac06-c868-459f-81bd-8997edd8b1a2	2025-03-04 15:58:56.373318+07	2025-03-04 15:58:56.373318+07	\N	ca457f82-d35d-47db-9745-53ca6c22cb38	Bonus Tahunan	income
+c4f84515-dea4-4c91-bef8-c2466a2cd28c	2025-03-04 15:58:56.373318+07	2025-03-04 15:58:56.373318+07	\N	\N	Pendapatan Pasif	income
+9b8cd790-68c2-4c0e-8df7-7d2a1ee36ec9	2025-03-04 15:58:56.376313+07	2025-03-04 15:58:56.376313+07	\N	c4f84515-dea4-4c91-bef8-c2466a2cd28c	Royalti	income
+5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	2025-03-04 15:58:56.377306+07	2025-03-04 15:58:56.377306+07	\N	\N	Pendidikan	expense
+868ac9c5-d4b6-4c85-869e-60002a1efff9	2025-03-04 15:58:56.397524+07	2025-03-04 15:58:56.397524+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Biaya Ujian & Sertifikasi	expense
+b0b60694-c0b9-4df9-b48b-95649b32bc05	2025-03-04 15:58:56.401527+07	2025-03-04 15:58:56.401527+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Transportasi Sekolah/Kampus	expense
+a28ddab6-5cf9-49ac-88fa-cb332b555411	2025-03-04 15:58:56.438287+07	2025-03-04 15:58:56.438287+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Bantuan Bencana Alam	expense
+8cf0d0f3-b0c9-4eb4-8efc-e316c0d90399	2025-03-04 15:58:56.444939+07	2025-03-04 15:58:56.444939+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Zakat	expense
+0f871a1b-034d-4100-b83c-0e80046f1359	2025-03-04 15:58:56.493161+07	2025-03-04 15:58:56.493161+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Donasi Sosial	expense
+5bf20eda-d89a-44ff-a5ad-ece2e89ce1dd	2025-03-04 15:58:56.493161+07	2025-03-04 15:58:56.493161+07	\N	5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	Pembelian Gadget	expense
+e6a3af62-02ca-4d6e-b786-583d4438e5ea	2025-03-04 15:58:56.545943+07	2025-03-04 15:58:56.545943+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Sedekah	expense
+a963c551-299c-4b71-8043-d6ae205ad011	2025-03-04 15:58:56.5639+07	2025-03-04 15:58:56.5639+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Layanan Digital	expense
+23e0bd87-2f13-4281-a188-b43fbcb4ed57	2025-03-04 15:58:56.584002+07	2025-03-04 15:58:56.584002+07	\N	ca457f82-d35d-47db-9745-53ca6c22cb38	Gaji Freelance	income
+e3311cbb-9bf4-4c13-bd19-148361b4ee24	2025-03-04 15:58:56.584002+07	2025-03-04 15:58:56.584002+07	\N	e900fe87-c4fc-4671-ba97-62d681a49643	Refund/Pengembalian Dana	income
+20a89ee1-5a10-4769-90bf-48a4d9902f1d	2025-03-04 15:58:56.584002+07	2025-03-04 15:58:56.584002+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Sewa Rumah/Kontrakan	expense
+5b98cb92-fdc2-418b-8387-0cc6bc786750	2025-03-04 15:58:56.595336+07	2025-03-04 15:58:56.595336+07	\N	c4f84515-dea4-4c91-bef8-c2466a2cd28c	Dividen Saham	income
+1a4ef032-0f33-4ae5-8bcb-1e9e449e88dd	2025-03-04 15:58:56.718096+07	2025-03-04 15:58:56.718096+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Tagihan PLN/PDAM/Gas	expense
+45e5d635-09ec-4a8d-9e97-83016c0a3715	2025-03-04 15:58:56.717079+07	2025-03-04 15:58:56.717079+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Biaya Pernikahan	expense
+b37ee611-f4ae-4b64-a2d2-fc5f197cd610	2025-03-04 15:58:56.745823+07	2025-03-04 15:58:56.745823+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Kegiatan Ekstrakurikuler	expense
+6dcb6708-6e59-4b08-8431-3e7745f42a81	2025-03-04 15:58:56.786886+07	2025-03-04 15:58:56.786886+07	\N	5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	Langganan Software	expense
+6899e818-5589-4584-9c6a-b2be7ea2f753	2025-03-04 15:58:56.799591+07	2025-03-04 15:58:56.799591+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Hadiah & Ucapan	expense
+4200f46d-cb29-4171-9e44-227e93985987	2025-03-04 15:58:56.799591+07	2025-03-04 15:58:56.799591+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Keanggotaan	expense
+17c53e46-21b4-4bc7-b31a-c8edc0deeb36	2025-03-04 15:58:56.800107+07	2025-03-04 15:58:56.800107+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Perbaikan & Pemeliharaan Rumah	expense
+cc147e77-1938-4963-90b3-04c6de73ea7f	2025-03-04 15:58:56.799222+07	2025-03-04 15:58:56.799222+07	\N	a367f356-831d-457d-8e65-c4234054e9d8	Pendapatan dari Hobi	income
+9c1a1896-d798-48a8-a50d-d4d7efa14c18	2025-03-04 15:58:56.82079+07	2025-03-04 15:58:56.82079+07	\N	5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	Upgrade Perangkat	expense
+debe06c6-a386-414b-b82c-b673f75bfe3c	2025-03-04 15:58:56.821805+07	2025-03-04 15:58:56.821805+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Tagihan TV Kabel/Streaming	expense
+370d87a4-b01b-4f03-82ea-1c10d4e9f282	2025-03-04 15:58:56.866529+07	2025-03-04 15:58:56.866529+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Cicilan Rumah/KPR	expense
+d592efcd-867a-46a4-a2cc-a30df091796b	2025-03-04 15:58:56.897389+07	2025-03-04 15:58:56.897389+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Perlengkapan Rumah Tangga	expense
+156dd521-efc8-4d8e-b4d5-c1dab2d88915	2025-03-04 15:58:56.931094+07	2025-03-04 15:58:56.931094+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Seragam & Perlengkapan Khusus	expense
+d834d75e-5213-42c6-9deb-35411cabc17c	2025-03-04 15:58:56.967695+07	2025-03-04 15:58:56.967695+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Dekorasi & Kebun	expense
+2718e35b-ec13-4264-8c69-bd0eb5adabe6	2025-03-04 15:58:56.966675+07	2025-03-04 15:58:56.966675+07	\N	ca457f82-d35d-47db-9745-53ca6c22cb38	Honor Projek	income
+6e432773-9290-4acf-b235-a62ea2a2389e	2025-03-04 15:58:56.9739+07	2025-03-04 15:58:56.9739+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Biaya Sekolah/Kuliah	expense
+b952434f-7b32-419d-8884-cb5638117cf5	2025-03-04 15:58:56.976468+07	2025-03-04 15:58:56.976468+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Buku & Alat Tulis	expense
+f1995058-5c77-49bf-8e48-a9c8a935c2c7	2025-03-04 15:58:56.976468+07	2025-03-04 15:58:56.976468+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Asuransi Rumah	expense
+4dec2f41-99b5-4367-9ab4-668aa37b4f09	2025-03-04 15:58:56.980498+07	2025-03-04 15:58:56.980498+07	\N	79898316-6cbc-410f-b29e-50f3ee1ed66f	Wakaf	expense
+ca7d9a16-1c44-4e56-b147-0b6261ce3b33	2025-03-04 15:58:57.014219+07	2025-03-04 15:58:57.014219+07	\N	a367f356-831d-457d-8e65-c4234054e9d8	Jualan Online	income
+c713f0d6-e643-475e-a34d-a26f6e1521e5	2025-03-04 15:58:57.014749+07	2025-03-04 15:58:57.014749+07	\N	e900fe87-c4fc-4671-ba97-62d681a49643	Penjualan Barang Bekas	income
+4cbb5a2e-922b-425f-a800-7771e3d23db3	2025-03-04 15:58:57.028855+07	2025-03-04 15:58:57.028855+07	\N	e900fe87-c4fc-4671-ba97-62d681a49643	Hadiah/Uang Saku	income
+edd852f8-560d-4ce0-a3b1-dea519f3f919	2025-03-04 15:58:57.034292+07	2025-03-04 15:58:57.034292+07	\N	5c1e7eb5-51d0-463e-9e8f-e5c34e6f07f5	Kursus/Pelatihan	expense
+134d41a8-87dc-4aca-9a51-63396ef96afd	2025-03-04 15:58:57.049971+07	2025-03-04 15:58:57.049971+07	\N	c4f84515-dea4-4c91-bef8-c2466a2cd28c	Sewa Properti	income
+1787ffb6-e2cf-4eac-a74c-c32451f0b243	2025-03-04 15:58:57.060542+07	2025-03-04 15:58:57.060542+07	\N	b1072a11-2665-4b62-a394-98307dc66ae4	Pajak Properti	expense
+db405f69-173e-4867-8a81-da542339ff85	2025-03-04 15:58:57.060542+07	2025-03-04 15:58:57.060542+07	\N	5f2428f5-bc5d-486f-a97c-a9eeb42eb3ba	Biaya E-commerce	expense
+5ddf661f-beb3-4339-979c-731ab6f57294	2025-03-04 15:58:57.068589+07	2025-03-04 15:58:57.068589+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Biaya Administrasi	expense
+fb6b1109-b7fe-4284-b17b-5f87877d8e81	2025-03-04 15:58:57.069364+07	2025-03-04 15:58:57.069364+07	\N	221e09c7-a30c-4d82-aca6-cfdcd3a12aba	Iuran Lingkungan	expense
+4be6ddc3-f635-4a95-8b5f-b2dc4da7b249	2025-03-04 15:58:57.085108+07	2025-03-04 15:58:57.085108+07	\N	c4f84515-dea4-4c91-bef8-c2466a2cd28c	Bunga Deposito	income
+4c59f52f-9353-401a-a0dc-8e3926f4858b	2025-03-04 15:58:57.118481+07	2025-03-04 15:58:57.118481+07	\N	ca457f82-d35d-47db-9745-53ca6c22cb38	Gaji Bulanan	income
+cbe9ad70-0789-4be0-9bef-49270b9f040f	2025-03-04 15:58:56.802138+07	2025-04-01 07:51:10.25502+07	\N	398b9095-80ab-4880-a043-1b20e22092e4	Biaya Hukum & Notaris	expense
+e8f83876-0e5c-4e88-b16b-f3229d5c8412	2025-04-02 07:29:16.391441+07	2025-04-02 07:29:16.391441+07	\N	\N	Pindah Dana	fund_transfer
+75a19b5c-43b4-4f84-ad2c-f844c40eec24	2025-04-02 07:31:01.238577+07	2025-04-02 07:31:01.238577+07	\N	e8f83876-0e5c-4e88-b16b-f3229d5c8412	Cash In	fund_transfer
+b5a5d097-6346-4b72-b975-8ebf0b4b72f1	2025-04-02 07:31:09.784333+07	2025-04-02 07:31:09.784333+07	\N	e8f83876-0e5c-4e88-b16b-f3229d5c8412	Cash Out	fund_transfer
+8d99002a-f0be-4baf-aa40-6605dc9bbfa2	2025-04-13 15:09:25.438024+07	2025-04-13 15:09:25.438024+07	\N	\N	Bisnis	expense
+66239d17-3320-4c98-9b8c-fb8d84827085	2025-04-13 15:09:25.474453+07	2025-04-13 15:09:25.474453+07	\N	\N	Investasi	expense
+17f190f7-36fb-4785-83d0-029568e768c6	2025-04-13 15:09:25.474453+07	2025-04-13 15:09:25.474453+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Pemasaran & Iklan	expense
+99140343-3e68-40b2-8727-b94ab047f40e	2025-04-13 15:09:25.4833+07	2025-04-13 15:09:25.4833+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Deposito	expense
+b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	2025-04-13 15:09:25.487726+07	2025-04-13 15:09:25.487726+07	\N	\N	Utang	expense
+05b2c62e-ea18-4892-8666-29b36985fd79	2025-04-13 15:09:25.494372+07	2025-04-13 15:09:25.494372+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Utang Teman/Orang Tua	expense
+dfadcd5b-85d6-44f0-8b26-2c4708c3eac2	2025-04-13 15:09:25.585312+07	2025-04-13 15:09:25.585312+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Gaji Karyawan	expense
+16322868-e075-4675-b980-ac3eae09cf32	2025-04-13 15:09:25.647411+07	2025-04-13 15:09:25.647411+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Peralatan & Inventaris	expense
+6fa7661f-3eaf-4a4d-827c-7c94df63b72c	2025-04-13 15:09:25.677082+07	2025-04-13 15:09:25.677082+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Pinjaman Pribadi	expense
+ed284ce6-3a43-489e-95bb-71da45074f95	2025-04-13 15:09:25.686367+07	2025-04-13 15:09:25.686367+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Peer-to-Peer Lending	expense
+b3de433a-6f85-4b4d-874f-e992e83e61ee	2025-04-13 15:09:25.692357+07	2025-04-13 15:09:25.692357+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Cicilan Kendaraan	expense
+9a62b2f5-3604-472b-af2a-5d620dd78983	2025-04-13 15:09:25.821199+07	2025-04-13 15:09:25.821199+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Properti	expense
+6bb08b72-56ed-455c-b1f5-93f9cc02cfdd	2025-04-13 15:09:25.827521+07	2025-04-13 15:09:25.827521+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Biaya Transportasi Bisnis	expense
+8c2e6120-0464-47f5-a45f-6e6afbaf1703	2025-04-13 15:09:25.860635+07	2025-04-13 15:09:25.860635+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Cryptocurrency	expense
+6411b40e-6694-40bd-818b-c587b2f02d25	2025-04-13 15:09:25.877948+07	2025-04-13 15:09:25.877948+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Cicilan Rumah	expense
+5a6e85aa-7d1c-4b2c-913d-a33ea33313f4	2025-04-13 15:09:25.89889+07	2025-04-13 15:09:25.89889+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Modal Usaha	expense
+36b3810b-fc88-4fac-b361-8ab8bdcbf8b7	2025-04-13 15:09:25.897887+07	2025-04-13 15:09:25.897887+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Biaya Operasional	expense
+9b6fa579-18ea-4049-9b82-bfbe09900dfb	2025-04-13 15:09:25.910618+07	2025-04-13 15:09:25.910618+07	\N	8d99002a-f0be-4baf-aa40-6605dc9bbfa2	Sewa Tempat Usaha	expense
+10a812a1-9374-4f8a-8a85-64e5614177d1	2025-04-13 15:09:25.92305+07	2025-04-13 15:09:25.92305+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Reksadana	expense
+29bc1fb2-1c7e-4776-9406-a03d339c074f	2025-04-13 15:09:25.924374+07	2025-04-13 15:09:25.924374+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Obligasi	expense
+2ba84734-3fd9-4609-98e5-b09ba094f1fb	2025-04-13 15:09:25.933328+07	2025-04-13 15:09:25.933328+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Kartu Kredit	expense
+b58662ff-6bd5-4e68-a10a-6ce4e28f21b1	2025-04-13 15:09:25.971284+07	2025-04-13 15:09:25.971284+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Saham	expense
+1b257b1e-7e3f-4ce7-ac05-77d4d97bc7a8	2025-04-13 15:09:25.976907+07	2025-04-13 15:09:25.976907+07	\N	b0a06cfe-a0bb-44c1-a95f-0a095e0f29a1	Pinjaman Online	expense
+5ab8f328-c493-4e76-a99d-4fdabf0f89bb	2025-04-13 15:14:25.159465+07	2025-04-13 15:14:25.159465+07	\N	66239d17-3320-4c98-9b8c-fb8d84827085	Emas	expense
+\.
+
+
+--
+-- Data for Name: investment_types; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.investment_types (id, created_at, updated_at, deleted_at, name, unit) FROM stdin;
+192676ca-569f-4e73-b2fc-0d1e772006f4	2025-03-07 15:33:22.518472+07	2025-03-07 15:33:22.518472+07	\N	Others	-
+d90a40cb-6981-4847-b54b-a0affdcaf446	2025-03-07 15:33:22.521559+07	2025-03-07 15:33:22.521559+07	\N	Gold	Gram / Troy Ounce
+a0e5075e-0fab-46ab-9719-4e3c97ba6ce5	2025-03-07 15:33:22.726456+07	2025-03-07 15:33:22.726456+07	\N	Government Securities	Nominal / Unit
+c1991cd9-6e96-49cb-877b-c9fc3ea71303	2025-03-07 15:33:22.730306+07	2025-03-07 15:33:22.730306+07	\N	Bonds	Nominal / Lot
+75d32c45-a81a-4ac1-a331-c4b7c22e2e75	2025-03-07 15:33:22.742061+07	2025-03-07 15:33:22.742061+07	\N	Stocks	Lembar
+e18f9601-5331-4aa4-a0bc-960a7f46261d	2025-03-07 15:33:22.76423+07	2025-03-07 15:33:22.76423+07	\N	Mutual Funds	Unit Penyertaan (UP)
+46113757-d86d-49b7-b604-a670ca5b40b1	2025-03-07 15:33:22.771928+07	2025-03-07 15:33:22.771928+07	\N	Deposits	Nominal
+\.
+
+
+--
+-- Data for Name: investments; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.investments (id, created_at, updated_at, deleted_at, investment_type_id, user_id, name, amount, quantity, investment_date, description) FROM stdin;
+\.
+
+
+--
+-- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.transactions (id, created_at, updated_at, deleted_at, wallet_id, category_id, amount, transaction_date, description) FROM stdin;
+e5b7bdf8-45d3-438c-9985-a651bf5da53d	2025-04-13 15:01:46.639255+07	2025-04-13 15:01:46.639255+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	7351500.00	2025-04-13 08:00:23.644	fund transfer to ad76d679-e8ea-4447-99e8-ee83df34e384(Cash Out)
+298979c6-1b98-4eff-be57-5f6bc86181c1	2025-04-13 15:01:46.648105+07	2025-04-13 15:01:46.648105+07	\N	ad76d679-e8ea-4447-99e8-ee83df34e384	75a19b5c-43b4-4f84-ad2c-f844c40eec24	7345000.00	2025-04-13 08:00:23.644	fund transfer from 63f462e6-23b5-480f-9b60-72dec314b341(Cash In)
+ac1e34c9-9613-4044-ab49-673cd43400aa	2025-04-13 15:15:53.335614+07	2025-04-13 15:15:53.335614+07	\N	ad76d679-e8ea-4447-99e8-ee83df34e384	5ab8f328-c493-4e76-a99d-4fdabf0f89bb	7427476.00	2025-04-13 08:14:45.541	Emas Pluang 4gr
+9f105ab7-2359-42c2-8bbc-aac2fbcffb96	2025-04-14 19:41:08.12688+07	2025-04-14 19:41:08.12688+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	296bca0d-9745-45fd-9501-4f752ab51ca6	69000.00	2025-04-14 12:39:49.477	Paket Data 3 AON 14GB
+47d59eff-e6d7-4dfb-90c1-015a7b9eab4f	2025-04-02 10:08:05.636871+07	2025-04-02 10:08:05.636871+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	2502500.00	2025-04-02 03:05:28.766	fund transfer to 63f462e6-23b5-480f-9b60-72dec314b341(Cash Out)
+2500b591-321c-4271-891e-e6fbb0be9fcb	2025-04-02 10:08:05.699332+07	2025-04-02 10:08:05.699332+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	75a19b5c-43b4-4f84-ad2c-f844c40eec24	2500000.00	2025-04-02 03:05:28.766	fund transfer from c42896bb-f908-45d7-a3c6-4a22e04e38d7(Cash In)
+983cad5f-8307-40b4-b780-223f1f409b08	2025-04-02 16:09:35.984356+07	2025-04-02 16:09:35.984356+07	\N	f164a13d-8e1f-499a-bf74-ccbbd524e971	4cbb5a2e-922b-425f-a800-7771e3d23db3	500000.00	2025-04-02 09:08:59.244	THR Magang
+032726ce-8fc1-4595-87c2-c8c61063ce44	2025-04-02 15:58:39.763041+07	2025-04-02 15:58:39.763041+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	edd852f8-560d-4ce0-a3b1-dea519f3f919	99000.00	2025-04-02 09:08:59.244	Kelas Udemy PZN materi Golang
+9464293d-fc46-457d-883b-ba6c516b2f71	2025-04-02 16:03:24.110707+07	2025-04-02 16:03:24.110707+07	\N	f164a13d-8e1f-499a-bf74-ccbbd524e971	4c59f52f-9353-401a-a0dc-8e3926f4858b	1000000.00	2025-04-02 09:08:59.244	Gaji Magang Bulanan
+0e3d4bfb-cbc4-4462-9970-1efe00abba54	2025-04-07 09:34:13.397492+07	2025-04-07 09:34:13.397492+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	25000.00	2025-04-07 02:22:38.229	Beli makan di nganjuk
+4a52b8f6-1941-4b3c-8966-c17a49488a38	2025-04-07 09:37:02.316957+07	2025-04-07 09:37:02.316957+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	50000.00	2025-04-07 02:34:15.516	gofood nasi goreng 3
+07c2e098-8114-49ce-bd3a-fd2bacab2501	2025-04-08 19:36:31.702299+07	2025-04-08 19:36:31.702299+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	ae009d3c-d03a-4e2e-a505-891f4adcdef7	5000.00	2025-04-08 12:36:02.913	Es teh + kerupuk di warkop
+0f0a4cfd-9649-4c7e-ac85-3d0c13aab641	2025-04-08 19:37:10.413274+07	2025-04-08 19:37:10.413274+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	d9c4076d-a778-48e5-9914-6c679f9362ab	40000.00	2025-04-08 12:36:34.754	Pertalite vario 40000
+ee00a579-3246-4ebd-93d0-3154519edddd	2025-04-08 19:42:21.475771+07	2025-04-08 19:42:21.475771+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	10000.00	2025-04-08 12:37:12.02	Cireng
+e2d54e02-e5fa-462c-bf35-b78fb2e7df93	2025-04-12 12:49:59.295003+07	2025-04-12 12:49:59.295003+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	ae009d3c-d03a-4e2e-a505-891f4adcdef7	4000.00	2025-04-12 05:44:05.2	es teh warkop
+ba3b9152-544e-4ec1-9474-2af9fe83a97d	2025-04-12 12:54:54.856704+07	2025-04-12 12:54:54.856704+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	635fdfd1-31f4-472c-8d52-e59a66c31351	49881.00	2025-04-12 05:50:04.139	Jual Reksadana Pasar Uang MPUSI 37.7698 unit Bibit
+0924d77e-2c9d-440c-8332-aec9bb9e4776	2025-04-12 12:59:15.272265+07	2025-04-12 12:59:15.272265+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	5ddf661f-beb3-4339-979c-731ab6f57294	5000.00	2025-04-12 05:58:39.121	Biaya Administrasi Kartu Debit Mandiri
+5bbf5d11-4ae0-4342-a282-b3e161742c9e	2025-04-12 16:02:13.637782+07	2025-04-12 16:02:13.637782+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	3982500.00	2025-04-12 08:58:34.536	fund transfer to 63f462e6-23b5-480f-9b60-72dec314b341(Cash Out)
+921a3dac-0ce1-47c0-bb35-8ae0ee4a814c	2025-04-12 16:02:13.688563+07	2025-04-12 16:02:13.688563+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	75a19b5c-43b4-4f84-ad2c-f844c40eec24	3980000.00	2025-04-12 08:58:34.536	fund transfer from c42896bb-f908-45d7-a3c6-4a22e04e38d7(Cash In)
+5230481e-36c2-4827-90d2-cb6710cc5f90	2025-04-13 14:39:25.086425+07	2025-04-13 14:39:25.086425+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	442500.00	2025-04-13 07:36:59.989	fund transfer to 63f462e6-23b5-480f-9b60-72dec314b341(Cash Out)
+4ddafe02-80f1-4c30-9583-83294049e28a	2025-04-13 14:39:25.1118+07	2025-04-13 14:39:25.1118+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	75a19b5c-43b4-4f84-ad2c-f844c40eec24	440000.00	2025-04-13 07:36:59.989	fund transfer from c42896bb-f908-45d7-a3c6-4a22e04e38d7(Cash In)
+b5a76e9f-42ab-4985-ac9c-f200d83acbc5	2025-04-13 14:41:29.391818+07	2025-04-13 14:41:29.391818+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	e3311cbb-9bf4-4c13-bd19-148361b4ee24	2500.00	2025-04-13 07:41:02.782	cashback
+48281fb7-90cb-416c-b854-db491e4d3b0d	2025-04-13 14:53:56.540195+07	2025-04-13 14:53:56.540195+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	106500.00	2025-04-13 07:52:10.108	fund transfer to ad76d679-e8ea-4447-99e8-ee83df34e384(Cash Out)
+2c7875a4-176f-444e-a10f-6f8493ca7f98	2025-04-13 14:53:56.544935+07	2025-04-13 14:53:56.544935+07	\N	ad76d679-e8ea-4447-99e8-ee83df34e384	75a19b5c-43b4-4f84-ad2c-f844c40eec24	97000.00	2025-04-13 07:52:10.108	fund transfer from 63f462e6-23b5-480f-9b60-72dec314b341(Cash In)
+13d7092f-9b1e-46a5-9006-db0e077e9ba6	2025-04-14 19:44:15.594395+07	2025-04-14 19:44:15.594395+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	e3311cbb-9bf4-4c13-bd19-148361b4ee24	2500.00	2025-04-14 12:44:00.295	cashback
+26ecc77d-5ea4-4258-8e8e-b3ac296d52c2	2025-04-15 10:57:03.824418+07	2025-04-15 10:57:03.824418+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	9d560a79-0c9c-430f-b2f4-2a1d83a69008	65000.00	2025-04-15 03:51:17.749	Beli kaos polos di Tiktok
+d8228632-1913-4f63-9011-4db5931e4089	2025-04-15 11:00:52.266506+07	2025-04-15 11:00:52.266506+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	15000.00	2025-04-15 04:00:36.96	Beli gorengan
+59930ddc-1c53-4061-91bb-ebaef67e1a73	2025-04-08 19:37:10.583993+07	2025-04-08 19:37:10.583993+07	2025-04-15 11:34:14.187168+07	ee396999-b9eb-4471-ab89-d84a3a20fd36	d9c4076d-a778-48e5-9914-6c679f9362ab	40000.00	2025-04-08 12:36:34.754	Pertalite vario 40000
+ddb679bd-bcc8-4e04-8839-3b5d2aad39da	2025-04-16 08:19:16.30367+07	2025-04-16 08:19:16.30367+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	d9c4076d-a778-48e5-9914-6c679f9362ab	30000.00	2025-04-16 01:14:06.26	Pertalite vario 3lt
+c9e6b20e-f055-458a-b621-66eeabf65e8b	2025-04-17 08:15:21.271426+07	2025-04-17 08:15:21.271426+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	21000.00	2025-04-17 01:13:41.012	fund transfer to d79c5197-e041-4510-b818-c5859a54eab4(Cash Out)
+41c9db1c-13ee-4fb4-b674-98e7ff86a61f	2025-04-17 08:15:21.301607+07	2025-04-17 08:15:21.301607+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	75a19b5c-43b4-4f84-ad2c-f844c40eec24	20000.00	2025-04-17 01:13:41.012	fund transfer from c42896bb-f908-45d7-a3c6-4a22e04e38d7(Cash In)
+ba209277-4c98-4897-a2c3-b51a2327da50	2025-04-17 08:15:41.798999+07	2025-04-17 08:15:41.798999+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	14000.00	2025-04-17 01:15:24.739	fund transfer to d79c5197-e041-4510-b818-c5859a54eab4(Cash Out)
+0587e2a6-0ac1-4d07-87c9-38d762a630b4	2025-04-17 08:15:41.801945+07	2025-04-17 08:15:41.801945+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	75a19b5c-43b4-4f84-ad2c-f844c40eec24	13000.00	2025-04-17 01:15:24.739	fund transfer from c42896bb-f908-45d7-a3c6-4a22e04e38d7(Cash In)
+23eeecf8-caed-4c4f-8a72-f02faf8be463	2025-04-17 08:17:20.335971+07	2025-04-17 08:17:20.335971+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	e3311cbb-9bf4-4c13-bd19-148361b4ee24	1000.00	2025-04-17 01:16:56.458	cashback
+5dbec6d3-6988-48be-8412-ee5522d6a7f7	2025-04-17 08:17:43.787638+07	2025-04-17 08:17:43.787638+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	e3311cbb-9bf4-4c13-bd19-148361b4ee24	1000.00	2025-04-17 01:17:23.002	cashback
+d5ea5bf6-f42b-47d6-a071-8df7affe5564	2025-04-18 06:49:47.623775+07	2025-04-18 06:49:47.623775+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	99000.00	2025-04-17 23:49:19.002	fund transfer to Shopeepay(Cash Out)
+99325f41-3cec-40ac-8972-6e6d63fb26b4	2025-04-18 06:49:47.644714+07	2025-04-18 06:49:47.644714+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	75a19b5c-43b4-4f84-ad2c-f844c40eec24	99000.00	2025-04-17 23:49:19.002	fund transfer from BTN KIP Kuliah(Cash In)
+d783d1b5-6f61-4aad-895b-7e4f5ae392ad	2025-04-18 06:51:46.450107+07	2025-04-18 06:51:46.450107+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	94e06887-016c-4773-8c6d-4e77dec449c6	7779.00	2025-04-17 23:50:24.386	Video panduan linux
+2f374359-122d-4066-b2d8-013540c75c1b	2025-04-18 06:52:13.419086+07	2025-04-18 06:52:13.419086+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	94e06887-016c-4773-8c6d-4e77dec449c6	12100.00	2025-04-17 23:51:49.031	Video belajar excel
+96c4e168-40f2-4dfd-bb18-de67f1175400	2025-04-18 06:52:42.866045+07	2025-04-18 06:52:42.866045+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	94e06887-016c-4773-8c6d-4e77dec449c6	11249.00	2025-04-17 23:52:16.348	Video fundamental excel
+8b135554-19e2-4bbb-99b8-f086813780f6	2025-04-18 06:53:24.186371+07	2025-04-18 06:53:24.186371+07	\N	d79c5197-e041-4510-b818-c5859a54eab4	9d560a79-0c9c-430f-b2f4-2a1d83a69008	96760.00	2025-04-17 23:52:45.548	Beli cincin + gravir di shopee
+f7834823-df16-4328-8e8d-784ac7b7d5d3	2025-04-19 10:14:50.895371+07	2025-04-19 10:14:50.895371+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	c54b2d78-0308-4efd-876e-b4e3b9aea54b	20000.00	2025-04-19 03:13:18.796	Pertalite Pom Mini Revo
+9fec62fe-eaaa-40b2-8d3b-cc72d45f3101	2025-04-19 10:15:38.611375+07	2025-04-19 10:15:38.611375+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	ae009d3c-d03a-4e2e-a505-891f4adcdef7	19500.00	2025-04-19 03:14:54.335	Nasi goreng + esteh warkop
+032694b7-3f1c-4011-873b-db445d98ffe0	2025-04-19 10:16:56.536477+07	2025-04-19 10:16:56.536477+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	e3311cbb-9bf4-4c13-bd19-148361b4ee24	2500.00	2025-04-19 03:16:40.266	cashback
+dec8856c-5d82-4a7a-b647-ec2d9c75c172	2025-04-22 08:19:52.586486+07	2025-04-22 08:19:52.586486+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	d9c4076d-a778-48e5-9914-6c679f9362ab	40000.00	2025-04-22 01:16:36.705	Pertalite vario 4lt
+75647ee6-f18b-41b8-b6be-5d62943452b8	2025-04-22 08:21:14.223503+07	2025-04-22 08:21:14.223503+07	\N	c42896bb-f908-45d7-a3c6-4a22e04e38d7	219b3106-3211-48f7-a383-f05bfff592c2	20000.00	2025-04-22 01:20:33.969	Subscribe PM via Discord
+b7f5187b-71bd-45e8-9f4a-a1ad7f3c303d	2025-04-25 08:32:15.506255+07	2025-04-25 08:32:15.506255+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	4c59f52f-9353-401a-a0dc-8e3926f4858b	1000000.00	2025-04-25 01:31:49.016	Gaji Magang Bulanan
+79dffe1b-57b0-4214-a4c9-78ec0e7cd05d	2025-04-25 08:32:59.861375+07	2025-04-25 08:32:59.861375+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	e6a3af62-02ca-4d6e-b786-583d4438e5ea	400000.00	2025-04-25 01:32:18.38	mama
+1a7d249c-3006-428b-88ab-a44bae90e592	2025-04-25 08:33:34.087778+07	2025-04-25 08:33:34.087778+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	e6a3af62-02ca-4d6e-b786-583d4438e5ea	100000.00	2025-04-25 01:33:03.346	adik
+cdfd3be7-f01e-48b8-bf5b-b4fda528f674	2025-04-25 08:34:06.711531+07	2025-04-25 08:34:06.711531+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	24000.00	2025-04-25 01:33:37.813	singkong krispi
+85ebbfdf-1da8-44e8-8a19-82d4598b0645	2025-04-25 08:35:02.997846+07	2025-04-25 08:35:02.997846+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	2e7ec450-2547-415c-94d5-03be88d25bf7	76000.00	2025-04-25 01:34:09.228	beli facewash dan sunscreen di indomart
+27cf2dc9-cbc3-49ef-ad29-0daa83c88f0d	2025-04-25 08:38:15.514565+07	2025-04-25 08:38:15.514565+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	635fdfd1-31f4-472c-8d52-e59a66c31351	472296.00	2025-04-25 01:35:24.81	Jual Reksadana MPUSI 340 unit
+7a4b232a-0595-4d1e-b626-3e18e8a15d99	2025-04-25 08:39:13.110515+07	2025-04-25 08:39:13.110515+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	635fdfd1-31f4-472c-8d52-e59a66c31351	528691.00	2025-04-25 01:38:18.856	Jual Reksadana SSSF 437 unit
+eadecf44-fa8a-45b9-8018-5e6f17f9bce4	2025-04-28 08:25:49.600384+07	2025-04-28 08:25:49.600384+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	20000.00	2025-04-28 01:25:25.157	bubur ayam 2
+abff7759-ff82-4e46-a8b1-5625dcf9d814	2025-04-28 08:26:58.442712+07	2025-04-28 08:26:58.442712+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	34ab9958-f478-443d-976e-b9f5147c5a12	50000.00	2025-04-28 01:25:52.798	mini soccer msc 2 jam
+ea5060e8-9ac0-47e1-923d-903d178babf3	2025-04-28 08:28:40.925122+07	2025-04-28 08:28:40.925122+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	d9c4076d-a778-48e5-9914-6c679f9362ab	39000.00	2025-04-28 01:27:05.024	Pertalite vario 3.9lt
+a42618df-54e7-4d81-b1a6-4eba6141956d	2025-04-28 08:30:27.694411+07	2025-04-28 08:30:27.694411+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	552de2ae-6900-42ef-ace5-bfbdc1fce31a	3000.00	2025-04-28 01:30:08.723	parkir msc
+51c3adc9-b35b-44be-8eae-ac73b69ba02a	2025-04-30 08:16:28.539226+07	2025-04-30 08:16:28.539226+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	5000.00	2025-04-30 01:16:01.058	goodday freeze kantin ketintang
+1003631e-dcbd-413d-a65d-c45e842a77a9	2025-04-30 08:18:15.180826+07	2025-04-30 08:18:15.180826+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	b952434f-7b32-419d-8884-cb5638117cf5	10000.00	2025-04-30 01:16:35.722	print draft ia + map
+39641e0b-3884-440a-9b26-05468b747f34	2025-04-30 08:18:51.263271+07	2025-04-30 08:18:51.263271+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	e1af1a1f-1608-4202-8f97-f9ab8881aa82	15000.00	2025-04-30 01:18:19.553	potong rambut
+cfac467d-3f73-440e-98ca-75415e866743	2025-05-01 08:38:05.321674+07	2025-05-01 08:38:05.321674+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	ae009d3c-d03a-4e2e-a505-891f4adcdef7	8000.00	2025-05-01 01:37:44.294	tahu bulat
+096d17a3-64e1-469e-a8fb-4b12afb19f97	2025-05-01 08:38:42.972346+07	2025-05-01 08:38:42.972346+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	b5a5d097-6346-4b72-b975-8ebf0b4b72f1	901000.00	2025-05-01 01:38:09.19	fund transfer to Dompet(Cash Out)
+3ffd2abf-6e57-4d92-a40b-175178688308	2025-05-01 08:38:42.988358+07	2025-05-01 08:38:42.988358+07	\N	ee396999-b9eb-4471-ab89-d84a3a20fd36	75a19b5c-43b4-4f84-ad2c-f844c40eec24	900000.00	2025-05-01 01:38:09.19	fund transfer from Tabungan NOW(Cash In)
+7b95ce7d-7d26-4b6c-b653-9e1a09119ed8	2025-05-01 08:44:56.977325+07	2025-05-01 08:44:56.977325+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	fb6c5f86-9bd0-49a4-a0fc-2d6f85fbb52a	24710.00	2025-05-01 01:44:19.666	clay gatsby shopee
+9b4ffe57-3b99-4d91-95a8-999fc2e90fe2	2025-05-01 08:46:43.142621+07	2025-05-01 08:46:43.142621+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	5ddf661f-beb3-4339-979c-731ab6f57294	5000.00	2025-05-01 01:45:57.146	biaya administrasi rekening mandiri
+f3cebf73-1579-42cb-8b48-03513ef41426	2025-05-01 08:47:14.849715+07	2025-05-01 08:47:14.849715+07	\N	63f462e6-23b5-480f-9b60-72dec314b341	5ddf661f-beb3-4339-979c-731ab6f57294	1000.00	2025-05-01 01:46:56.095	biaya administrasi kartu debit mandiri
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.users (id, created_at, updated_at, deleted_at, name, email, password, role, email_verfied_at) FROM stdin;
+a79a39e5-d70f-41ae-b7e6-36246a99172d	2025-03-04 08:36:02.885554+07	2025-03-04 08:36:02.885554+07	\N	Muhammad Miftakul Salam	madmifta77@gmail.com	$2a$04$3Q40cRCRGVWEpL2OKu7LDu8fGaMWNrO7FRdSuvZsMQxLWziQB/vPa	user	2025-03-04 08:36:54.883825
+\.
+
+
+--
+-- Data for Name: wallet_types; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.wallet_types (id, created_at, updated_at, deleted_at, name, type, description) FROM stdin;
+d758153c-3235-4686-aa19-5fb92dd23498	2025-03-04 15:58:54.735451+07	2025-03-04 15:58:54.735451+07	\N	Bank NTB Syariah	bank	
+ac3599e0-1333-4122-9ac3-2b27f3a33ace	2025-03-04 15:58:54.82883+07	2025-03-04 15:58:54.82883+07	\N	CIMB Niaga	bank	
+27dbdd65-679c-4661-b6ef-77065103ce36	2025-03-04 15:58:54.868552+07	2025-03-04 15:58:54.868552+07	\N	Mandiri	bank	
+1f92d7e9-fdb0-4bc0-afd2-9a186ac2610c	2025-03-04 15:58:54.877614+07	2025-03-04 15:58:54.877614+07	\N	BNI (Bank Negara Indonesia)	bank	
+759514be-a910-42df-b6ab-1db5e135e915	2025-03-04 15:58:54.929377+07	2025-03-04 15:58:54.929377+07	\N	Koperasi Syariah	others	
+00c0f650-acd3-4f9a-ad86-46ddf3b9b613	2025-03-04 15:58:54.929377+07	2025-03-04 15:58:54.929377+07	\N	Bank Victoria International	bank	
+c683631b-02f0-403b-a0cf-9aed0575cd94	2025-03-04 15:58:54.9727+07	2025-03-04 15:58:54.9727+07	\N	Bank BTPN (Jenius)	bank	
+cda31d4a-7746-4b7e-a75a-aae522dcdc26	2025-03-04 15:58:55.148768+07	2025-03-04 15:58:55.148768+07	\N	BCA (Bank Central Asia)	bank	
+273f561e-4293-49f6-9782-cb71b73bb37b	2025-03-04 15:58:55.163406+07	2025-03-04 15:58:55.163406+07	\N	Bank Bukopin	bank	
+bfc90a85-0f39-42f9-9531-449b1aad5abc	2025-03-04 15:58:55.166939+07	2025-03-04 15:58:55.166939+07	\N	Bank Jago	bank	
+b5b4d1ef-9783-4b0b-be27-0409d3288a74	2025-03-04 15:58:55.17248+07	2025-03-04 15:58:55.17248+07	\N	Jenius (BTPN)	e-wallet	
+72c0865c-55f8-47e6-a08b-b1836d936ed4	2025-03-04 15:58:55.177487+07	2025-03-04 15:58:55.177487+07	\N	ShopeePay (Shopee)	e-wallet	
+7869370b-f3e5-4a61-8c68-e49bb5367ee7	2025-03-04 15:58:55.17046+07	2025-03-04 15:58:55.17046+07	\N	Bank Permata	bank	
+2c8a9a51-c149-49ce-97e2-227d89dd0a05	2025-03-04 15:58:55.167939+07	2025-03-04 15:58:55.167939+07	\N	Bank Mega	bank	
+646379db-1e92-43b4-a735-6b71d4626acf	2025-03-04 15:58:55.16894+07	2025-03-04 15:58:55.16894+07	\N	Bank Danamon	bank	
+b76311d3-8a3d-49bd-a804-3be797014001	2025-03-04 15:58:55.174477+07	2025-03-04 15:58:55.174477+07	\N	Bank Muamalat	bank	
+0e564bfa-0472-40ca-8621-bec26d29884f	2025-03-04 15:58:55.180995+07	2025-03-04 15:58:55.180995+07	\N	Safe Deposit Box	physical	
+117f79a1-c464-4728-9800-0eaaa083ee13	2025-03-04 15:58:55.180995+07	2025-03-04 15:58:55.180995+07	\N	Bank DKI	bank	
+81c3b7d9-9e8f-4026-9912-d88a55c8774e	2025-03-04 15:58:55.175484+07	2025-03-04 15:58:55.175484+07	\N	Paytren	e-wallet	
+effa2c68-3516-4ebd-a078-3cfd84be9ad5	2025-03-04 15:58:55.177487+07	2025-03-04 15:58:55.177487+07	\N	Dana Syariah	e-wallet	
+46772226-0eea-4f66-8601-5f86e22739af	2025-03-04 15:58:55.218182+07	2025-03-04 15:58:55.218182+07	\N	Jago Pocket (Bank Jago)	e-wallet	
+7f787604-3942-45b8-9ee2-b9a8d554cd0a	2025-03-04 15:58:55.228738+07	2025-03-04 15:58:55.228738+07	\N	Seabank (Bank Digital SeaGroup)	bank	
+80b97d24-c8e0-4506-a53b-c3b68391e714	2025-03-04 15:58:55.17248+07	2025-03-04 15:58:55.17248+07	\N	Bank Syariah Indonesia (BSI)	bank	
+ba00a85a-8bce-4748-b6ba-81d515279879	2025-03-04 15:58:55.231731+07	2025-03-04 15:58:55.231731+07	\N	LinkAja	e-wallet	
+3b5004d5-6559-4338-83e4-e805db34d40e	2025-03-04 15:58:55.288377+07	2025-03-04 15:58:55.288377+07	\N	Sakuku (BCA)	e-wallet	
+bc1e8fab-6483-40a4-9fbb-0e9970f740e0	2025-03-04 15:58:55.326381+07	2025-03-04 15:58:55.326381+07	\N	Celengan (Piggy Bank)	physical	
+4533f6b6-0319-4899-a662-f79738f7818b	2025-03-04 15:58:55.327975+07	2025-03-04 15:58:55.327975+07	\N	LinkAja Syariah	e-wallet	
+bf2ee8e5-06a2-4d42-a6c6-e090721f547b	2025-03-04 15:58:55.353229+07	2025-03-04 15:58:55.353229+07	\N	iSaku	e-wallet	
+23ef77e4-d147-4c76-8fd0-223f641aa090	2025-03-04 15:58:55.353229+07	2025-03-04 15:58:55.353229+07	\N	DBS PayLah! (DBS Indonesia)	e-wallet	
+4a976521-1906-4a8b-98e3-9d01103cf398	2025-03-04 15:58:55.366481+07	2025-03-04 15:58:55.366481+07	\N	Bank Aceh Syariah	bank	
+bbd5907c-dea9-4a8b-959f-fa743299e017	2025-03-04 15:58:55.376482+07	2025-03-04 15:58:55.376482+07	\N	Bank Mayora	bank	
+32fadfe1-429a-4198-84dd-4409958058c6	2025-03-04 15:58:55.367676+07	2025-03-04 15:58:55.367676+07	\N	Doku	e-wallet	
+537a5212-9a9f-42b0-8c9e-f476453c2190	2025-03-04 15:58:55.35851+07	2025-03-04 15:58:55.35851+07	\N	Bank Sahabat Sampoerna	bank	
+7792687f-a9a7-4d2c-b520-da5e81f42572	2025-03-04 15:58:55.41837+07	2025-03-04 15:58:55.41837+07	\N	Flip	e-wallet	
+db87b104-6915-4171-a10d-2c896451a0c3	2025-03-04 15:58:55.41837+07	2025-03-04 15:58:55.41837+07	\N	Bank BCA Syariah	bank	
+a6a95f7b-e253-4142-a7e7-aa36579973a1	2025-03-04 15:58:55.453042+07	2025-03-04 15:58:55.453042+07	\N	Blu by BCA Digital	e-wallet	
+92f8cbdb-3594-4662-b86a-9a0df4f0c29f	2025-03-04 15:58:55.479647+07	2025-03-04 15:58:55.479647+07	\N	Octo Clicks (CIMB Niaga)	e-wallet	
+2b1fb5dc-1836-409c-9696-283bc2673c04	2025-03-04 15:58:55.458964+07	2025-03-04 15:58:55.458964+07	\N	Bank Neo Commerce	bank	
+f362f326-3da9-4c0b-91a8-27a251e18334	2025-03-04 15:58:55.478655+07	2025-03-04 15:58:55.478655+07	\N	Bank Nagari	bank	
+0e1c48d1-a6a1-49db-bdf2-c4b0584dc0f1	2025-03-04 15:58:55.483924+07	2025-03-04 15:58:55.483924+07	\N	Livin' by Mandiri	e-wallet	
+e73cc986-290e-4600-a443-da8cbdac2a2f	2025-03-04 15:58:55.526932+07	2025-03-04 15:58:55.526932+07	\N	Akulaku	e-wallet	
+d0fdc259-4121-476c-8890-b68488a0bf9c	2025-03-04 15:58:55.577169+07	2025-03-04 15:58:55.577169+07	\N	Dompet Fisik (Cash)	physical	
+9d68612c-3d50-4b74-bf22-e452e69be052	2025-03-04 15:58:55.578332+07	2025-03-04 15:58:55.578332+07	\N	Bank Tabungan Negara (BTN)	bank	
+02e8d165-2f9b-4a6b-8b79-59c0c70e3119	2025-03-04 15:58:55.578332+07	2025-03-04 15:58:55.578332+07	\N	GoPay (Gojek)	e-wallet	
+afa992b9-be03-4a4e-bbbc-2e675197c814	2025-03-04 15:58:55.603666+07	2025-03-04 15:58:55.603666+07	\N	DBS Indonesia	bank	
+7214786f-274a-461d-95f9-1b46c2dea1b0	2025-03-04 15:58:55.628846+07	2025-03-04 15:58:55.628846+07	\N	Bank BJB (Bank Jabar Banten)	bank	
+c1e538b0-6f5e-4a14-b1fa-68ef7e5f4bae	2025-03-04 15:58:55.628846+07	2025-03-04 15:58:55.628846+07	\N	Bank Panin	bank	
+76e11c81-f59a-4506-ba8b-2421c1ba5867	2025-03-04 15:58:55.628846+07	2025-03-04 15:58:55.628846+07	\N	Kredivo PayLater	e-wallet	
+5e8ce0a0-18a3-4645-8882-5d6458ea7f6e	2025-03-04 15:58:55.72556+07	2025-03-04 15:58:55.72556+07	\N	BRI (Bank Rakyat Indonesia)	bank	
+5d3793c4-6972-46c4-bc26-95c60ee7945e	2025-03-04 15:58:55.727173+07	2025-03-04 15:58:55.727173+07	\N	OCBC NISP	bank	
+baacb939-dbfb-4218-8910-9ccde6a035b0	2025-03-04 15:58:55.748082+07	2025-03-04 15:58:55.748082+07	\N	OY! Indonesia	e-wallet	
+f3ab7c75-a46e-4b66-ba2e-3cc0bc43e885	2025-03-04 15:58:55.749372+07	2025-03-04 15:58:55.749372+07	\N	Bank Sinarmas	bank	
+96e76b7e-4708-44aa-91f1-dea4b7351ceb	2025-03-04 15:58:55.767244+07	2025-03-04 15:58:55.767244+07	\N	Nobu (Bank Nationalnobu)	e-wallet	
+35197fbf-e14c-4057-bd9a-3c6cd4496277	2025-03-04 15:58:55.772789+07	2025-03-04 15:58:55.772789+07	\N	OVO (Grab)	e-wallet	
+1f9cf249-058a-47ab-9049-9c505a05fcdf	2025-03-04 15:58:55.775779+07	2025-03-04 15:58:55.775779+07	\N	DANA	e-wallet	
+72524fa7-43c0-4f2d-b0bf-0fac97bc0e9d	2025-03-04 15:58:55.793851+07	2025-03-04 15:58:55.793851+07	\N	QRIS (Sistem Pembayaran Nasional)	e-wallet	
+8932e47d-67ea-4dd2-9487-ea1b570129ae	2025-03-04 15:58:55.816759+07	2025-03-04 15:58:55.816759+07	\N	Maybank Indonesia	bank	
+7b3c2519-1e1e-4505-bf5c-46b60fbbfda1	2025-03-04 15:58:55.822582+07	2025-03-04 15:58:55.822582+07	\N	Koperasi Pegawai Negeri (KPN)	others	
+26942d5c-8ff3-47c0-bfec-80674f7369a7	2025-04-13 14:45:55+07	2025-04-13 14:46:01+07	\N	Pluang	e-wallet	\N
+\.
+
+
+--
+-- Data for Name: wallets; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.wallets (id, created_at, updated_at, deleted_at, user_id, wallet_type_id, name, balance, number) FROM stdin;
+d79c5197-e041-4510-b818-c5859a54eab4	2025-04-02 09:05:14.184759+07	2025-04-18 06:53:24.185855+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	72c0865c-55f8-47e6-a08b-b1836d936ed4	Shopeepay	4450.00	089676360546
+f164a13d-8e1f-499a-bf74-ccbbd524e971	2025-04-02 09:01:35.452898+07	2025-04-02 16:09:35.965629+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	bc1e8fab-6483-40a4-9fbb-0e9970f740e0	Celengan	12000000.00	—
+c42896bb-f908-45d7-a3c6-4a22e04e38d7	2025-04-02 08:42:25.75385+07	2025-04-22 08:21:14.218939+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	9d68612c-3d50-4b74-bf22-e452e69be052	BTN KIP Kuliah	273859.00	37701610323863
+ee396999-b9eb-4471-ab89-d84a3a20fd36	2025-04-02 09:03:01.57076+07	2025-05-01 08:38:42.970745+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	d0fdc259-4121-476c-8890-b68488a0bf9c	Dompet	1150000.00	—
+63f462e6-23b5-480f-9b60-72dec314b341	2025-04-02 08:52:45.806645+07	2025-05-01 08:47:14.849715+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	27dbdd65-679c-4661-b6ef-77065103ce36	Tabungan NOW	124216.00	1410024911281
+ce4b1003-5556-4b9e-8ed0-574417977c54	2025-04-02 08:49:17.505059+07	2025-04-02 08:49:17.505059+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	9d68612c-3d50-4b74-bf22-e452e69be052	BTN KTM	0.00	37701610377448
+59ae3342-9c61-4b61-a46c-75b0244fb29a	2025-04-02 09:04:17.091977+07	2025-04-02 09:04:17.091977+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	02e8d165-2f9b-4a6b-8b79-59c0c70e3119	Gopay	573.00	089676360546
+ee7c1bb6-cf7c-4e15-a82e-613e920e4e28	2025-04-02 09:06:19.672516+07	2025-04-02 09:06:19.672516+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	35197fbf-e14c-4057-bd9a-3c6cd4496277	OVO	16588.00	089676360546
+b1179f54-ce4a-4063-b9c7-89796008772f	2025-04-02 09:34:16.489137+07	2025-04-02 09:34:16.489137+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	1f9cf249-058a-47ab-9049-9c505a05fcdf	Dana	591.00	089676360546
+ad76d679-e8ea-4447-99e8-ee83df34e384	2025-04-13 14:50:02.28514+07	2025-04-13 15:15:53.322716+07	\N	a79a39e5-d70f-41ae-b7e6-36246a99172d	26942d5c-8ff3-47c0-bfec-80674f7369a7	Pluang Rupiah Wallet	14524.00	—
+\.
+
+
+--
+-- Name: attachments attachments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.attachments
+    ADD CONSTRAINT attachments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: investment_types investment_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.investment_types
+    ADD CONSTRAINT investment_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: investments investments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.investments
+    ADD CONSTRAINT investments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: transactions transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT transactions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users uni_users_email; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT uni_users_email UNIQUE (email);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: wallet_types wallet_types_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wallet_types
+    ADD CONSTRAINT wallet_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: wallets wallets_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wallets
+    ADD CONSTRAINT wallets_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: idx_attachments_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_attachments_deleted_at ON public.attachments USING btree (deleted_at);
+
+
+--
+-- Name: idx_categories_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_categories_deleted_at ON public.categories USING btree (deleted_at);
+
+
+--
+-- Name: idx_investment_types_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_investment_types_deleted_at ON public.investment_types USING btree (deleted_at);
+
+
+--
+-- Name: idx_investments_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_investments_deleted_at ON public.investments USING btree (deleted_at);
+
+
+--
+-- Name: idx_transactions_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_transactions_deleted_at ON public.transactions USING btree (deleted_at);
+
+
+--
+-- Name: idx_users_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_users_deleted_at ON public.users USING btree (deleted_at);
+
+
+--
+-- Name: idx_wallet_types_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_wallet_types_deleted_at ON public.wallet_types USING btree (deleted_at);
+
+
+--
+-- Name: idx_wallets_deleted_at; Type: INDEX; Schema: public; Owner: postgres
+--
+
+CREATE INDEX idx_wallets_deleted_at ON public.wallets USING btree (deleted_at);
+
+
+--
+-- Name: attachments fk_attachments_transaction; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.attachments
+    ADD CONSTRAINT fk_attachments_transaction FOREIGN KEY (transaction_id) REFERENCES public.transactions(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: categories fk_categories_children; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT fk_categories_children FOREIGN KEY (parent_id) REFERENCES public.categories(id);
+
+
+--
+-- Name: investments fk_investments_investment_types; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.investments
+    ADD CONSTRAINT fk_investments_investment_types FOREIGN KEY (investment_type_id) REFERENCES public.investment_types(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: investments fk_investments_user; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.investments
+    ADD CONSTRAINT fk_investments_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: transactions fk_transactions_category; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_transactions_category FOREIGN KEY (category_id) REFERENCES public.categories(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: transactions fk_transactions_wallet; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.transactions
+    ADD CONSTRAINT fk_transactions_wallet FOREIGN KEY (wallet_id) REFERENCES public.wallets(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: wallets fk_wallets_user; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wallets
+    ADD CONSTRAINT fk_wallets_user FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: wallets fk_wallets_wallet_type; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wallets
+    ADD CONSTRAINT fk_wallets_wallet_type FOREIGN KEY (wallet_type_id) REFERENCES public.wallet_types(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- PostgreSQL database dump complete
+--
+

@@ -53,23 +53,18 @@ func SetupDatabase() (*gorm.DB, error) {
 }
 
 func SetupRedisDatabase() *redis.Client {
+	host := os.Getenv("REDIS_HOST")
+
 	var rdb *redis.Client
 	if mode == "development" {
 		rdb = redis.NewClient(&redis.Options{
 			Addr: "localhost:6379",
 		})
 	} else if mode == "production" {
-		redisAddr := os.Getenv("REDIS_URL")
-		if redisAddr == "" {
-			log.Fatal("REDIS_URL tidak ditemukan di environment variables")
-		}
-
-		opt, err := redis.ParseURL(redisAddr)
-		if err != nil {
-			log.Fatalf("Error parsing REDIS_URL: %v", err)
-		}
-
-		rdb = redis.NewClient(opt)
+		address := fmt.Sprintf("%s:6379", host)
+		rdb = redis.NewClient(&redis.Options{
+			Addr: address,
+		})
 	}
 
 	return rdb

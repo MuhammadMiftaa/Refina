@@ -2,3 +2,5 @@
 node_modules
 ./server/.env
 ./node_modules
+./json.json
+./main.go
