@@ -13,11 +13,14 @@ import { NumericFormat } from "react-number-format";
 import { CancelButton } from "@/components/ui/cancel-button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FileUpload } from "@/components/ui/file-upload";
+import { getBackendURL } from "@/lib/readenv";
 
 async function fetchCategories(type: string) {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/categories/type/" + type, {
+  const res = await fetch(`${backendURL}/categories/type/` + type, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -33,9 +36,11 @@ async function fetchCategories(type: string) {
 }
 
 async function fetchWallets() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/users/wallets", {
+  const res = await fetch(`${backendURL}/users/wallets`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -51,6 +56,7 @@ async function fetchWallets() {
 }
 
 export default function AddTransaction() {
+  const backendURL = getBackendURL();
   const navigate = useNavigate();
   const { type } = useParams();
   const { data: categoriesData, isLoading: categoriesLoading } = useQuery({
@@ -136,7 +142,7 @@ export default function AddTransaction() {
         : userInput;
 
     try {
-      const res = await fetch("http://localhost:8080/v1/transactions/" + type, {
+      const res = await fetch(`${backendURL}/transactions/${type}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -177,16 +183,13 @@ export default function AddTransaction() {
       const formData = new FormData();
       formData.append("attachment", file);
 
-      const res = await fetch(
-        "http://localhost:8080/v1/transactions/attachment/" + ID,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
+      const res = await fetch(`${backendURL}/transactions/attachment/${ID}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+        body: formData,
+      });
 
       if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
     });
@@ -239,7 +242,7 @@ export default function AddTransaction() {
                       borderWidth: "2px",
                       "&::before": {
                         display: "none",
-                      }
+                      },
                     },
                   },
                   "& .MuiInputLabel-root": {

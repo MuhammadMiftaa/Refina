@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { VscGithub } from "react-icons/vsc";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
-import { getBackendURL, getMode } from "../../../lib/readenv";
+import { getBackendURL } from "../../../lib/readenv";
 import Cookies from "js-cookie";
 import { decodeJwt } from "jose";
 import { useProfile } from "@/store/useProfile";
@@ -21,8 +21,7 @@ export default function Login(props: {
   handleLogin: () => void;
   isAuthenticated: boolean;
 }) {
-  const backendURL =
-    getMode() === "production" ? getBackendURL() : "http://localhost:8080";
+  const backendURL = getBackendURL();
 
   const { setProfile } = useProfile(
     useShallow((state) => ({ setProfile: state.setProfile })),
@@ -37,7 +36,7 @@ export default function Login(props: {
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    const res = await fetch(`${backendURL}/v1/auth/login`, {
+    const res = await fetch(`${backendURL}/auth/login`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -56,7 +55,7 @@ export default function Login(props: {
 
   const handleOAuth = async (server: string) => {
     try {
-      const res = await fetch(`${backendURL}/v1/auth/${server}/oauth`, {
+      const res = await fetch(`${backendURL}/auth/${server}/oauth`, {
         method: "GET",
         credentials: "include",
       });

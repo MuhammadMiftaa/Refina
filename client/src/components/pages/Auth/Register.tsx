@@ -9,7 +9,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp";
-import { getBackendURL, getMode } from "../../../lib/readenv";
+import { getBackendURL } from "../../../lib/readenv";
 
 const postFormSchema = z.object({
   name: z.string(),
@@ -23,8 +23,7 @@ export default function Register(props: {
   isAuthenticated: boolean;
   handleLogin: () => void;
 }) {
-  const backendURL =
-    getMode() === "production" ? getBackendURL() : "http://localhost:8080";
+  const backendURL = getBackendURL();
 
   const navigate = useNavigate();
 
@@ -45,7 +44,7 @@ export default function Register(props: {
     }
 
     setLoading(true);
-    const res = await fetch(`${backendURL}/v1/auth/register`, {
+    const res = await fetch(`${backendURL}/auth/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -67,7 +66,7 @@ export default function Register(props: {
       return;
     }
 
-    const res = await fetch(`${backendURL}/v1/auth/send/otp`, {
+    const res = await fetch(`${backendURL}/auth/send/otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,7 +96,7 @@ export default function Register(props: {
       return;
     }
 
-    const res = await fetch(`${backendURL}/v1/auth/verify/otp`, {
+    const res = await fetch(`${backendURL}/auth/verify/otp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

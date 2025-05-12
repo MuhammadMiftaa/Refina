@@ -24,11 +24,14 @@ import { useQuery } from "@tanstack/react-query";
 import { WalletType } from "@/types/UserWallet";
 import { formatCurrency, handleCopy, shortenMoney } from "@/helper/Helper";
 import { TransactionType } from "@/types/UserTransaction";
+import { getBackendURL } from "@/lib/readenv";
 
 async function fetchWallets() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/users/wallets", {
+  const res = await fetch(`${backendURL}/users/wallets`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -44,9 +47,11 @@ async function fetchWallets() {
 }
 
 async function fetchTransactions() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/users/transactions", {
+  const res = await fetch(`${backendURL}/users/transactions`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

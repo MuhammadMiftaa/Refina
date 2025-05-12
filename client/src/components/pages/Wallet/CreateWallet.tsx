@@ -20,10 +20,13 @@ import { CancelButton } from "../../ui/cancel-button";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getBackendURL } from "@/lib/readenv";
 
 async function fetchWalletTypes() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
-  const res = await fetch(`${import.meta.env.VITE_API_URL}/wallet-types`, {
+  const res = await fetch(`${backendURL}/wallet-types`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -48,13 +51,14 @@ const WalletForm = z.object({
 type WalletFormType = z.infer<typeof WalletForm>;
 
 export default function CreateWallet() {
+  const backendURL = getBackendURL();
   const navigate = useNavigate();
   const form = useForm<WalletFormType>({
     resolver: zodResolver(WalletForm),
     defaultValues: {
       number: "—",
       balance: 0,
-    }
+    },
   });
   const { data } = useQuery({
     queryKey: ["wallet-types"],
@@ -72,7 +76,7 @@ export default function CreateWallet() {
   const [zeroBalance, setZeroBalance] = useState(false);
 
   const onSubmit = form.handleSubmit(async (data) => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/wallets`, {
+    const response = await fetch(`${backendURL}/wallets`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

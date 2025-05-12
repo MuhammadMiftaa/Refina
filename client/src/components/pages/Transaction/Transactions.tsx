@@ -21,11 +21,14 @@ import {
 import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
 import { formatRawDate, generateColorByType } from "@/helper/Helper";
 import { PiArrowsLeftRightLight } from "react-icons/pi";
+import { getBackendURL } from "@/lib/readenv";
 
 async function fetchWallets() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/users/wallets", {
+  const res = await fetch(`${backendURL}/users/wallets`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -41,9 +44,11 @@ async function fetchWallets() {
 }
 
 async function fetchTransactions() {
+  const backendURL = getBackendURL();
+
   const token = Cookies.get("token");
 
-  const res = await fetch("http://localhost:8080/v1/transactions/user", {
+  const res = await fetch(`${backendURL}/transactions/user`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -267,22 +272,20 @@ const columns: ColumnDef<UserTransactionsType>[] = [
     id: "actions",
     cell: ({ row }: { row: any }) => {
       const transaction = row.original;
+      const backendURL = getBackendURL();
       const [deleteConfirm, setDeleteConfirm] = useState(false);
 
       const deleteTransaction = async (id: string) => {
         const token = Cookies.get("token") || "";
 
         try {
-          const res = await fetch(
-            "http://localhost:8080/v1/transactions/" + id,
-            {
-              method: "DELETE",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
+          const res = await fetch(`${backendURL}/transactions/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
-          );
+          });
 
           if (!res.ok) {
             throw new Error("Failed to add transaction");
