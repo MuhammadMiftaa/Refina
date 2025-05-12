@@ -2,7 +2,7 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && go run cmd/main.go",
-    "client": "cd refina && bun run dev"
+    "client": "cd client && bun run dev"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

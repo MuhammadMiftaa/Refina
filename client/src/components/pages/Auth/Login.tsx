@@ -46,6 +46,7 @@ export default function Login(props: {
     }).then((res) => res.json());
 
     if (res.status) {
+      Cookies.set("token", res.data);
       props.handleLogin();
       navigate("/");
     } else {
