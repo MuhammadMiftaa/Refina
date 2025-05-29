@@ -23,16 +23,16 @@ func UserRoutes(version *gin.RouterGroup, db *gorm.DB, redis *redis.Client) {
 	auth := version.Group("/auth")
 	{
 		auth.POST("login", User_handler.Login)
-		auth.POST("register", User_handler.Register)
-		auth.POST("send/otp", User_handler.SendOTP)
-		auth.POST("verify/otp", User_handler.VerifyOTP)
+		// auth.POST("register", User_handler.Register)
+		// auth.POST("send/otp", User_handler.SendOTP)
+		// auth.POST("verify/otp", User_handler.VerifyOTP)
 
-		auth.GET("google/oauth", User_handler.OAuthHandler("google"))
-		auth.GET("callback/google", User_handler.CallbackGoogle)
-		auth.GET("github/oauth", User_handler.OAuthHandler("github"))
-		auth.GET("callback/github", User_handler.CallbackGithub)
-		auth.GET("microsoft/oauth", User_handler.OAuthHandler("microsoft"))
-		auth.GET("callback/microsoft", User_handler.CallbackMicrosoft)
+		// auth.GET("google/oauth", User_handler.OAuthHandler("google"))
+		// auth.GET("callback/google", User_handler.CallbackGoogle)
+		// auth.GET("github/oauth", User_handler.OAuthHandler("github"))
+		// auth.GET("callback/github", User_handler.CallbackGithub)
+		// auth.GET("microsoft/oauth", User_handler.OAuthHandler("microsoft"))
+		// auth.GET("callback/microsoft", User_handler.CallbackMicrosoft)
 	}
 
 	version.Use(middleware.AuthMiddleware())
