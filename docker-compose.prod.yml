@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  app-production:
+    image: ${APP_IMAGE_PROD}:${APP_IMAGE_PROD_TAG}
+    container_name: app-production
+    environment: 
+      - PORT=8080
+    networks: 
+      - envoy
+    restart: always
+networks:
+  envoy:
+    external: true

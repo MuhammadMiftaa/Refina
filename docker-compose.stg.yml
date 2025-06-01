@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  app-staging:
+    image: ${APP_IMAGE_STG}:${APP_IMAGE_STG_TAG}
+    container_name: app-staging
+    environment: 
+      - PORT=8080
+    networks: 
+      - envoy
+    restart: always
+networks:
+  envoy:
+    external: true
