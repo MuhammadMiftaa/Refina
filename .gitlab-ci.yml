@@ -1,7 +1,7 @@
 stages:
   - build
   - release
-  # - deploy
+  - deploy
 
 variables:
   TAG_IMAGE: $CI_COMMIT_TAG
@@ -56,10 +56,10 @@ release:
       artifacts: true
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-    - changes:
-        - server/**/*
-    - changes:
-        - client/**/*
+    # - changes:
+    #     - server/**/*
+    # - changes:
+    #     - client/**/*
   variables:
     RELEASE_TITLE: "Release ${CI_COMMIT_TAG}"
     RELEASE_DESC: "Tagged after commit ${CI_COMMIT_SHORT_SHA}, message ${CI_COMMIT_TAG_MESSAGE}"
@@ -68,37 +68,38 @@ release:
     - export CLIENT_BUILD_JOB_ID="$(cat client_build_job_id.txt)"
     - echo "create release ${CI_COMMIT_TAG} from jobs $SERVER_BUILD_JOB_ID and $CLIENT_BUILD_JOB_ID"
     - release-cli create --name "${RELEASE_TITLE}" --description "${RELEASE_DESC}" --tag-name "${CI_COMMIT_TAG}"
-# deploy-staging:
-#   stage: deploy
-#   image: alpine:latest
-#   environment:
-#     name: staging
-#     url: https://staging-refina.miftech.web.id
-#   before_script:
-#     - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
-#     - mkdir -p ~/.ssh
-#     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#     - chmod 700 ~/.ssh/id_rsa
-#     - eval "$(ssh-agent -s)"
-#     - ssh-add ~/.ssh/id_rsa
-#     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-#   script:
-#     - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "export APP_IMAGE_STG=$CI_REGISTRY_IMAGE && export APP_IMAGE_STG_TAG=$CI_COMMIT_TAG && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/refina && git pull && docker-compose -f docker-compose.stg.yml down && docker-compose -f docker-compose.stg.yml pull && docker-compose -f docker-compose.stg.yml up -d"
 
-# deploy-production:
-#   stage: deploy
-#   image: alpine:latest
-#   before_script:
-#     - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
-#     - mkdir -p ~/.ssh
-#     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-#     - chmod 700 ~/.ssh/id_rsa
-#     - eval "$(ssh-agent -s)"
-#     - ssh-add ~/.ssh/id_rsa
-#     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-#   script:
-#     - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} "export APP_IMAGE_PROD=$CI_REGISTRY_IMAGE && export APP_IMAGE_PROD_TAG=$CI_COMMIT_TAG && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/refina && git pull && docker-compose -f docker-compose.prod.yml down && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d"
-#   environment:
-#     name: production
-#     url: https://refina.miftech.web.id
-#   when: manual
+deploy-staging:
+  stage: deploy
+  image: alpine:latest
+  environment:
+    name: staging
+    url: https://staging-refina.miftech.web.id
+  before_script:
+    - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "export APP_IMAGE_STG_CLIENT="$CI_REGISTRY_IMAGE/client" && export APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG && export APP_IMAGE_STG_SERVER="$CI_REGISTRY_IMAGE/server" && export APP_IMAGE_STG_SERVER_TAG=$CI_COMMIT_TAG && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/refina && git pull && docker-compose -f docker-compose.stg.yml down && docker-compose -f docker-compose.stg.yml pull && docker-compose -f docker-compose.stg.yml up -d"
+
+deploy-production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 700 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+  script:
+    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} "export APP_IMAGE_PROD_CLIENT="$CI_REGISTRY_IMAGE/client" && export APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG && export APP_IMAGE_PROD_SERVER="$CI_REGISTRY_IMAGE/server" && export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/refina && git pull && docker-compose -f docker-compose.prod.yml down && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d"
+  environment:
+    name: production
+    url: https://refina.miftech.web.id
+  when: manual

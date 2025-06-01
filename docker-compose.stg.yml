@@ -1,14 +1,91 @@
-version: '3'
+version: "3.9"
 
 services:
-  app-staging:
-    image: ${APP_IMAGE_STG}:${APP_IMAGE_STG_TAG}
-    container_name: app-staging
-    environment: 
-      - PORT=8080
-    networks: 
-      - envoy
+  ref-staging-server:
+    container_name: ref-staging-server
+    image: ${APP_IMAGE_STG_SERVER}:${APP_IMAGE_STG_SERVER_TAG}
+    ports:
+      - "8081:8080"
+    environment:
+      MODE: production
+      PORT: 8081
+      DB_HOST: "ref-staging-postgres"
+      DB_NAME: "refina"
+      DB_PORT: 5433
+      DB_USER: "postgres"
+      DB_PASSWORD: "123"
+      DATABASE_URL: ""
+      REDIS_HOST: "ref-staging-redis"
+      REDIS_PORT: 6380
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
+      MICROSOFT_CLIENT_SECRET_ID: ${MICROSOFT_CLIENT_SECRET_ID}
+      PUBLIC_URL: https://api-refina.miftech.web.id
+      FRONTEND_URL: http://refina.miftech.web.id
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+    depends_on:
+      ref-staging-postgres:
+        condition: service_healthy
+      ref-staging-redis:
+        condition: service_started
+    # networks:
+    #   - envoy
     restart: always
-networks:
-  envoy:
-    external: true
+
+  ref-staging-client:
+    container_name: ref-staging-client
+    image: ${APP_IMAGE_STG_CLIENT}:${APP_IMAGE_STG_CLIENT_TAG}
+    ports:
+      - "3001:80"
+    environment:
+      VITE_API_URL: https://api-refina-staging.miftech.web.id/v1
+    depends_on:
+      - ref-staging-server
+    # networks:
+    #   - envoy
+    restart: always
+
+  ref-staging-postgres:
+    container_name: ref-staging-postgres
+    image: postgres:17.5-alpine
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: refina
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # networks:
+    #   - envoy
+    restart: always
+
+  ref-staging-redis:
+    container_name: ref-staging-redis
+    image: redis:7.2-alpine
+    ports:
+      - "127.0.0.1:6380:6379"
+    # networks:
+    #   - envoy
+    restart: always
+
+volumes:
+  staging_postgres_data:
+# networks:
+#   envoy:
+#     external: true
