@@ -46,18 +46,11 @@ func SetupDatabase() (*gorm.DB, error) {
 
 func SetupRedisDatabase() *redis.Client {
 	host := os.Getenv("REDIS_HOST")
+	port := os.Getenv("REDIS_PORT")
 
-	var rdb *redis.Client
-	if mode == "development" {
-		rdb = redis.NewClient(&redis.Options{
-			Addr: "localhost:6379",
-		})
-	} else if mode == "production" {
-		address := fmt.Sprintf("%s:6379", host)
-		rdb = redis.NewClient(&redis.Options{
-			Addr: address,
-		})
-	}
+	rdb := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%s", host, port),
+	})
 
 	return rdb
 }
