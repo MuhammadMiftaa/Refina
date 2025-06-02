@@ -78,6 +78,7 @@ deploy-staging:
     name: staging
     url: https://staging-refina.miftech.web.id
   before_script:
+    - apk add --no-cache openssh openssl
     - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
