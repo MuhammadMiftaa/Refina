@@ -73,6 +73,10 @@ deploy-staging:
   stage: deploy
   image: alpine:latest
   before_script:
+    - echo "SSH_PRODUCTION:" "$SSH_PRODUCTION"
+    - echo "SSH_STAGING:" "$SSH_STAGING"
+    - echo "SSH_USER:" "$SSH_USER"
+    - echo "SSH_PRIVATE_KEY:" "$SSH_PRIVATE_KEY"
     - apk add --no-cache openssh
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
