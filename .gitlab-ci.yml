@@ -80,7 +80,7 @@ deploy-staging:
   before_script:
     - "which ssh-agent || ( apk update && apk add --no-cache openssh )"
     - mkdir -p ~/.ssh
-    - printf "%s\n" "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
+    - cat <<< "${SSH_PRIVATE_KEY}" > ~/.ssh/id_rsa
     - chmod 700 ~/.ssh/id_rsa
     - eval "$(ssh-agent -s)"
     - ssh-add ~/.ssh/id_rsa
