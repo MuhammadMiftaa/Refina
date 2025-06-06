@@ -83,7 +83,7 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "export APP_IMAGE_STG=$CI_REGISTRY_IMAGE && export APP_IMAGE_STG_TAG=$TAG_IMAGE && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/cicd-typescript && git pull && docker-compose -f docker-compose.stg.yml down && docker-compose -f docker-compose.stg.yml pull && docker-compose -f docker-compose.stg.yml up -d"
+    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "export APP_IMAGE_STG=$CI_REGISTRY_IMAGE && export APP_IMAGE_STG_TAG=$TAG_IMAGE && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/cicd-typescript && git pull && docker-compose -f docker-compose.stg.yml down && docker-compose -f docker-compose.stg.yml pull && docker-compose -f docker-compose.stg.yml up -d"
 
 deploy-production:
   stage: deploy
