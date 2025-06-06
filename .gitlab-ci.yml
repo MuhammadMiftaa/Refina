@@ -89,7 +89,7 @@ deploy-staging:
       export APP_IMAGE_STG_SERVER="$CI_REGISTRY_IMAGE/server" &&
       export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
       docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
-      cd ~/web/staging &&
+      cd ~/web/staging/Refina &&
       git pull &&
       docker-compose -f docker-compose.stg.yml down &&
       docker-compose -f docker-compose.stg.yml pull &&
@@ -118,7 +118,7 @@ deploy-production:
       export APP_IMAGE_PROD_SERVER="$CI_REGISTRY_IMAGE/server" &&
       export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
       docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
-      cd ~/web/production &&
+      cd ~/web/production/Refina &&
       git pull &&
       docker-compose -f docker-compose.prod.yml down &&
       docker-compose -f docker-compose.prod.yml pull &&
