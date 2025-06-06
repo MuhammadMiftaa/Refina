@@ -83,7 +83,20 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "export APP_IMAGE_STG=$CI_REGISTRY_IMAGE && export APP_IMAGE_STG_TAG=$TAG_IMAGE && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/cicd-typescript && git pull && docker-compose -f docker-compose.stg.yml down && docker-compose -f docker-compose.stg.yml pull && docker-compose -f docker-compose.stg.yml up -d"
+    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "
+      export APP_IMAGE_STG_CLIENT="$CI_REGISTRY_IMAGE/client" &&
+      export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
+      export APP_IMAGE_STG_SERVER="$CI_REGISTRY_IMAGE/server" &&
+      export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
+      docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+      cd ~/web/staging &&
+      git pull &&
+      docker-compose -f docker-compose.stg.yml down &&
+      docker-compose -f docker-compose.stg.yml pull &&
+      docker-compose -f docker-compose.stg.yml up -d"
+  environment:
+    name: staging
+    url: https://staging.refina.miftech.web.id
 
 deploy-production:
   stage: deploy
@@ -99,7 +112,17 @@ deploy-production:
     - ssh-add ~/.ssh/id_rsa
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} "export APP_IMAGE_PROD_CLIENT="$CI_REGISTRY_IMAGE/client" && export APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG && export APP_IMAGE_PROD_SERVER="$CI_REGISTRY_IMAGE/server" && export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG && docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY && cd /root/refina && git pull && docker-compose -f docker-compose.prod.yml down && docker-compose -f docker-compose.prod.yml pull && docker-compose -f docker-compose.prod.yml up -d"
+    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} "
+      export APP_IMAGE_PROD_CLIENT="$CI_REGISTRY_IMAGE/client" &&
+      export APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG &&
+      export APP_IMAGE_PROD_SERVER="$CI_REGISTRY_IMAGE/server" &&
+      export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
+      docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+      cd ~/web/production &&
+      git pull &&
+      docker-compose -f docker-compose.prod.yml down &&
+      docker-compose -f docker-compose.prod.yml pull &&
+      docker-compose -f docker-compose.prod.yml up -d"
   environment:
     name: production
     url: https://refina.miftech.web.id
