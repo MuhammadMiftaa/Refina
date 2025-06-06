@@ -92,8 +92,6 @@ deploy-staging:
       docker run -d --name my_client_container -p 3000:80 $CI_REGISTRY_IMAGE/client:$TAG_IMAGE"
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-  only:
-    - tags
 
 deploy-production:
   stage: deploy
