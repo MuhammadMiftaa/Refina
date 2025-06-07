@@ -1,22 +1,21 @@
-version: '3.9'
+version: "3.9"
 
 services:
   ref-production-server:
     container_name: ref-production-server
     image: ${APP_IMAGE_PROD_SERVER}:${APP_IMAGE_PROD_SERVER_TAG}
     ports:
-      - "8082:8080"
+      - "${SERVER_PORT}:8080"
     environment:
-      MODE: production
-      PORT: 8082
-      DB_HOST: "ref-production-postgres"
-      DB_NAME: "refina"
-      DB_PORT: 5434
-      DB_USER: "postgres"
-      DB_PASSWORD: "123"
-      DATABASE_URL: ""
-      REDIS_HOST: "ref-production-redis"
-      REDIS_PORT: 6381
+      MODE: ${MODE}
+      PORT: ${SERVER_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
@@ -25,40 +24,39 @@ services:
       MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
       MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
       MICROSOFT_CLIENT_SECRET_ID: ${MICROSOFT_CLIENT_SECRET_ID}
-      PUBLIC_URL: https://api-refina.miftech.web.id
-      FRONTEND_URL: http://refina.miftech.web.id
+      PUBLIC_URL: ${PUBLIC_URL}
+      FRONTEND_URL: ${FRONTEND_URL}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
       SMTP_PASSWORD: ${SMTP_PASSWORD}
-
     depends_on:
       ref-production-postgres:
         condition: service_healthy
       ref-production-redis:
         condition: service_started
-    # networks: 
-    #   - envoy
+    networks:
+      - refina_staging_network
     restart: always
 
   ref-production-client:
     container_name: ref-production-client
     image: ${APP_IMAGE_PROD_CLIENT}:${APP_IMAGE_PROD_CLIENT_TAG}
     ports:
-      - "3002:80"
+      - "${CLIENT_PORT}:80"
     environment:
       VITE_API_URL: https://api-refina.miftech.web.id/v1
     depends_on:
       - ref-production-server
-    # networks: 
-    #   - envoy
+    networks:
+      - refina_staging_network
     restart: always
 
   ref-production-postgres:
     container_name: ref-production-postgres
     image: postgres:17.5-alpine
     ports:
-      - "127.0.0.1:5434:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
@@ -72,22 +70,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    # networks: 
-    #   - envoy
+    networks:
+      - refina_staging_network
     restart: always
 
   ref-production-redis:
     container_name: ref-production-redis
     image: redis:7.2-alpine
     ports:
-      - "127.0.0.1:6381:6379"
-    # networks: 
-    #   - envoy
+      - "127.0.0.1:${REDIS_PORT}:6379"
+    networks:
+      - refina_staging_network
     restart: always
 
 volumes:
   production_postgres_data:
 
-# networks:
-#   envoy:
-#     external: true
+networks:
+  refina_staging_network:
+    name: refina_staging_network
+    driver: bridge

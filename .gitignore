@@ -1,7 +1,7 @@
-*/.env
 node_modules
-./server/.env
 ./node_modules
-./json.json
-./main.go
-./dump.sql
+json.json
+/json.json
+main.go
+/main.go
+**/.env*
