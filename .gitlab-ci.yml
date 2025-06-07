@@ -92,7 +92,7 @@ deploy-staging:
       echo $CI_REGISTRY_IMAGE/server
       export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
 
-      cd ~/web/staging/Refina &&
+      cd ~/web/staging
       git pull &&
       unzip -y dump.zip -d ~/web/staging/Refina
 
@@ -132,7 +132,7 @@ deploy-production:
       echo $CI_REGISTRY_IMAGE/server
       export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
 
-      cd ~/web/production/Refina &&
+      cd ~/web/production
       git pull &&
       unzip -y dump.zip -d ~/web/production/Refina
 
