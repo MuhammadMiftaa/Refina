@@ -83,25 +83,28 @@ deploy-staging:
     - ssh-add ~/.ssh/id_rsa
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "
+    - |
+      ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} '
       export APP_IMAGE_STG_CLIENT="$CI_REGISTRY_IMAGE/client" &&
       echo $CI_REGISTRY_IMAGE/client
       export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
       export APP_IMAGE_STG_SERVER="$CI_REGISTRY_IMAGE/server" &&
       echo $CI_REGISTRY_IMAGE/server
       export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
+
       cd ~/web/staging/Refina &&
       git pull &&
       unzip dump.zip -d ~/web/staging/Refina
-      cat <<EOF >> .env.staging
+
       echo \"APP_IMAGE_STG_CLIENT=$CI_REGISTRY_IMAGE/client" >> ~/web/staging/Refina/.env.staging &&
       echo \"APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
       echo \"APP_IMAGE_STG_SERVER=$CI_REGISTRY_IMAGE/server\" >> ~/web/staging/Refina/.env.staging &&
       echo \"APP_IMAGE_STG_SERVER_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
+
       docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
       docker compose -f docker-compose.stg.yml down &&
       docker compose -f docker-compose.stg.yml pull &&
-      docker compose -f docker-compose.stg.yml --env-file .env.staging up -d"
+      docker compose -f docker-compose.stg.yml --env-file .env.staging up -d'
   environment:
     name: staging
     url: https://staging.refina.miftech.web.id
@@ -120,25 +123,28 @@ deploy-production:
     - ssh-add ~/.ssh/id_rsa
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
   script:
-    - ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} "
+    - |
+      ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_PRODUCTION} '
       export APP_IMAGE_PROD_CLIENT="$CI_REGISTRY_IMAGE/client" &&
       echo $CI_REGISTRY_IMAGE/client
       export APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG &&
       export APP_IMAGE_PROD_SERVER="$CI_REGISTRY_IMAGE/server" &&
       echo $CI_REGISTRY_IMAGE/server
       export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
+
       cd ~/web/production/Refina &&
       git pull &&
       unzip dump.zip -d ~/web/production/Refina
-      cat <<EOF >> .env.staging
+
       echo \"APP_IMAGE_PROD_CLIENT=$CI_REGISTRY_IMAGE/client\" >> ~/web/production/Refina/.env.production &&
       echo \"APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG\" >> ~/web/production/Refina/.env.production &&
       echo \"APP_IMAGE_PROD_SERVER=$CI_REGISTRY_IMAGE/server\" >> ~/web/production/Refina/.env.production &&
       echo \"APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG\" >> ~/web/production/Refina/.env.production &&
+
       docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
       docker compose -f docker-compose.prod.yml down &&
       docker compose -f docker-compose.prod.yml pull &&
-      docker compose -f docker-compose.prod.yml --env-file .env.production up -d"
+      docker compose -f docker-compose.prod.yml --env-file .env.production up -d'
   environment:
     name: production
     url: https://refina.miftech.web.id
