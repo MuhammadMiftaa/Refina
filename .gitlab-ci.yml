@@ -86,14 +86,16 @@ deploy-staging:
     - |
       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} '
       export APP_IMAGE_STG_CLIENT="$CI_REGISTRY_IMAGE/client" &&
-      echo $CI_REGISTRY_IMAGE/client
       export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
       export APP_IMAGE_STG_SERVER="$CI_REGISTRY_IMAGE/server" &&
-      echo $CI_REGISTRY_IMAGE/server
       export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
 
       cd ~/web/staging
-      git pull &&
+      if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/staging/Refina/.git ]; then
+        git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/staging
+      else
+        cd ~/web/staging && git pull
+      fi
       unzip -y dump.zip -d ~/web/staging/Refina
 
       echo "APP_IMAGE_STG_CLIENT=$CI_REGISTRY_IMAGE/client" >> ~/web/staging/Refina/.env.staging &&
@@ -133,7 +135,11 @@ deploy-production:
       export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
 
       cd ~/web/production
-      git pull &&
+      if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/production/Refina/.git ]; then
+        git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/production/Refina
+      else
+        cd ~/web/production/Refina && git pull
+      fi
       unzip -y dump.zip -d ~/web/production/Refina
 
       echo "APP_IMAGE_PROD_CLIENT=$CI_REGISTRY_IMAGE/client" >> ~/web/production/Refina/.env.production &&
