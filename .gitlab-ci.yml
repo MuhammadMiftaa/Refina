@@ -95,7 +95,7 @@ deploy-staging:
       cd ~/web/staging/Refina &&
       git pull &&
       command -v unzip >/dev/null || (sudo apt-get update && sudo apt-get install -y unzip) &&
-      unzip dump.zip -d ~/web/staging/Refina
+      unzip -y dump.zip -d ~/web/staging/Refina
 
       echo "APP_IMAGE_STG_CLIENT=$CI_REGISTRY_IMAGE/client" >> ~/web/staging/Refina/.env.staging &&
       echo "APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG" >> ~/web/staging/Refina/.env.staging &&
@@ -136,7 +136,7 @@ deploy-production:
       cd ~/web/production/Refina &&
       git pull &&
       command -v unzip >/dev/null || (sudo apt-get update && sudo apt-get install -y unzip) &&
-      unzip dump.zip -d ~/web/production/Refina
+      unzip -y dump.zip -d ~/web/production/Refina
 
       echo "APP_IMAGE_PROD_CLIENT=$CI_REGISTRY_IMAGE/client" >> ~/web/production/Refina/.env.production &&
       echo "APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG" >> ~/web/production/Refina/.env.production &&
