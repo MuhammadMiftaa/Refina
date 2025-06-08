@@ -43,8 +43,6 @@ services:
     image: ${APP_IMAGE_PROD_CLIENT}:${APP_IMAGE_PROD_CLIENT_TAG}
     ports:
       - "${CLIENT_PORT}:80"
-    environment:
-      VITE_API_URL: https://api-refina.miftech.web.id/v1
     depends_on:
       - ref-production-server
     networks:
