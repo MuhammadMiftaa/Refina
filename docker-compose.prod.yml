@@ -36,8 +36,7 @@ services:
       ref-production-redis:
         condition: service_started
     networks:
-      - refina_staging_network
-    restart: always
+      - refina_network
 
   ref-production-client:
     container_name: ref-production-client
@@ -49,8 +48,7 @@ services:
     depends_on:
       - ref-production-server
     networks:
-      - refina_staging_network
-    restart: always
+      - refina_network
 
   ref-production-postgres:
     container_name: ref-production-postgres
@@ -71,8 +69,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - refina_staging_network
-    restart: always
+      - refina_network
 
   ref-production-redis:
     container_name: ref-production-redis
@@ -80,13 +77,12 @@ services:
     ports:
       - "127.0.0.1:${REDIS_PORT}:6379"
     networks:
-      - refina_staging_network
-    restart: always
+      - refina_network
 
 volumes:
   production_postgres_data:
 
 networks:
-  refina_staging_network:
-    name: refina_staging_network
+  refina_network:
+    name: refina_network
     driver: bridge
