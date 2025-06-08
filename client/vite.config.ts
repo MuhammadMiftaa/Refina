@@ -4,6 +4,10 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
+if (!process.env.VITE_API_URL) {
+  throw new Error('VITE_API_URL is not defined');
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   // server: {
