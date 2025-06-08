@@ -36,6 +36,7 @@ export default function Login(props: {
   });
 
   const onSubmit = handleSubmit(async (data) => {
+    console.log("JANCOOKKKKKK |", backendURL, " | >>>>>>>>>>>>");
     const res = await fetch(`${backendURL}/auth/login`, {
       method: "POST",
       credentials: "include",
@@ -102,7 +103,7 @@ export default function Login(props: {
       <div className="font-inter z-10 mx-auto my-20 min-h-96 w-[40%] rounded-xl bg-white/30 backdrop-blur">
         <div className="p-8">
           <h1 className="bg-gradient-to-r from-white from-20% to-purple-500 bg-clip-text pb-2 text-center text-5xl font-bold text-transparent">
-            Sign In
+            Login
           </h1>
           <form onSubmit={onSubmit} className="mt-4 space-y-4">
             <div className="mb-5">
