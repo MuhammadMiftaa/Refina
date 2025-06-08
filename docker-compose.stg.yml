@@ -44,7 +44,7 @@ services:
     ports:
       - "${CLIENT_PORT}:80"
     environment:
-      VITE_API_URL: ${VITE_API_URL}
+      VITE_API_URL: https://api-refina-staging.miftech.web.id/v1
     depends_on:
       - ref-staging-server
     networks:
