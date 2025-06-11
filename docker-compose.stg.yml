@@ -37,6 +37,7 @@ services:
         condition: service_started
     networks:
       - refina_staging_network
+    restart: always
 
   ref-staging-client:
     container_name: ref-staging-client
@@ -47,6 +48,7 @@ services:
       - ref-staging-server
     networks:
       - refina_staging_network
+    restart: always
 
   ref-staging-postgres:
     container_name: ref-staging-postgres
@@ -68,6 +70,7 @@ services:
       retries: 5
     networks:
       - refina_staging_network
+    restart: always
 
   ref-staging-redis:
     container_name: ref-staging-redis
@@ -76,6 +79,7 @@ services:
       - "127.0.0.1:${REDIS_PORT}:6379"
     networks:
       - refina_staging_network
+    restart: always
 
 volumes:
   staging_postgres_data:
