@@ -39,7 +39,7 @@ build_client:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo "Building client application..."
-    - docker build --build-arg VITE_API_URL=https://api-refina-staging.miftech.web.id/v1 -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
+    - docker build --build-arg VITE_API_URL=https://api-refina.miftech.web.id/v1 -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
     - docker push "$CI_REGISTRY_IMAGE/client" --all-tags
     - echo "$CI_JOB_ID" > client_build_job_id.txt
   artifacts:
@@ -69,54 +69,54 @@ release:
     - echo "create release ${CI_COMMIT_TAG} from jobs $SERVER_BUILD_JOB_ID and $CLIENT_BUILD_JOB_ID"
     - release-cli create --name "${RELEASE_TITLE}" --description "${RELEASE_DESC}" --tag-name "${CI_COMMIT_TAG}"
 
-deploy-staging:
-  stage: deploy
-  image: alpine:latest
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-  before_script:
-    - "which ssh-agent || ( apk update && apk add --no-cache openssh)"
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-    - chmod 700 ~/.ssh/id_rsa
-    - eval "$(ssh-agent -s)"
-    - ssh-add ~/.ssh/id_rsa
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
-  script:
-    - |
-      ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} " 
-        export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
-        export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
-        export APP_IMAGE_STG_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&
-        export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
+# deploy-staging:
+#   stage: deploy
+#   image: alpine:latest
+#   rules:
+#     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
+#   before_script:
+#     - "which ssh-agent || ( apk update && apk add --no-cache openssh)"
+#     - mkdir -p ~/.ssh
+#     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+#     - chmod 700 ~/.ssh/id_rsa
+#     - eval "$(ssh-agent -s)"
+#     - ssh-add ~/.ssh/id_rsa
+#     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+#   script:
+#     - |
+#       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} " 
+#         export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
+#         export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
+#         export APP_IMAGE_STG_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&
+#         export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
 
-        cd ~/web/staging
-        if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/staging/Refina/.git ]; then
-          git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/staging/Refina
-          cd ~/web/staging/Refina
-        else
-          cd ~/web/staging/Refina && git pull
-        fi
+#         cd ~/web/staging
+#         if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/staging/Refina/.git ]; then
+#           git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/staging/Refina
+#           cd ~/web/staging/Refina
+#         else
+#           cd ~/web/staging/Refina && git pull
+#         fi
 
-        if [ -f ~/web/staging/Refina/.env.staging ]; then
-          unzip -o -q ~/web/staging/Refina/dump.zip -d ~/web/staging/Refina
-        else
-          unzip ~/web/staging/Refina/dump.zip -d ~/web/staging/Refina
-        fi
+#         if [ -f ~/web/staging/Refina/.env.staging ]; then
+#           unzip -o -q ~/web/staging/Refina/dump.zip -d ~/web/staging/Refina
+#         else
+#           unzip ~/web/staging/Refina/dump.zip -d ~/web/staging/Refina
+#         fi
 
-        echo -e \"\\nAPP_IMAGE_STG_CLIENT=$CI_REGISTRY_IMAGE/client\" >> ~/web/staging/Refina/.env.staging &&
-        echo \"APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
-        echo \"APP_IMAGE_STG_SERVER=$CI_REGISTRY_IMAGE/server\" >> ~/web/staging/Refina/.env.staging &&
-        echo \"APP_IMAGE_STG_SERVER_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
+#         echo -e \"\\nAPP_IMAGE_STG_CLIENT=$CI_REGISTRY_IMAGE/client\" >> ~/web/staging/Refina/.env.staging &&
+#         echo \"APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
+#         echo \"APP_IMAGE_STG_SERVER=$CI_REGISTRY_IMAGE/server\" >> ~/web/staging/Refina/.env.staging &&
+#         echo \"APP_IMAGE_STG_SERVER_TAG=$CI_COMMIT_TAG\" >> ~/web/staging/Refina/.env.staging &&
 
-        docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
-        docker compose -f docker-compose.stg.yml down &&
-        docker compose -f docker-compose.stg.yml pull &&
-        docker compose -f docker-compose.stg.yml --env-file .env.staging up -d
-      "
-  environment:
-    name: staging
-    url: https://staging.refina.miftech.web.id
+#         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
+#         docker compose -f docker-compose.stg.yml down &&
+#         docker compose -f docker-compose.stg.yml pull &&
+#         docker compose -f docker-compose.stg.yml --env-file .env.staging up -d
+#       "
+#   environment:
+#     name: staging
+#     url: https://staging.refina.miftech.web.id
 
 deploy-production:
   stage: deploy
@@ -168,4 +168,4 @@ deploy-production:
   environment:
     name: production
     url: https://refina.miftech.web.id
-  when: manual
+  # when: manual
