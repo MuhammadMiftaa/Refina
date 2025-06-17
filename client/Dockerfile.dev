@@ -1,0 +1,23 @@
+# Gunakan Bun image sebagai base
+FROM oven/bun
+
+# Atur direktori kerja
+WORKDIR /app
+
+# Set ENV jika pakai VITE_*
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
+# Salin file dependensi dan install
+COPY package.json ./
+COPY bun.lockb ./
+RUN bun install --verbose
+
+# Salin semua source code
+COPY . ./
+
+# Ekspose port Vite (default 5173)
+EXPOSE 3000
+
+# Jalankan development server
+CMD ["bun", "run", "dev"]

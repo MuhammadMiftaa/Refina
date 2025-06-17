@@ -17,7 +17,7 @@ func main() {
 		}
 	}
 	
-	port := os.Getenv("PORT")
+	port := os.Getenv("SERVER_PORT")
 
 	db, err := config.SetupDatabase()
 	if err != nil {
