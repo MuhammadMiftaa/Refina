@@ -18,6 +18,11 @@ func main() {
 	}
 	
 	port := os.Getenv("PORT")
+	log.Println("Starting server on port:", port)
+	if port == "" {
+		log.Println("No PORT environment variable set, using default port 8080")
+		port = "8080" // Default port if not set
+	}
 
 	db, err := config.SetupDatabase()
 	if err != nil {
