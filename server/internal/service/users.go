@@ -22,7 +22,7 @@ type UsersService interface {
 	VerifyUser(email string) (dto.UsersResponse, error)
 	DeleteUser(id string) (dto.UsersResponse, error)
 
-	GetUserWallets(token string) (dto.UserWalletsResponse, error)
+	GetUserWallets(token string) ([]dto.ViewUserWallets, error)
 	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
 	GetUserTransactions(token string) (dto.UserTransactionsResponse, error)
 }
@@ -236,44 +236,21 @@ func (user_serv *usersService) DeleteUser(id string) (dto.UsersResponse, error) 
 	return userResponse.(dto.UsersResponse), nil
 }
 
-func (user_serv *usersService) GetUserWallets(token string) (dto.UserWalletsResponse, error) {
+func (user_serv *usersService) GetUserWallets(token string) ([]dto.ViewUserWallets, error) {
 	userData, err := helper.VerifyToken(token[7:])
 	if err != nil {
-		return dto.UserWalletsResponse{}, errors.New("invalid token")
+		return nil, errors.New("invalid token")
 	}
 
 	userWallets, err := user_serv.userRepository.GetUserWallets(userData.ID)
 	if err != nil {
-		return dto.UserWalletsResponse{}, errors.New("failed to get user wallets")
+		return nil, errors.New("failed to get user wallets")
 	}
 	if len(userWallets) == 0 {
-		return dto.UserWalletsResponse{}, nil
+		return nil, nil
 	}
-	UserID := userWallets[0].UserID
-	Name := userWallets[0].Name
-	Email := userWallets[0].Email
-	Wallets := make([]dto.WalletResponse, 0, len(userWallets))
-	for _, userWallet := range userWallets {
-		if userWallet.ID == "" {
-			continue
-		}
-		Wallet := dto.WalletResponse{
-			ID:         userWallet.ID,
-			Number:     userWallet.WalletNumber,
-			Balance:    userWallet.WalletBalance,
-			Name:       userWallet.WalletName,
-			WalletType: userWallet.WalletTypeName,
-			Type:       userWallet.WalletType,
-		}
-		Wallets = append(Wallets, Wallet)
-	}
-
-	return dto.UserWalletsResponse{
-		UserID:  UserID,
-		Name:    Name,
-		Email:   Email,
-		Wallets: Wallets,
-	}, nil
+	
+	return userWallets, nil
 }
 
 func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestmentsResponse, error) {

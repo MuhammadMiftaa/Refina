@@ -3,6 +3,7 @@ package repository
 import (
 	"errors"
 
+	"server/internal/dto"
 	"server/internal/entity"
 
 	"gorm.io/gorm"
@@ -16,7 +17,7 @@ type UsersRepository interface {
 	UpdateUser(user entity.Users) (entity.Users, error)
 	DeleteUser(user entity.Users) (entity.Users, error)
 
-	GetUserWallets(id string) ([]entity.UserWallet, error)
+	GetUserWallets(id string) ([]dto.ViewUserWallets, error)
 	GetUserInvestments(id string) ([]entity.UserInvestment, error)
 	GetUserTransactions(id string) ([]entity.UserTransactions, error)
 }
@@ -86,14 +87,27 @@ func (user_repo *usersRepository) DeleteUser(user entity.Users) (entity.Users, e
 	return user, nil
 }
 
-func (user_repo *usersRepository) GetUserWallets(id string) ([]entity.UserWallet, error) {
-	var userWallet []entity.UserWallet
-	err := user_repo.db.Table("users").Select("wallets.id, users.id AS user_id, users.name, users.email, wallets.number AS wallet_number, wallets.balance AS wallet_balance, wallets.name AS wallet_name, wallet_types.name AS wallet_type_name, wallet_types.type AS wallet_type").
-		Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
-		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Where("users.id = ?", id).
-		Where("users.deleted_at IS NULL").
-		Find(&userWallet).Error
+func (user_repo *usersRepository) GetUserWallets(id string) ([]dto.ViewUserWallets, error) {
+	if viewExist := user_repo.db.Migrator().HasTable("view_user_wallets"); !viewExist {
+		queryCreateUserWalletsView := `
+		CREATE OR REPLACE VIEW view_user_wallets AS
+		SELECT wallets.id, users.id AS user_id,
+			wallets.number AS wallet_number, wallets.balance AS wallet_balance,
+			wallets.name AS wallet_name, wallet_types.name AS wallet_type_name,
+			wallet_types.type AS wallet_type
+		FROM users
+		LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL
+		LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL
+		WHERE users.deleted_at IS NULL;
+	`
+
+		if err := user_repo.db.Exec(queryCreateUserWalletsView).Error; err != nil {
+			return nil, errors.New("failed to create user wallets view")
+		}
+	}
+
+	var userWallet []dto.ViewUserWallets
+	err := user_repo.db.Table("view_user_wallets").Where("user_id = ?", id).Find(&userWallet).Error
 	if err != nil {
 		return nil, errors.New("user wallet not found")
 	}
