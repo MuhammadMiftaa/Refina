@@ -23,8 +23,8 @@ type UsersService interface {
 	DeleteUser(id string) (dto.UsersResponse, error)
 
 	GetUserWallets(token string) ([]dto.ViewUserWallets, error)
-	GetUserInvestments(id string) (dto.UserInvestmentsResponse, error)
-	GetUserTransactions(token string) (dto.UserTransactionsResponse, error)
+	GetUserInvestments(token string) ([]dto.ViewUserInvestments, error)
+	GetUserTransactions(token string) ([]dto.ViewUserTransactions, error)
 }
 
 type usersService struct {
@@ -249,107 +249,40 @@ func (user_serv *usersService) GetUserWallets(token string) ([]dto.ViewUserWalle
 	if len(userWallets) == 0 {
 		return nil, nil
 	}
-	
+
 	return userWallets, nil
 }
 
-func (user_serv *usersService) GetUserInvestments(id string) (dto.UserInvestmentsResponse, error) {
-	userInvestments, err := user_serv.userRepository.GetUserInvestments(id)
-	if err != nil {
-		return dto.UserInvestmentsResponse{}, errors.New("failed to get user investments")
-	}
-	if len(userInvestments) == 0 {
-		return dto.UserInvestmentsResponse{}, nil
-	}
-
-	UserID := userInvestments[0].UserID
-	Name := userInvestments[0].Name
-	Email := userInvestments[0].Email
-	Investments := make([]dto.InvestmentResponse, 0, len(userInvestments))
-	for _, userInvestment := range userInvestments {
-		if userInvestment.ID == "" {
-			continue
-		}
-		Investment := dto.InvestmentResponse{
-			ID:         userInvestment.ID,
-			Type:       userInvestment.InvestmentType,
-			Name:       userInvestment.InvestmentName,
-			Amount:     userInvestment.InvestmentAmount,
-			Quantity:   userInvestment.InvestmentQuantity,
-			Unit:       userInvestment.InvestmentUnit,
-			InvestDate: userInvestment.InvestmentDate,
-		}
-		Investments = append(Investments, Investment)
-	}
-
-	return dto.UserInvestmentsResponse{
-		UserID:      UserID,
-		Name:        Name,
-		Email:       Email,
-		Investments: Investments,
-	}, nil
-}
-
-func (user_serv *usersService) GetUserTransactions(token string) (dto.UserTransactionsResponse, error) {
+func (user_serv *usersService) GetUserInvestments(token string) ([]dto.ViewUserInvestments, error) {
 	userData, err := helper.VerifyToken(token[7:])
 	if err != nil {
-		return dto.UserTransactionsResponse{}, errors.New("invalid token")
+		return nil, errors.New("invalid token")
+	}
+
+	userInvestments, err := user_serv.userRepository.GetUserInvestments(userData.ID)
+	if err != nil {
+		return nil, errors.New("failed to get user investments")
+	}
+	if len(userInvestments) == 0 {
+		return nil, nil
+	}
+
+	return userInvestments, nil
+}
+
+func (user_serv *usersService) GetUserTransactions(token string) ([]dto.ViewUserTransactions, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
 	}
 
 	userTransactions, err := user_serv.userRepository.GetUserTransactions(userData.ID)
 	if err != nil {
-		return dto.UserTransactionsResponse{}, errors.New("failed to get user transactions")
+		return nil, errors.New("failed to get user transactions")
 	}
 	if len(userTransactions) == 0 {
-		return dto.UserTransactionsResponse{}, nil
+		return nil, nil
 	}
 
-	UserID := userTransactions[0].UserID
-	Name := userTransactions[0].Name
-	Email := userTransactions[0].Email
-
-	walletMap := make(map[string]dto.WalletWithTransactionsResponse)
-
-	for _, ut := range userTransactions {
-		if ut.TransactionID == "" {
-			continue
-		}
-		_, exists := walletMap[ut.WalletID]
-		if !exists {
-			walletMap[ut.WalletID] = dto.WalletWithTransactionsResponse{
-				ID:      ut.WalletID,
-				Number:  ut.WalletNumber,
-				Balance: ut.WalletBalance,
-				Name:    ut.WalletName,
-				Type:    ut.WalletType,
-			}
-		}
-
-		transaction := dto.RawTransactionsResponse{
-			ID:          ut.TransactionID,
-			Name:        ut.CategoryName,
-			Type:        ut.CategoryType,
-			Amount:      ut.Amount,
-			Date:        ut.TransactionDate,
-			Description: ut.Description,
-			Image:       ut.Image,
-		}
-
-		tempWallet := walletMap[ut.WalletID]
-		tempWallet.Transactions = append(tempWallet.Transactions, transaction)
-		walletMap[ut.WalletID] = tempWallet
-	}
-
-	// Konversi map ke slice
-	Wallets := make([]dto.WalletWithTransactionsResponse, 0, len(walletMap))
-	for _, wallet := range walletMap {
-		Wallets = append(Wallets, wallet)
-	}
-
-	return dto.UserTransactionsResponse{
-		UserID:  UserID,
-		Name:    Name,
-		Email:   Email,
-		Wallets: Wallets,
-	}, nil
+	return userTransactions, nil
 }

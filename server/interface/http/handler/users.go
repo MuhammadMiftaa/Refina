@@ -525,9 +525,9 @@ func (user_handler *usersHandler) GetUserWallets(c *gin.Context) {
 }
 
 func (user_handler *usersHandler) GetUserInvestments(c *gin.Context) {
-	id := c.Param("id")
+	token := c.GetHeader("Authorization")
 
-	userInvestments, err := user_handler.usersService.GetUserInvestments(id)
+	userInvestments, err := user_handler.usersService.GetUserInvestments(token)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,

@@ -18,8 +18,8 @@ type UsersRepository interface {
 	DeleteUser(user entity.Users) (entity.Users, error)
 
 	GetUserWallets(id string) ([]dto.ViewUserWallets, error)
-	GetUserInvestments(id string) ([]entity.UserInvestment, error)
-	GetUserTransactions(id string) ([]entity.UserTransactions, error)
+	GetUserInvestments(id string) ([]dto.ViewUserInvestments, error)
+	GetUserTransactions(id string) ([]dto.ViewUserTransactions, error)
 }
 
 type usersRepository struct {
@@ -106,41 +106,70 @@ func (user_repo *usersRepository) GetUserWallets(id string) ([]dto.ViewUserWalle
 		}
 	}
 
-	var userWallet []dto.ViewUserWallets
-	err := user_repo.db.Table("view_user_wallets").Where("user_id = ?", id).Find(&userWallet).Error
+	var userWallets []dto.ViewUserWallets
+	err := user_repo.db.Table("view_user_wallets").Where("user_id = ?", id).Find(&userWallets).Error
 	if err != nil {
-		return nil, errors.New("user wallet not found")
+		return nil, errors.New("user wallets not found")
 	}
 
-	return userWallet, nil
+	return userWallets, nil
 }
 
-func (user_repo *usersRepository) GetUserInvestments(id string) ([]entity.UserInvestment, error) {
-	var userInvestment []entity.UserInvestment
-	err := user_repo.db.Table("users").Select("investments.id, users.id AS user_id, users.name, users.email, investment_types.name AS investment_type, investments.name AS investment_name, investments.amount AS investment_amount, investments.quantity AS investment_quantity, investment_types.unit AS investment_unit, investments.investment_date AS investment_date").
-		Joins("LEFT JOIN investments ON users.id = investments.user_id AND investments.deleted_at IS NULL").
-		Joins("LEFT JOIN investment_types ON investments.investment_type_id = investment_types.id AND investment_types.deleted_at IS NULL").
-		Where("users.id = ?", id).
-		Where("users.deleted_at IS NULL").
-		Find(&userInvestment).Error
-	if err != nil {
-		return nil, errors.New("user investment not found")
+func (user_repo *usersRepository) GetUserInvestments(id string) ([]dto.ViewUserInvestments, error) {
+	if viewExist := user_repo.db.Migrator().HasTable("view_user_investments"); !viewExist {
+		queryCreateUserInvestmentsView := `		
+		CREATE OR REPLACE VIEW view_user_investments AS
+		SELECT investments.id, users.id AS user_id,
+			investment_types.name AS investment_type,
+			investments.name AS investment_name,
+			investments.amount AS investment_amount,
+			investments.quantity AS investment_quantity,
+			investment_types.unit AS investment_unit,
+			investments.investment_date AS investment_date
+		FROM users
+		LEFT JOIN investments ON users.id = investments.user_id AND investments.deleted_at IS NULL
+		LEFT JOIN investment_types ON investments.investment_type_id = investment_types.id AND investment_types.deleted_at IS NULL
+		WHERE users.deleted_at IS NULL;
+	`
+		if err := user_repo.db.Exec(queryCreateUserInvestmentsView).Error; err != nil {
+			return nil, errors.New("failed to create user investments view")
+		}
 	}
 
-	return userInvestment, nil
+	var userInvestments []dto.ViewUserInvestments
+	err := user_repo.db.Table("view_user_investments").Where("user_id = ?", id).Find(&userInvestments).Error
+	if err != nil {
+		return nil, errors.New("user investments not found")
+	}
+
+	return userInvestments, nil
 }
 
-func (user_repo *usersRepository) GetUserTransactions(id string) ([]entity.UserTransactions, error) {
-	var userTransactions []entity.UserTransactions
-	err := user_repo.db.Table("users").Select("users.id AS user_id, users.name, users.email, wallets.id AS wallet_id, wallets.number AS wallet_number, wallets.balance AS wallet_balance, wallet_types.name AS wallet_type, transactions.id AS transaction_id, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
-		Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
-		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Joins("LEFT JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL").
-		Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
-		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
-		Where("users.id = ?", id).
-		Where("users.deleted_at IS NULL").
-		Find(&userTransactions).Error
+func (user_repo *usersRepository) GetUserTransactions(id string) ([]dto.ViewUserTransactions, error) {
+	if viewExist := user_repo.db.Migrator().HasTable("view_user_transactions"); !viewExist {
+		queryCreateUserTransactionsView := `
+		CREATE OR REPLACE VIEW view_user_transactions AS
+		SELECT transactions.id AS id, users.id AS user_id,
+			wallets.id AS wallet_id, wallets.number AS wallet_number, 
+			wallet_types.name AS wallet_type, wallets.balance AS wallet_balance,
+			categories.name AS category_name, categories.type AS category_type,
+			transactions.amount, transactions.transaction_date, transactions.description,
+			attachments.image
+		FROM users
+		LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL
+		LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL
+		LEFT JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL
+		LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL
+		LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL
+		WHERE users.deleted_at IS NULL;
+	`
+		if err := user_repo.db.Exec(queryCreateUserTransactionsView).Error; err != nil {
+			return nil, errors.New("failed to create user transactions view")
+		}
+	}
+
+	var userTransactions []dto.ViewUserTransactions
+	err := user_repo.db.Table("view_user_transactions").Where("user_id = ?", id).Find(&userTransactions).Error
 	if err != nil {
 		return nil, errors.New("user transactions not found")
 	}
