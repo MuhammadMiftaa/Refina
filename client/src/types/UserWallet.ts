@@ -1,19 +1,13 @@
 import { z } from "zod";
 
 const Wallet = z.object({
+  id: z.string(),
   user_id: z.string(),
-  name: z.string(),
-  email: z.string(),
-  wallets: z.array(
-    z.object({
-      id: z.string(),
-      number: z.string(),
-      balance: z.number(),
-      name: z.string(),
-      wallet_type: z.string(),
-      type: z.string(),
-    }),
-  ),
+  wallet_number: z.string(),
+  wallet_balance: z.number(),
+  wallet_name: z.string(),
+  wallet_type_name: z.string(),
+  wallet_type: z.string(),
 });
 
 const WalletType = z.object({

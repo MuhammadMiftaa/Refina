@@ -1,13 +1,12 @@
 import { WalletType } from "@/types/UserWallet";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import styled from "styled-components";
 import { DataTable } from "./data-table";
-import { UserTransactionsType } from "@/types/Transactions";
 import { MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../../../components/ui/button";
@@ -22,6 +21,7 @@ import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
 import { formatRawDate, generateColorByType } from "@/helper/Helper";
 import { PiArrowsLeftRightLight } from "react-icons/pi";
 import { getBackendURL } from "@/lib/readenv";
+import { TransactionType } from "@/types/UserTransaction";
 
 async function fetchWallets() {
   const backendURL = getBackendURL();
@@ -48,7 +48,7 @@ async function fetchTransactions() {
 
   const token = Cookies.get("token");
 
-  const res = await fetch(`${backendURL}/transactions/user`, {
+  const res = await fetch(`${backendURL}/users/transactions`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -74,20 +74,9 @@ export default function Transactions() {
     queryFn: fetchTransactions,
   });
 
-  const Wallets: WalletType = walletData?.data ?? {
-    user_id: "",
-    name: "",
-    email: "",
-    wallets: [],
-  };
+  const Wallets: WalletType[] = walletData?.data ?? [];
 
-  const Transactions: UserTransactionsType[] = transactionsData?.data ?? [];
-
-  const [wallets, setWallets] = useState(Wallets.wallets);
-
-  useEffect(() => {
-    setWallets(Wallets.wallets);
-  }, [Wallets]);
+  const Transactions: TransactionType[] = transactionsData?.data ?? [];
 
   if (walletLoading || transactionsLoading) {
     return (
@@ -101,7 +90,7 @@ export default function Transactions() {
     <div className="font-poppins min-h-screen w-full md:px-4">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Your Transaction</h1>
-        {wallets.length > 0 && (
+        {Wallets.length > 0 && (
           <div className="flex flex-wrap items-center gap-5">
             <FundTransfer
               onclick={() => navigate("/transactions/add/fund_transfer")}
@@ -201,20 +190,20 @@ const StyledWrapper = styled.div`
   }
 `;
 
-const columns: ColumnDef<UserTransactionsType>[] = [
+const columns: ColumnDef<TransactionType>[] = [
   {
     accessorKey: "description",
     header: "Description",
   },
   {
-    accessorKey: "wallet_name",
-    header: "Wallet Name",
+    accessorKey: "wallet_type",
+    header: "Wallet Type",
   },
   {
-    accessorKey: "date",
+    accessorKey: "transaction_date",
     header: () => <div className="text-center">Date</div>,
     cell: ({ row }: { row: any }) => {
-      const date: string = row.getValue("date");
+      const date: string = row.getValue("transaction_date");
       const formattedDate = formatRawDate(date);
 
       return (

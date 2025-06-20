@@ -100,19 +100,9 @@ export default function Wallets() {
     queryFn: fetchTransactions,
   });
 
-  const Wallets: WalletType = walletData?.data ?? {
-    user_id: "",
-    name: "",
-    email: "",
-    wallets: [],
-  };
+  const Wallets: WalletType[] = walletData?.data ?? [];
 
-  const Transactions: TransactionType = transactionData?.data ?? {
-    user_id: "",
-    name: "",
-    email: "",
-    wallets: [],
-  };
+  const Transactions: TransactionType[] = transactionData?.data ?? [];
 
   const [type, setType] = useState("all");
   const [search, setSearch] = useState("");
@@ -122,32 +112,32 @@ export default function Wallets() {
   const [copiedStates, setCopiedStates] = useState<{ [key: string]: boolean }>(
     {},
   );
-  const [wallets, setWallets] = useState(Wallets.wallets);
-  const [transactions, setTransactions] = useState(Transactions.wallets);
+  const [wallets, setWallets] = useState(Wallets);
+  const [transactions, setTransactions] = useState(Transactions);
 
   useEffect(() => {
-    setWallets(Wallets.wallets);
+    setWallets(Wallets);
   }, [Wallets]);
 
   useEffect(() => {
-    setTransactions(Transactions.wallets);
+    setTransactions(Transactions);
   }, [Transactions]);
 
   useEffect(() => {
     if (wallets) {
-      const filtered = Wallets.wallets
-        .filter((wallet) => (type !== "all" ? wallet.type === type : true))
-        .filter((wallet) =>
-          search !== "" ? wallet.name.toLowerCase().includes(search) : true,
-        );
+      const filtered = Wallets.filter((wallet) =>
+        type !== "all" ? wallet.wallet_type === type : true,
+      ).filter((wallet) =>
+        search !== ""
+          ? wallet.wallet_name.toLowerCase().includes(search)
+          : true,
+      );
 
       setWallets(filtered);
 
-      if (Transactions?.wallets?.length > 0) {
-        const walletIDSet = new Set(filtered.map((wallet) => wallet.id));
-
-        const filteredTransactions = Transactions.wallets.filter((wallet) =>
-          walletIDSet.has(wallet.id),
+      if (Transactions?.length > 0) {
+        const filteredTransactions = Transactions.filter((transaction) =>
+          type !== "all" ? transaction.wallet_type_name === type : true,
         );
 
         setTransactions(filteredTransactions);
@@ -209,7 +199,10 @@ export default function Wallets() {
                 <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
                   RP{" "}
                   {shortenMoney(
-                    wallets.reduce((acc, wallet) => acc + wallet.balance, 0),
+                    wallets.reduce(
+                      (acc, wallet) => acc + wallet.wallet_balance,
+                      0,
+                    ),
                   )}
                 </h1>
                 <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
@@ -221,10 +214,7 @@ export default function Wallets() {
               <ReceiptText className="w-8 md:w-fit" size={48} />
               <div>
                 <h1 className="text-center text-2xl font-semibold text-nowrap md:text-left md:text-4xl">
-                  {transactions?.reduce(
-                    (acc, wallet) => acc + wallet.transactions.length,
-                    0,
-                  ) || 0}
+                  {transactions.length}
                 </h1>
                 <h2 className="text-center text-base font-light text-nowrap text-zinc-400 md:text-left md:text-xl">
                   Total Transactions
@@ -261,7 +251,7 @@ export default function Wallets() {
                 className="min-h-72 rounded-2xl bg-slate-100 p-4 shadow-xl"
               >
                 <h1 className="pt-2 pb-4 pl-2 text-2xl font-semibold">
-                  {wallet.name}
+                  {wallet.wallet_name}
                 </h1>
                 <AspectRatio
                   ratio={1.586 / 1}
@@ -277,7 +267,7 @@ export default function Wallets() {
                     <h2 className="flex items-center justify-between gap-2 text-4xl font-semibold">
                       RP{" "}
                       {showNumbers[wallet.id]
-                        ? formatCurrency(wallet.balance)
+                        ? formatCurrency(wallet.wallet_balance)
                         : "*****"}
                       <button
                         onClick={() => toggleShowNumber(wallet.id)}
@@ -294,25 +284,25 @@ export default function Wallets() {
                   <div className="flex flex-col">
                     <div className="flex flex-col text-white">
                       <h1 className="text-zinc-300">Name</h1>
-                      <h2 className="-mt-1 text-xl">{Wallets.name}</h2>
+                      <h2 className="-mt-1 text-xl">{wallet.wallet_name}</h2>
                     </div>
                     <div className="mt-5 flex w-full flex-row items-center justify-between text-white">
                       <div>
                         <h1 className="text-zinc-300">Account Number</h1>
                         <h2 className="-mt-1 text-xl">
-                          {wallet.number === "—"
-                            ? wallet.number
-                            : wallet.number.slice(0, 4) +
+                          {wallet.wallet_number === "—"
+                            ? wallet.wallet_number
+                            : wallet.wallet_number.slice(0, 4) +
                               "–" +
-                              wallet.number.slice(4, 8) +
+                              wallet.wallet_number.slice(4, 8) +
                               "–" +
-                              wallet.number.slice(8)}
+                              wallet.wallet_number.slice(8)}
                         </h2>
                       </div>
                       <div className="flex gap-4">
                         <button
                           onClick={() =>
-                            copyWalletNumber(wallet.id, wallet.number)
+                            copyWalletNumber(wallet.id, wallet.wallet_number)
                           }
                           className="relative h-6 w-6"
                         >

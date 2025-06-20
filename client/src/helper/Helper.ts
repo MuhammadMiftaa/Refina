@@ -44,11 +44,10 @@ export async function handleCopy(textToCopy: string) {
 export function formatRawDate(rawDate: string): [string, string, string] {
   const date = new Date(rawDate);
 
-  // Konversi ke waktu lokal (misalnya WIB = UTC+7)
+  // Konversi ke waktu lokal (WIB = UTC+7)
   const wibOffset = 7 * 60; // 7 jam dalam menit
   const localDate = new Date(date.getTime() + wibOffset * 60 * 1000);
 
-  // Daftar nama hari dan bulan dalam bahasa Inggris dan Indonesia
   const days = [
     "Sunday",
     "Monday",
@@ -73,18 +72,14 @@ export function formatRawDate(rawDate: string): [string, string, string] {
     "Desember",
   ];
 
-  // Format hari
-  const dayName = days[localDate.getUTCDay()];
-
-  // Format waktu (jam:menit) WIB
-  const hours = localDate.getUTCHours().toString().padStart(2, "0");
-  const minutes = localDate.getUTCMinutes().toString().padStart(2, "0");
+  const dayName = days[localDate.getDay()];
+  const hours = localDate.getHours().toString().padStart(2, "0");
+  const minutes = localDate.getMinutes().toString().padStart(2, "0");
   const time = `${hours}:${minutes} WIB`;
 
-  // Format tanggal lengkap
-  const dateNum = localDate.getUTCDate();
-  const month = months[localDate.getUTCMonth()];
-  const year = localDate.getUTCFullYear();
+  const dateNum = localDate.getDate();
+  const month = months[localDate.getMonth()];
+  const year = localDate.getFullYear();
   const fullDate = `${dateNum} ${month} ${year}`;
 
   return [dayName, time, fullDate];
