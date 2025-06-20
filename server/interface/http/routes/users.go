@@ -44,7 +44,7 @@ func UserRoutes(version *gin.RouterGroup, db *gorm.DB, redis *redis.Client) {
 	// 	users.PUT(":id", User_handler.UpdateUser)
 	// 	users.DELETE(":id", User_handler.DeleteUser)
 	users.GET("wallets", User_handler.GetUserWallets)
-	users.GET(":id/investments", User_handler.GetUserInvestments)
+	users.GET("investments", User_handler.GetUserInvestments)
 	users.GET("transactions", User_handler.GetUserTransactions)
 	// }
 }

@@ -95,10 +95,10 @@ func (user_repo *usersRepository) GetUserWallets(id string) ([]dto.ViewUserWalle
 			wallets.number AS wallet_number, wallets.balance AS wallet_balance,
 			wallets.name AS wallet_name, wallet_types.name AS wallet_type_name,
 			wallet_types.type AS wallet_type
-		FROM users
-		LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL
-		LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL
-		WHERE users.deleted_at IS NULL;
+		FROM wallets
+		LEFT JOIN users ON users.id = wallets.user_id AND users.deleted_at IS NULL
+		LEFT JOIN wallet_types ON wallet_types.id = wallets.wallet_type_id AND wallet_types.deleted_at IS NULL
+		WHERE wallets.deleted_at IS NULL;
 	`
 
 		if err := user_repo.db.Exec(queryCreateUserWalletsView).Error; err != nil {
@@ -126,10 +126,10 @@ func (user_repo *usersRepository) GetUserInvestments(id string) ([]dto.ViewUserI
 			investments.quantity AS investment_quantity,
 			investment_types.unit AS investment_unit,
 			investments.investment_date AS investment_date
-		FROM users
-		LEFT JOIN investments ON users.id = investments.user_id AND investments.deleted_at IS NULL
-		LEFT JOIN investment_types ON investments.investment_type_id = investment_types.id AND investment_types.deleted_at IS NULL
-		WHERE users.deleted_at IS NULL;
+		FROM investments
+		LEFT JOIN users ON users.id = investments.user_id AND users.deleted_at IS NULL
+		LEFT JOIN investment_types ON investment_types.id = investments.investment_type_id AND investment_types.deleted_at IS NULL
+		WHERE investments.deleted_at IS NULL;
 	`
 		if err := user_repo.db.Exec(queryCreateUserInvestmentsView).Error; err != nil {
 			return nil, errors.New("failed to create user investments view")
@@ -154,14 +154,14 @@ func (user_repo *usersRepository) GetUserTransactions(id string) ([]dto.ViewUser
 			wallet_types.name AS wallet_type, wallets.balance AS wallet_balance,
 			categories.name AS category_name, categories.type AS category_type,
 			transactions.amount, transactions.transaction_date, transactions.description,
-			attachments.image
-		FROM users
-		LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL
-		LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL
-		LEFT JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL
-		LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL
-		LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL
-		WHERE users.deleted_at IS NULL;
+			attachments.image, wallet_types.type AS wallet_type_name
+		FROM transactions
+		LEFT JOIN wallets ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL
+		LEFT JOIN users ON users.id = wallets.user_id AND users.deleted_at IS NULL
+		LEFT JOIN wallet_types ON wallet_types.id = wallets.wallet_type_id AND wallet_types.deleted_at IS NULL
+		LEFT JOIN categories ON categories.id = transactions.category_id AND categories.deleted_at IS NULL
+		LEFT JOIN attachments ON attachments.transaction_id = transactions.id AND attachments.deleted_at IS NULL
+		WHERE transactions.deleted_at IS NULL;
 	`
 		if err := user_repo.db.Exec(queryCreateUserTransactionsView).Error; err != nil {
 			return nil, errors.New("failed to create user transactions view")
@@ -169,7 +169,7 @@ func (user_repo *usersRepository) GetUserTransactions(id string) ([]dto.ViewUser
 	}
 
 	var userTransactions []dto.ViewUserTransactions
-	err := user_repo.db.Table("view_user_transactions").Where("user_id = ?", id).Find(&userTransactions).Error
+	err := user_repo.db.Table("view_user_transactions").Where("user_id = ?", id).Order("transaction_date DESC").Find(&userTransactions).Error
 	if err != nil {
 		return nil, errors.New("user transactions not found")
 	}

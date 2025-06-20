@@ -6,6 +6,7 @@ type ViewUserTransactions struct {
 	WalletID        string  `json:"wallet_id"`
 	WalletNumber    string  `json:"wallet_number"`
 	WalletType      string  `json:"wallet_type"`
+	WalletTypeName  string  `json:"wallet_type_name"`
 	WalletBalance   float64 `json:"wallet_balance"`
 	CategoryName    string  `json:"category_name"`
 	CategoryType    string  `json:"category_type"`
