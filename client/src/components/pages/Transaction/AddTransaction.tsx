@@ -69,12 +69,7 @@ export default function AddTransaction() {
   });
 
   const Categories: CategoryType[] = categoriesData?.data ?? [];
-  const Wallets: WalletType = walletsData?.data ?? {
-    user_id: "",
-    name: "",
-    email: "",
-    wallets: [],
-  };
+  const Wallets: WalletType[] = walletsData?.data ?? [];
 
   const [categories, setCategories] = useState([
     {
@@ -83,7 +78,7 @@ export default function AddTransaction() {
       group_name: "",
     },
   ]);
-  const [wallets, setWallets] = useState(Wallets.wallets);
+
   const [userInput, setUserInput] = useState({
     amount: 0,
     wallet_id: "",
@@ -108,10 +103,6 @@ export default function AddTransaction() {
 
     setCategories(flatMap);
   }, [Categories]);
-
-  useEffect(() => {
-    setWallets(Wallets.wallets);
-  }, [Wallets]);
 
   useEffect(() => {
     if (clearFiles) {
@@ -323,7 +314,7 @@ export default function AddTransaction() {
             <div className="flex w-full flex-col">
               <label className="mb-2">Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {wallets.map((wallet) => (
+                {Wallets.map((wallet) => (
                   <label
                     htmlFor={wallet.id}
                     className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
@@ -399,23 +390,23 @@ export default function AddTransaction() {
                         </CheckboxStyle>
                         <div>
                           <span className="line-clamp-1 text-lg font-semibold uppercase">
-                            {wallet.name}
+                            {wallet.wallet_name}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.number === "—"
-                            ? wallet.number
-                            : wallet.number.slice(0, 4) +
+                          {wallet.wallet_number === "—"
+                            ? wallet.wallet_number
+                            : wallet.wallet_number.slice(0, 4) +
                               "–" +
-                              wallet.number.slice(4, 8) +
+                              wallet.wallet_number.slice(4, 8) +
                               "–" +
-                              wallet.number.slice(8)}
+                              wallet.wallet_number.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
                           <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.balance)}
+                            RP {formatCurrency(wallet.wallet_balance)}
                           </span>
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
@@ -450,7 +441,7 @@ export default function AddTransaction() {
             <div className="flex w-full flex-col">
               <label className="mb-2">From Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {wallets.map((wallet) => (
+                {Wallets.map((wallet) => (
                   <label
                     htmlFor={`from-${wallet.id}`}
                     className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
@@ -526,23 +517,23 @@ export default function AddTransaction() {
                         </CheckboxStyle>
                         <div>
                           <span className="line-clamp-1 text-lg font-semibold uppercase">
-                            {wallet.name}
+                            {wallet.wallet_name}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.number === "—"
-                            ? wallet.number
-                            : wallet.number.slice(0, 4) +
+                          {wallet.wallet_number === "—"
+                            ? wallet.wallet_number
+                            : wallet.wallet_number.slice(0, 4) +
                               "–" +
-                              wallet.number.slice(4, 8) +
+                              wallet.wallet_number.slice(4, 8) +
                               "–" +
-                              wallet.number.slice(8)}
+                              wallet.wallet_number.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
                           <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.balance)}
+                            RP {formatCurrency(wallet.wallet_balance)}
                           </span>
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
@@ -647,7 +638,7 @@ export default function AddTransaction() {
             <div className="flex w-full flex-col">
               <label className="mb-2">To Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {wallets.map((wallet) => (
+                {Wallets.map((wallet) => (
                   <label
                     htmlFor={`to-${wallet.id}`}
                     className="relative flex cursor-pointer flex-col gap-2 rounded border border-indigo-200 p-6 shadow-[4px_4px_0px_oklch(0.87_0.065_274.039)] duration-200 hover:bg-indigo-100 active:translate-x-1 active:translate-y-1 active:bg-indigo-200 active:shadow-none has-checked:translate-x-1 has-checked:translate-y-1 has-checked:bg-indigo-100 has-checked:shadow-none"
@@ -723,23 +714,23 @@ export default function AddTransaction() {
                         </CheckboxStyle>
                         <div>
                           <span className="line-clamp-1 text-lg font-semibold uppercase">
-                            {wallet.name}
+                            {wallet.wallet_name}
                           </span>
                         </div>
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.number === "—"
-                            ? wallet.number
-                            : wallet.number.slice(0, 4) +
+                          {wallet.wallet_number === "—"
+                            ? wallet.wallet_number
+                            : wallet.wallet_number.slice(0, 4) +
                               "–" +
-                              wallet.number.slice(4, 8) +
+                              wallet.wallet_number.slice(4, 8) +
                               "–" +
-                              wallet.number.slice(8)}
+                              wallet.wallet_number.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
                           <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.balance)}
+                            RP {formatCurrency(wallet.wallet_balance)}
                           </span>
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
