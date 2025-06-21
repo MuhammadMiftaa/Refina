@@ -246,7 +246,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between md:justify-end space-x-2 py-4">
+      <div className="flex items-center justify-between md:justify-end gap-6 space-x-2 py-4">
         <button
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
