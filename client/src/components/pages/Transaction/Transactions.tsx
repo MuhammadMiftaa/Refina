@@ -7,7 +7,7 @@ import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import styled from "styled-components";
 import { DataTable } from "./data-table";
-import { MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../../../components/ui/button";
 import {
@@ -63,8 +63,6 @@ async function fetchTransactions() {
 }
 
 export default function Transactions() {
-  const navigate = useNavigate();
-
   const { data: walletData, isLoading: walletLoading } = useQuery({
     queryKey: ["wallets"],
     queryFn: fetchWallets,
@@ -87,121 +85,54 @@ export default function Transactions() {
   }
 
   return (
-    <div className="font-poppins min-h-screen w-full md:px-4">
+    <div className="font-poppins min-h-screen w-screen p-4 md:w-full md:p-6">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Your Transaction</h1>
-        {Wallets.length > 0 && (
-          <div className="flex flex-wrap items-center gap-5">
-            <FundTransfer
-              onclick={() => navigate("/transactions/add/fund_transfer")}
-            />
-            <ExpenseButton
-              onclick={() => navigate("/transactions/add/expense")}
-            />
-            <IncomeButton
-              onclick={() => navigate("/transactions/add/income")}
-            />
-          </div>
-        )}
       </div>
 
-      <div className="mt-6 rounded-2xl p-4">
+      <div className="mt-6 rounded-2xl">
         <DataTable columns={columns} data={Transactions} />
       </div>
     </div>
   );
 }
 
-const ExpenseButton = ({ onclick }: { onclick: () => void }) => {
-  return (
-    <StyledWrapper onClick={onclick}>
-      <button className="Btn w-32 bg-[radial-gradient(100%_100%_at_100%_0%,_#FF7F7F_0%,_#D50000_100%)]">
-        Expense
-        <GiPayMoney className="icon" />
-      </button>
-    </StyledWrapper>
-  );
-};
-
-const IncomeButton = ({ onclick }: { onclick: () => void }) => {
-  return (
-    <StyledWrapper onClick={onclick}>
-      <button className="Btn w-32 bg-[radial-gradient(100%_100%_at_100%_0%,_#A8FF78_0%,_#00A86B_100%)]">
-        Income
-        <GiReceiveMoney className="icon" />
-      </button>
-    </StyledWrapper>
-  );
-};
-
-const FundTransfer = ({ onclick }: { onclick: () => void }) => {
-  return (
-    <StyledWrapper onClick={onclick}>
-      <button className="Btn w-44 bg-[radial-gradient(100%_100%_at_100%_0%,_#FFE177_0%,_#FFA500_100%)]">
-        Fund Transfer
-        <FaMoneyBillTransfer className="icon" />
-      </button>
-    </StyledWrapper>
-  );
-};
-
-const StyledWrapper = styled.div`
-  .Btn {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    height: 40px;
-    border: none;
-    padding: 0px 20px;
-    color: black;
-    font-weight: 500;
-    cursor: pointer;
-    border-radius: 10px;
-    box-shadow: 5px 5px 0px #000;
-    transition-duration: 0.3s;
-  }
-
-  .icon {
-    width: 13px;
-    position: absolute;
-    right: 0;
-    margin-right: 20px;
-    fill: black;
-    transition-duration: 0.3s;
-  }
-
-  .Btn:hover {
-    color: transparent;
-  }
-
-  .Btn:hover .icon {
-    right: 43%;
-    margin: 0;
-    padding: 0;
-    border: none;
-    transition-duration: 0.3s;
-  }
-
-  .Btn:active {
-    transform: translate(3px, 3px);
-    transition-duration: 0.3s;
-    box-shadow: 2px 2px 0px rgb(0, 0, 0);
-  }
-`;
-
 const columns: ColumnDef<TransactionType>[] = [
   {
     accessorKey: "description",
-    header: "Description",
+    header: ({ column }) => (
+      <button
+        className="flex items-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Description
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
   },
   {
     accessorKey: "wallet_type",
-    header: "Wallet Type",
+    header: ({ column }) => (
+      <button
+        className="flex items-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Wallet Type
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
   },
   {
     accessorKey: "transaction_date",
-    header: () => <div className="text-center">Date</div>,
+    header: ({ column }) => (
+      <button
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="mx-auto flex items-center justify-center text-center"
+      >
+        Date
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
     cell: ({ row }: { row: any }) => {
       const date: string = row.getValue("transaction_date");
       const formattedDate = formatRawDate(date);
@@ -218,7 +149,15 @@ const columns: ColumnDef<TransactionType>[] = [
   },
   {
     accessorKey: "category_type",
-    header: () => <div className="text-center">Type</div>,
+    header: ({ column }) => (
+      <button
+        className="mx-auto flex items-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Category
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
     cell: ({ row }: { row: any }) => {
       const type: string = row.getValue("category_type");
       return (
@@ -241,11 +180,27 @@ const columns: ColumnDef<TransactionType>[] = [
   },
   {
     accessorKey: "category_name",
-    header: "Category",
+    header: ({ column }) => (
+      <button
+        className="flex items-center"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Category
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
   },
   {
     accessorKey: "amount",
-    header: () => <div className="text-right">Amount</div>,
+    header: ({ column }) => (
+      <button
+        className="flex w-full items-center justify-end"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Amount
+        <ArrowUpDown className="ml-2 h-4 w-4 cursor-pointer" />
+      </button>
+    ),
     cell: ({ row }: { row: any }) => {
       const amount = parseFloat(row.getValue("amount"));
       const formatted = new Intl.NumberFormat("id-ID", {
