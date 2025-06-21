@@ -1,8 +1,6 @@
-import { WalletType } from "@/types/UserWallet";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useState } from "react";
-import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
 import { DataTable } from "./data-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
