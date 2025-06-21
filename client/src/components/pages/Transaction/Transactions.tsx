@@ -2,10 +2,7 @@ import { WalletType } from "@/types/UserWallet";
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { useState } from "react";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
 import { GiPayMoney, GiReceiveMoney } from "react-icons/gi";
-import { useNavigate } from "react-router";
-import styled from "styled-components";
 import { DataTable } from "./data-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -22,26 +19,6 @@ import { formatRawDate, generateColorByType } from "@/helper/Helper";
 import { PiArrowsLeftRightLight } from "react-icons/pi";
 import { getBackendURL } from "@/lib/readenv";
 import { TransactionType } from "@/types/UserTransaction";
-
-async function fetchWallets() {
-  const backendURL = getBackendURL();
-
-  const token = Cookies.get("token");
-
-  const res = await fetch(`${backendURL}/users/wallets`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch wallets");
-  }
-
-  return res.json();
-}
 
 async function fetchTransactions() {
   const backendURL = getBackendURL();
@@ -63,20 +40,14 @@ async function fetchTransactions() {
 }
 
 export default function Transactions() {
-  const { data: walletData, isLoading: walletLoading } = useQuery({
-    queryKey: ["wallets"],
-    queryFn: fetchWallets,
-  });
   const { data: transactionsData, isLoading: transactionsLoading } = useQuery({
     queryKey: ["transactions"],
     queryFn: fetchTransactions,
   });
 
-  const Wallets: WalletType[] = walletData?.data ?? [];
-
   const Transactions: TransactionType[] = transactionsData?.data ?? [];
 
-  if (walletLoading || transactionsLoading) {
+  if (transactionsLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <div className="loader"></div>
