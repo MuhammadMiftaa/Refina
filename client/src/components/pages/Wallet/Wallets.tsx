@@ -169,7 +169,7 @@ export default function Wallets() {
   if (walletLoading || transactionLoading) return <Skeleton />;
 
   return (
-    <div className="font-poppins min-h-screen w-full md:px-4">
+    <div className="font-poppins min-h-screen w-full p-4 md:p-6">
       <div className="flex items-start justify-between gap-4 md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Your Wallet</h1>
         <button

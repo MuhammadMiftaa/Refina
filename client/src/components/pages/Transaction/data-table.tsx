@@ -49,7 +49,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
-
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -118,10 +117,10 @@ export function DataTable<TData, TValue>({
               <DialogContent className="w-120 border-none bg-[rgba(255,255,255,0.5)] backdrop-blur-sm">
                 <div className="flex gap-1 p-0 md:p-2">
                   <div>
-                    <span className="box center inline-block h-3 w-3 rounded-full bg-rose-500"></span>
+                    <span className="center inline-block h-3 w-3 rounded-full bg-blue-500"></span>
                   </div>
                   <div>
-                    <span className="center inline-block h-3 w-3 rounded-full bg-blue-500"></span>
+                    <span className="box center inline-block h-3 w-3 rounded-full bg-rose-500"></span>
                   </div>
                   <div>
                     <span className="center inline-block h-3 w-3 rounded-full bg-indigo-500"></span>
@@ -132,15 +131,15 @@ export function DataTable<TData, TValue>({
                 </DialogHeader>
                 <div className="group/cards flex flex-col gap-[15px] md:flex-row">
                   <Link
-                    to="/transactions/add/expense"
-                    className="flex h-[100px] w-full transform cursor-pointer flex-col items-center justify-center rounded-[10px] bg-rose-500 text-center text-white transition duration-400 group-hover/cards:scale-90 group-hover/cards:blur-sm hover:scale-110 hover:blur-none"
+                    to="/transactions/add/income"
+                    className="flex h-[100px] w-full transform cursor-pointer flex-col items-center justify-center rounded-[10px] bg-blue-500 text-center text-white transition duration-400 group-hover/cards:scale-90 group-hover/cards:blur-sm hover:scale-110 hover:blur-none"
                   >
                     <p className="text-base font-bold">Income</p>
                     <p className="text-[0.7em] italic">Pemasukan</p>
                   </Link>
                   <Link
-                    to="/transactions/add/income"
-                    className="flex h-[100px] w-full transform cursor-pointer flex-col items-center justify-center rounded-[10px] bg-blue-500 text-center text-white transition duration-400 group-hover/cards:scale-90 group-hover/cards:blur-sm hover:scale-110 hover:blur-none"
+                    to="/transactions/add/expense"
+                    className="flex h-[100px] w-full transform cursor-pointer flex-col items-center justify-center rounded-[10px] bg-rose-500 text-center text-white transition duration-400 group-hover/cards:scale-90 group-hover/cards:blur-sm hover:scale-110 hover:blur-none"
                   >
                     <p className="text-base font-bold">Expense</p>
                     <p className="text-[0.7em] italic">Pengeluaran</p>
@@ -245,7 +244,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between md:justify-end gap-6 space-x-2 py-4">
+      <div className="flex items-center justify-between gap-6 space-x-2 py-4 md:justify-end">
         <button
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
