@@ -89,6 +89,11 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 
 	types := c.Param("type")
 
+	var (
+		transactionCreated any
+		err                error
+	)
+
 	if types != "fund_transfer" {
 		var transaction dto.TransactionsRequest
 		if err := c.ShouldBindJSON(&transaction); err != nil {
@@ -99,21 +104,7 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 			})
 			return
 		}
-		transactionCreated, err := transactionHandler.transactionServ.CreateTransaction(ctx, transaction)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":     false,
-				"statusCode": 400,
-				"message":    err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":     true,
-			"statusCode": 200,
-			"message":    "Create transaction data",
-			"data":       transactionCreated,
-		})
+		transactionCreated, err = transactionHandler.transactionServ.CreateTransaction(ctx, transaction)
 	} else {
 		var transaction dto.FundTransferRequest
 		if err := c.ShouldBindJSON(&transaction); err != nil {
@@ -124,22 +115,23 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 			})
 			return
 		}
-		transactionCreated, err := transactionHandler.transactionServ.FundTransfer(ctx, transaction)
-		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"status":     false,
-				"statusCode": 400,
-				"message":    err.Error(),
-			})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{
-			"status":     true,
-			"statusCode": 200,
-			"message":    "Create transaction data",
-			"data":       transactionCreated,
-		})
+		transactionCreated, err = transactionHandler.transactionServ.FundTransfer(ctx, transaction)
 	}
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Create transaction data",
+		"data":       transactionCreated,
+	})
 }
 
 func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {

@@ -104,7 +104,9 @@ const columns: ColumnDef<TransactionType>[] = [
     ),
     cell: ({ row }: { row: any }) => {
       const date: string = row.getValue("transaction_date");
+      console.log("Transaction Date:", date);
       const formattedDate = formatRawDate(date);
+      console.log("Formatted Date:", formattedDate);
 
       return (
         <div className="flex flex-col items-center">

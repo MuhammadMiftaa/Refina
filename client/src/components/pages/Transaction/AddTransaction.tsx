@@ -7,13 +7,17 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { CategoryType } from "@/types/Category";
 import { WalletType } from "@/types/UserWallet";
 import { FormEvent, useEffect, useState } from "react";
-import { formatCurrency } from "@/helper/Helper";
+import { formatCurrency, toLocalISOString } from "@/helper/Helper";
 import styled from "styled-components";
 import { NumericFormat } from "react-number-format";
 import { CancelButton } from "@/components/ui/cancel-button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { FileUpload } from "@/components/ui/file-upload";
 import { getBackendURL } from "@/lib/readenv";
+import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
 
 async function fetchCategories(type: string) {
   const backendURL = getBackendURL();
@@ -83,7 +87,7 @@ export default function AddTransaction() {
     amount: 0,
     wallet_id: "",
     category_id: "",
-    date: new Date(),
+    date: toLocalISOString(new Date()),
     description: "",
     // FUND TRANSFER
     from_wallet_id: "",
@@ -210,62 +214,122 @@ export default function AddTransaction() {
       >
         {type !== "fund_transfer" ? (
           <>
-            <div className="flex w-full flex-col">
-              <label className="mb-2" htmlFor="type">
-                Type
-              </label>
-              <Autocomplete
-                className="rounded-lg border-gray-200 shadow-md"
-                options={categories.sort(
-                  (a, b) => -b.group_name.localeCompare(a.group_name),
-                )}
-                groupBy={(option) => option.group_name}
-                getOptionLabel={(option) => option.name}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
-                    fontFamily: "Poppins, sans-serif",
-                    "&:hover .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#4f46e5", // Warna hover indigo-600
-                    },
-                    "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                      borderColor: "#4f46e5", // Warna focus indigo-600
-                      borderWidth: "2px",
-                      "&::before": {
-                        display: "none",
+            <div className="flex w-full flex-col items-center gap-4 md:flex-row">
+              <div className="flex w-full flex-col">
+                <label className="mb-2" htmlFor="type">
+                  Type
+                </label>
+                <Autocomplete
+                  className="rounded-lg border-gray-200 shadow-md"
+                  options={categories.sort(
+                    (a, b) => -b.group_name.localeCompare(a.group_name),
+                  )}
+                  groupBy={(option) => option.group_name}
+                  getOptionLabel={(option) => option.name}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
+                      fontFamily: "Poppins, sans-serif",
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#4f46e5", // Warna hover indigo-600
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#4f46e5", // Warna focus indigo-600
+                        borderWidth: "2px",
+                        "&::before": {
+                          display: "none",
+                        },
                       },
                     },
-                  },
-                  "& .MuiInputLabel-root": {
-                    fontFamily: "Poppins, sans-serif",
-                    color: "#6b7280", // Warna label gray-500
-                    "&.Mui-focused": {
-                      color: "#4f46e5", // Warna label saat focus
+                    "& .MuiInputLabel-root": {
+                      fontFamily: "Poppins, sans-serif",
+                      color: "#6b7280", // Warna label gray-500
+                      "&.Mui-focused": {
+                        color: "#4f46e5", // Warna label saat focus
+                      },
                     },
-                  },
-                }}
-                onChange={(_, newValue) => {
-                  setUserInput((prev) => ({
-                    ...prev,
-                    category_id: newValue?.id || "",
-                  }));
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    className="font-poppins"
-                    {...params}
-                    label="Transaction type"
+                  }}
+                  onChange={(_, newValue) => {
+                    setUserInput((prev) => ({
+                      ...prev,
+                      category_id: newValue?.id || "",
+                    }));
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      className="font-poppins"
+                      {...params}
+                      label="Transaction type"
+                    />
+                  )}
+                  renderGroup={(params) => (
+                    <li key={params.key}>
+                      <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
+                        {params.group}
+                      </h1>
+                      <h2 className="font-poppins">{params.children}</h2>
+                    </li>
+                  )}
+                />
+              </div>
+
+              <div className="flex w-full flex-col">
+                <label className="mb-2" htmlFor="date">
+                  Date
+                </label>
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                  <MobileDatePicker
+                    defaultValue={dayjs()}
+                    onChange={(value) => {
+                      const date = value?.toDate() || new Date();
+                      setUserInput((prev) => ({
+                        ...prev,
+                        date: toLocalISOString(date),
+                      }));
+                    }}
+                    slotProps={{
+                      textField: {
+                        className: "font-poppins shadow-md bg-transparent",
+                        sx: {
+                          "& .MuiFormControl-root": {
+                            backgroundColor: "transparent",
+                          },
+                          "& .MuiPickersTextField-root": {
+                            backgroundColor: "transparent",
+                          },
+                          "& .MuiPickersInputBase-root": {
+                            borderRadius: "8px !important", // <== penting
+                          },
+                          "& .MuiOutlinedInput-root": {
+                            borderRadius: "8px !important", // <== penting
+                            fontFamily: "Poppins, sans-serif",
+                          },
+                          "& .MuiOutlinedInput-notchedOutline": {
+                            borderRadius: "8px !important", // <== ini bagian yang menampilkan border-nya
+                            borderColor: "#d1d5db", // gray-300 default
+                          },
+                          "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                            {
+                              borderColor: "#4f46e5", // hover indigo-600
+                            },
+                          "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                            {
+                              borderColor: "#4f46e5", // focus indigo-600
+                              borderWidth: "2px",
+                            },
+                          "& .MuiInputLabel-root": {
+                            fontFamily: "Poppins, sans-serif",
+                            color: "#6b7280",
+                            "&.Mui-focused": {
+                              color: "#4f46e5",
+                            },
+                          },
+                        },
+                      },
+                    }}
                   />
-                )}
-                renderGroup={(params) => (
-                  <li key={params.key}>
-                    <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
-                      {params.group}
-                    </h1>
-                    <h2 className="font-poppins">{params.children}</h2>
-                  </li>
-                )}
-              />
+                </LocalizationProvider>
+              </div>
             </div>
 
             <div className="flex w-full flex-col">
@@ -741,6 +805,64 @@ export default function AddTransaction() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            <div className="flex w-full flex-col">
+              <label className="mb-2" htmlFor="date">
+                Date
+              </label>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <MobileDatePicker
+                  defaultValue={dayjs()}
+                  onChange={(value) => {
+                    const date = value?.toDate() || new Date();
+                    setUserInput((prev) => ({
+                      ...prev,
+                      date: toLocalISOString(date),
+                    }));
+                  }}
+                  slotProps={{
+                    textField: {
+                      className: "font-poppins shadow-md bg-transparent",
+                      sx: {
+                        "& .MuiFormControl-root": {
+                          backgroundColor: "transparent",
+                        },
+                        "& .MuiPickersTextField-root": {
+                          backgroundColor: "transparent",
+                        },
+                        "& .MuiPickersInputBase-root": {
+                          borderRadius: "8px !important", // <== penting
+                        },
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "8px !important", // <== penting
+                          fontFamily: "Poppins, sans-serif",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          borderRadius: "8px !important", // <== ini bagian yang menampilkan border-nya
+                          borderColor: "#d1d5db", // gray-300 default
+                        },
+                        "& .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline":
+                          {
+                            borderColor: "#4f46e5", // hover indigo-600
+                          },
+                        "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                          {
+                            borderColor: "#4f46e5", // focus indigo-600
+                            borderWidth: "2px",
+                          },
+                        "& .MuiInputLabel-root": {
+                          fontFamily: "Poppins, sans-serif",
+                          color: "#6b7280",
+                          "&.Mui-focused": {
+                            color: "#4f46e5",
+                          },
+                        },
+                      },
+                    },
+                  }}
+                />
+              </LocalizationProvider>
             </div>
 
             <div className="flex w-full flex-col">
