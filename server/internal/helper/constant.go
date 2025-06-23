@@ -1,5 +1,14 @@
 package helper
 
+var (
+	ATTACHMENT_MAX_SIZE    = 1 * 1024 * 1024 // 1 MB
+	ATTACHMENT_EXT_ALLOWED = map[string]bool{
+		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
+		".pdf": true,
+	}
+	ATTACHMENT_FILEPATH = "~/.var/app/miftech.refina/storage/uploads/transactions-attachments"
+)
+
 type GitHubPlan struct {
 	Collaborators int    `json:"collaborators"`
 	Name          string `json:"name"`
@@ -52,6 +61,6 @@ type GitHubUser struct {
 }
 
 type OTP struct {
-	Email    string `json:"email"`
-	OTP      string `json:"otp"`
+	Email string `json:"email"`
+	OTP   string `json:"otp"`
 }

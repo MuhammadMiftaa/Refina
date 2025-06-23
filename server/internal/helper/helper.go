@@ -6,7 +6,9 @@ import (
 	"math/rand"
 	"net/smtp"
 	"os"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 	"unicode"
 
@@ -67,7 +69,7 @@ func ConvertToResponseType(data interface{}) interface{} {
 	case entity.TransactionsData:
 		return dto.TransactionsResponse{
 			ID:           v.TransactionID,
-			UserName:   v.UserName,
+			UserName:     v.UserName,
 			WalletName:   v.WalletName,
 			WalletType:   v.WalletType,
 			CategoryName: v.CategoryName,
@@ -260,4 +262,30 @@ func ParseUUID(id string) (uuid.UUID, error) {
 		return uuid.UUID{}, err
 	}
 	return parsedID, nil
+}
+
+func ExpandPathAndCreateDir(path string) (string, error) {
+	// Ekspansi ~
+	if strings.HasPrefix(path, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		// Gabungkan home + sisanya
+		path = filepath.Join(home, strings.TrimPrefix(path, "~"))
+	}
+
+	// Konversi ke path absolut
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	// Buat direktori jika belum ada
+	err = os.MkdirAll(absPath, 0o755) // 0755 = rwxr-xr-x
+	if err != nil {
+		return "", err
+	}
+
+	return absPath, nil
 }

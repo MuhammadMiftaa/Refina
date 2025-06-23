@@ -266,21 +266,16 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 }
 
 func (transaction_serv *transactionsService) UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error) {
-	if handler.Size > (10 << 20) {
+	if handler.Size > int64(helper.ATTACHMENT_MAX_SIZE) {
 		return dto.AttachmentsResponse{}, errors.New("file size exceeds 10MB")
 	}
 
-	allowedExtensions := map[string]bool{
-		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
-		".pdf": true,
-	}
 	ext := strings.ToLower(filepath.Ext(handler.Filename))
-	if !allowedExtensions[ext] {
+	if !helper.ATTACHMENT_EXT_ALLOWED[ext] {
 		return dto.AttachmentsResponse{}, errors.New("invalid file type")
 	}
 
-	path := "../refina/src/assets/attachments"
-	absolutePath, _ := filepath.Abs(path)
+	absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
 
 	if err := helper.StorageIsExist(absolutePath); err != nil {
 		return dto.AttachmentsResponse{}, errors.New("storage not found")
@@ -289,7 +284,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 	file.Seek(0, 0)
 
 	// Create file name with timestamp
-	fileName := time.Now().Format("-20060102150405") + uuid.New().String() + filepath.Ext(handler.Filename)
+	fileName := time.Now().Format("-20060102150405") + "__" + transactionID + filepath.Ext(handler.Filename)
 	filePath := filepath.Join(absolutePath, fileName)
 	dst, err := os.Create(filePath)
 	if err != nil {
@@ -381,7 +376,7 @@ func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Conte
 			tx.Rollback()
 		}
 	}()
-	
+
 	// Check if transaction exist
 	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, tx, id)
 	if err != nil {
