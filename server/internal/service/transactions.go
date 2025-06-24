@@ -118,11 +118,12 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 	}
 
 	// Check if transaction type is valid and update wallet balance
-	if category.Type == "expense" {
+	switch category.Type {
+	case "expense":
 		wallet.Balance -= transaction.Amount
-	} else if category.Type == "income" {
+	case "income":
 		wallet.Balance += transaction.Amount
-	} else {
+	default:
 		return dto.TransactionsResponse{}, errors.New("invalid transaction type")
 	}
 

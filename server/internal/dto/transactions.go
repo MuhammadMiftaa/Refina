@@ -6,15 +6,17 @@ type TransactionsResponse struct {
 	ID string `json:"id"`
 
 	UserName     string `json:"user_name"`
+	WalletID     string `json:"wallet_id"`
 	WalletName   string `json:"wallet_name"`
 	WalletType   string `json:"wallet_type"`
+	CategoryID   string `json:"category_id"`
 	CategoryName string `json:"category_name"`
 	CategoryType string `json:"category_type"`
 
-	Amount      float64   `json:"amount"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
-	Image       string    `json:"image"`
+	Amount          float64   `json:"amount"`
+	TransactionDate time.Time `json:"transaction_date"`
+	Description     string    `json:"description"`
+	Image           string    `json:"image"`
 }
 
 type TransactionsRequest struct {
