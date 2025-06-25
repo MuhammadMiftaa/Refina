@@ -285,7 +285,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 	file.Seek(0, 0)
 
 	// Create file name with timestamp
-	fileName := time.Now().Format("-20060102150405") + "__" + transactionID + filepath.Ext(handler.Filename)
+	fileName := time.Now().Format("20060102150405") + "-" + transactionID + filepath.Ext(handler.Filename)
 	filePath := filepath.Join(absolutePath, fileName)
 	dst, err := os.Create(filePath)
 	if err != nil {
@@ -305,7 +305,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 	}
 
 	attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
-		Image:         filePath,
+		Image:         fileName,
 		TransactionID: TransactionUUID,
 	})
 	if err != nil {
