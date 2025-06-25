@@ -6,7 +6,7 @@ var (
 		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
 		".pdf": true,
 	}
-	ATTACHMENT_FILEPATH = "/app/storage/uploads"
+	ATTACHMENT_FILEPATH = "/app/storage/uploads/transaction-attachments"
 )
 
 type GitHubPlan struct {

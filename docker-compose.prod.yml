@@ -36,7 +36,7 @@ services:
       ref-production-redis:
         condition: service_started
     volumes:
-      - ~/.var/app/miftech.refina/storage/uploads:/app/storage/uploads
+      - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
     networks:
       - refina_network
     restart: always
@@ -64,7 +64,6 @@ services:
     volumes:
       - production_postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./dump.sql:/docker-entrypoint-initdb.d/dump.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
