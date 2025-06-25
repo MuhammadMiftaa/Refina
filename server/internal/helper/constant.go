@@ -6,7 +6,7 @@ var (
 		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
 		".pdf": true,
 	}
-	ATTACHMENT_FILEPATH = "~/.var/app/miftech.refina/storage/uploads/transactions-attachments"
+	ATTACHMENT_FILEPATH = "/app/storage/uploads"
 )
 
 type GitHubPlan struct {

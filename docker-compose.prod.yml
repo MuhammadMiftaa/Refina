@@ -35,6 +35,8 @@ services:
         condition: service_healthy
       ref-production-redis:
         condition: service_started
+    volumes:
+      - ~/.var/app/miftech.refina/storage/uploads:/app/storage/uploads
     networks:
       - refina_network
     restart: always

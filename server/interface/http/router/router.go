@@ -3,6 +3,7 @@ package router
 import (
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
+	"server/internal/helper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
@@ -27,6 +28,8 @@ func SetupRouter(db *gorm.DB, redis *redis.Client) *gin.Engine {
 	routes.InvestmentRoute(v1, db)
 	routes.WalletTypesRoutes(v1, db)
 	routes.CategoryRoutes(v1, db)
+
+	router.Static("/uploads/transactions-attachments", helper.ATTACHMENT_FILEPATH)
 
 	return router
 }
