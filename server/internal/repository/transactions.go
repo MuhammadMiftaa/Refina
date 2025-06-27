@@ -11,9 +11,9 @@ import (
 )
 
 type TransactionsRepository interface {
-	GetAllTransactions(ctx context.Context, tx Transaction) ([]entity.TransactionsData, error)
+	GetAllTransactions(ctx context.Context, tx Transaction) ([]view.ViewUserTransactions, error)
 	GetTransactionByID(ctx context.Context, tx Transaction, id string) (entity.Transactions, error)
-	GetTransactionByIDJoin(ctx context.Context, tx Transaction, id string) (entity.TransactionsData, error)
+	GetTransactionByIDJoin(ctx context.Context, tx Transaction, id string) (view.ViewUserTransactions, error)
 	GetTransactionsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserTransactions, error)
 	CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 	UpdateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
@@ -39,25 +39,17 @@ func (transaction_repo *transactionsRepository) getDB(ctx context.Context, tx Tr
 	return transaction_repo.db.WithContext(ctx), nil
 }
 
-func (transaction_repo *transactionsRepository) GetAllTransactions(ctx context.Context, tx Transaction) ([]entity.TransactionsData, error) {
+func (transaction_repo *transactionsRepository) GetAllTransactions(ctx context.Context, tx Transaction) ([]view.ViewUserTransactions, error) {
 	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var transactions []entity.TransactionsData
-	err = db.Table("transactions").Select("transactions.id AS transaction_id, users.name AS user_name, wallets.name AS wallet_name, wallet_types.name AS wallet_type, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
-		Joins("LEFT JOIN wallets ON transactions.wallet_id = wallets.id AND wallets.deleted_at IS NULL").
-		Joins("LEFT JOIN users ON wallets.user_id = users.id AND users.deleted_at IS NULL").
-		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
-		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
-		Where("transactions.deleted_at IS NULL").
-		Find(&transactions).Error
+	var transactions []view.ViewUserTransactions
+	err = db.Table("view_user_transactions").Order("transaction_date DESC").Find(&transactions).Error
 	if err != nil {
-		return nil, errors.New("transaction not found")
+		return nil, errors.New("user transactions not found")
 	}
-
 	return transactions, nil
 }
 
@@ -76,24 +68,16 @@ func (trasaction_repo *transactionsRepository) GetTransactionByID(ctx context.Co
 	return transaction, nil
 }
 
-func (transaction_repo *transactionsRepository) GetTransactionByIDJoin(ctx context.Context, tx Transaction, id string) (entity.TransactionsData, error) {
+func (transaction_repo *transactionsRepository) GetTransactionByIDJoin(ctx context.Context, tx Transaction, id string) (view.ViewUserTransactions, error) {
 	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
-		return entity.TransactionsData{}, err
+		return view.ViewUserTransactions{}, err
 	}
 
-	var transaction entity.TransactionsData
-	err = db.Table("transactions").Select("transactions.id AS transaction_id, users.name AS user_name, wallets.name AS wallet_name, wallet_types.name AS wallet_type, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
-		Joins("LEFT JOIN wallets ON transactions.wallet_id = wallets.id AND wallets.deleted_at IS NULL").
-		Joins("LEFT JOIN users ON wallets.user_id = users.id AND users.deleted_at IS NULL").
-		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
-		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
-		Where("transactions.id = ?", id).
-		Where("transactions.deleted_at IS NULL").
-		Find(&transaction).Error
+	var transaction view.ViewUserTransactions
+	err = db.Table("view_user_transactions").Where("id = ?", id).First(&transaction).Error
 	if err != nil {
-		return entity.TransactionsData{}, errors.New("transaction not found")
+		return view.ViewUserTransactions{}, errors.New("transaction not found")
 	}
 
 	return transaction, nil

@@ -17,16 +17,3 @@ type Transactions struct {
 	Wallet   Wallets    `gorm:"foreignKey:WalletID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	Category Categories `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
-
-type TransactionsData struct {
-	TransactionID   string
-	UserName        string
-	WalletName      string
-	WalletType      string
-	CategoryName    string
-	CategoryType    string
-	Amount          float64
-	TransactionDate time.Time
-	Description     string
-	Image           string
-}

@@ -21,7 +21,7 @@ import (
 
 type TransactionsService interface {
 	GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error)
-	GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error)
+	GetTransactionByID(ctx context.Context, id string) (view.ViewUserTransactions, error)
 	GetTransactionsByUserID(ctx context.Context, token string) ([]view.ViewUserTransactions, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error)
@@ -63,15 +63,24 @@ func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Cont
 	return transactionsResponse, nil
 }
 
-func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (dto.TransactionsResponse, error) {
+func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (view.ViewUserTransactions, error) {
 	transaction, err := transaction_serv.transactionRepo.GetTransactionByIDJoin(ctx, nil, id)
 	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("transaction not found")
+		return view.ViewUserTransactions{}, errors.New("transaction not found")
 	}
 
-	transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
+	attachments, err := transaction_serv.attachmentRepo.GetAttachmentsByTransactionID(ctx, nil, transaction.ID)
+	if err != nil {
+		return view.ViewUserTransactions{}, errors.New("failed to get attachments")
+	}
 
-	return transactionResponse, nil
+	for _, attachment := range attachments {
+		if attachment.Image != "" {
+			transaction.Attachments = append(transaction.Attachments, attachment.Image)
+		}
+	}
+
+	return transaction, nil
 }
 
 func (transaction_serv *transactionsService) GetTransactionsByUserID(ctx context.Context, token string) ([]view.ViewUserTransactions, error) {
