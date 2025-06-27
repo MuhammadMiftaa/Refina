@@ -3,7 +3,8 @@ package repository
 import (
 	"context"
 	"errors"
-	"server/internal/entity"
+
+	"server/internal/types/entity"
 
 	"gorm.io/gorm"
 )

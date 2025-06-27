@@ -12,8 +12,8 @@ import (
 	"time"
 	"unicode"
 
-	"server/internal/dto"
-	"server/internal/entity"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"

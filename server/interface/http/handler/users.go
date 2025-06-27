@@ -10,9 +10,9 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"server/internal/dto"
-	"server/internal/helper"
+	"server/helper"
 	"server/internal/service"
+	"server/internal/types/dto"
 
 	"github.com/gin-gonic/gin"
 )
@@ -500,68 +500,5 @@ func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
 		"statusCode": 200,
 		"message":    "OTP verified successfully",
 		"data":       user,
-	})
-}
-
-func (user_handler *usersHandler) GetUserWallets(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-
-	userWallets, err := user_handler.usersService.GetUserWallets(token)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"statusCode": 400,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"statusCode": 200,
-		"status":     true,
-		"message":    "Get user wallets data",
-		"data":       userWallets,
-	})
-}
-
-func (user_handler *usersHandler) GetUserInvestments(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-
-	userInvestments, err := user_handler.usersService.GetUserInvestments(token)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"statusCode": 400,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"statusCode": 200,
-		"status":     true,
-		"message":    "Get user investments data",
-		"data":       userInvestments,
-	})
-}
-
-func (user_handler *usersHandler) GetUserTransactions(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-
-	userTransactions, err := user_handler.usersService.GetUserTransactions(token)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"statusCode": 400,
-			"status":     false,
-			"message":    err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"statusCode": 200,
-		"status":     true,
-		"message":    "Get user transactions data",
-		"data":       userTransactions,
 	})
 }

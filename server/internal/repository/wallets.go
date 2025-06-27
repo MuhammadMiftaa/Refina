@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ import (
 type WalletsRepository interface {
 	GetAllWallets(ctx context.Context, tx Transaction) ([]entity.Wallets, error)
 	GetWalletByID(ctx context.Context, tx Transaction, id string) (entity.Wallets, error)
-	GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Wallets, error)
+	GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserWallets, error)
 	CreateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error)
 	UpdateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error)
 	DeleteWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error)
@@ -65,17 +66,23 @@ func (wallet_repo *walletsRepository) GetWalletByID(ctx context.Context, tx Tran
 	return wallet, nil
 }
 
-func (wallet_repo *walletsRepository) GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Wallets, error) {
+func (wallet_repo *walletsRepository) GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserWallets, error) {
 	db, err := wallet_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var wallets []entity.Wallets
-	if err := db.Where("user_id = ?", id).Find(&wallets).Error; err != nil {
-		return nil, err
+	var userWallets []view.ViewUserWallets
+	err = db.Table("view_user_wallets").Where("user_id = ?", id).Find(&userWallets).Error
+	if err != nil {
+		return nil, errors.New("user wallets not found")
 	}
-	return wallets, nil
+
+	if len(userWallets) == 0 {
+		return nil, nil
+	}
+
+	return userWallets, nil
 }
 
 func (wallet_repo *walletsRepository) CreateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error) {

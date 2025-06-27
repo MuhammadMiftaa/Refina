@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"server/internal/helper"
+	"server/helper"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,7 +38,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		
+
 		token := tokenParts[1]
 		userData, err := helper.VerifyToken(token)
 		if err != nil {

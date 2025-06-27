@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
 
 	"gorm.io/gorm"
 )
@@ -111,10 +111,10 @@ func (attachments_repo *attachmentsRepository) DeleteAttachment(ctx context.Cont
 	if err != nil {
 		return entity.Attachments{}, err
 	}
-	
+
 	if err := db.Delete(&attachment).Error; err != nil {
 		return entity.Attachments{}, err
 	}
-	
+
 	return attachment, nil
 }

@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ import (
 type InvestmentsRepository interface {
 	GetAllInvestments(ctx context.Context, tx Transaction) ([]entity.Investments, error)
 	GetInvestmentByID(ctx context.Context, tx Transaction, id string) (entity.Investments, error)
-	GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Investments, error)
+	GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserInvestments, error)
 	CreateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
 	UpdateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
 	DeleteInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error)
@@ -66,18 +67,19 @@ func (investment_repo *investmentsRepository) GetInvestmentByID(ctx context.Cont
 	return investment, nil
 }
 
-func (investment_repo *investmentsRepository) GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Investments, error) {
+func (investment_repo *investmentsRepository) GetInvestmentsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserInvestments, error) {
 	db, err := investment_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var investments []entity.Investments
-	if err := db.Find(&investments, "user_id = ?", id).Error; err != nil {
-		return nil, err
+	var userInvestments []view.ViewUserInvestments
+	err = db.Table("view_user_investments").Where("user_id = ?", id).Find(&userInvestments).Error
+	if err != nil {
+		return nil, errors.New("user investments not found")
 	}
 
-	return investments, nil
+	return userInvestments, nil
 }
 
 func (investment_repo *investmentsRepository) CreateInvestment(ctx context.Context, tx Transaction, investment entity.Investments) (entity.Investments, error) {

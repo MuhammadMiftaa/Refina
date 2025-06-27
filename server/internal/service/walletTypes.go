@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	"server/internal/dto"
-	"server/internal/entity"
-	"server/internal/helper"
+	"server/helper"
 	"server/internal/repository"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
 )
 
 type WalletTypesService interface {
@@ -18,13 +18,13 @@ type WalletTypesService interface {
 }
 
 type walletTypesService struct {
-	txManage repository.TxManager
+	txManage        repository.TxManager
 	walletTypesRepo repository.WalletTypesRepository
 }
 
 func NewWalletTypesService(txManager repository.TxManager, walletTypesRepo repository.WalletTypesRepository) WalletTypesService {
 	return &walletTypesService{
-		txManage: txManager,
+		txManage:        txManager,
 		walletTypesRepo: walletTypesRepo,
 	}
 }

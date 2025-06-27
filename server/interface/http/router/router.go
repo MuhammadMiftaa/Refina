@@ -1,9 +1,9 @@
 package router
 
 import (
+	"server/helper"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
-	"server/internal/helper"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"

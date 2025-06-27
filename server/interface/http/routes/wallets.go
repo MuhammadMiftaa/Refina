@@ -16,11 +16,13 @@ func WalletRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	Wallet_serv := service.NewWalletService(txManager, Wallet_repo)
 	Wallet_handler := handler.NewWalletHandler(Wallet_serv)
 
-	version.Use(middleware.AuthMiddleware())
-	version.GET("wallets", Wallet_handler.GetAllWallets)
-	version.GET("wallets/:id", Wallet_handler.GetWalletByID)
-	version.GET("wallets/user/:id", Wallet_handler.GetWalletsByUserID)
-	version.POST("wallets", Wallet_handler.CreateWallet)
-	version.PUT("wallets/:id", Wallet_handler.UpdateWallet)
-	version.DELETE("wallets/:id", Wallet_handler.DeleteWallet)
+	wallets := version.Group("/wallets")
+	wallets.Use(middleware.AuthMiddleware())
+
+	wallets.GET("", Wallet_handler.GetAllWallets)
+	wallets.GET(":id", Wallet_handler.GetWalletByID)
+	wallets.GET("user", Wallet_handler.GetWalletsByUserID)
+	wallets.POST("", Wallet_handler.CreateWallet)
+	wallets.PUT(":id", Wallet_handler.UpdateWallet)
+	wallets.DELETE(":id", Wallet_handler.DeleteWallet)
 }

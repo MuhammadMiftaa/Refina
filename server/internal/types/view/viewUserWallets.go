@@ -1,4 +1,4 @@
-package dto
+package view
 
 type ViewUserWallets struct {
 	ID             string  `json:"id"`

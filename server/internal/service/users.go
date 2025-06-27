@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"server/internal/dto"
-	"server/internal/entity"
-	"server/internal/helper"
+	"server/helper"
 	"server/internal/repository"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
 )
 
 type UsersService interface {
@@ -21,10 +21,6 @@ type UsersService interface {
 	UpdateUser(id string, userNew dto.UsersRequest) (dto.UsersResponse, error)
 	VerifyUser(email string) (dto.UsersResponse, error)
 	DeleteUser(id string) (dto.UsersResponse, error)
-
-	GetUserWallets(token string) ([]dto.ViewUserWallets, error)
-	GetUserInvestments(token string) ([]dto.ViewUserInvestments, error)
-	GetUserTransactions(token string) ([]dto.ViewUserTransactions, error)
 }
 
 type usersService struct {
@@ -234,55 +230,4 @@ func (user_serv *usersService) DeleteUser(id string) (dto.UsersResponse, error) 
 	userResponse := helper.ConvertToResponseType(userDeleted)
 
 	return userResponse.(dto.UsersResponse), nil
-}
-
-func (user_serv *usersService) GetUserWallets(token string) ([]dto.ViewUserWallets, error) {
-	userData, err := helper.VerifyToken(token[7:])
-	if err != nil {
-		return nil, errors.New("invalid token")
-	}
-
-	userWallets, err := user_serv.userRepository.GetUserWallets(userData.ID)
-	if err != nil {
-		return nil, errors.New("failed to get user wallets")
-	}
-	if len(userWallets) == 0 {
-		return nil, nil
-	}
-
-	return userWallets, nil
-}
-
-func (user_serv *usersService) GetUserInvestments(token string) ([]dto.ViewUserInvestments, error) {
-	userData, err := helper.VerifyToken(token[7:])
-	if err != nil {
-		return nil, errors.New("invalid token")
-	}
-
-	userInvestments, err := user_serv.userRepository.GetUserInvestments(userData.ID)
-	if err != nil {
-		return nil, errors.New("failed to get user investments")
-	}
-	if len(userInvestments) == 0 {
-		return nil, nil
-	}
-
-	return userInvestments, nil
-}
-
-func (user_serv *usersService) GetUserTransactions(token string) ([]dto.ViewUserTransactions, error) {
-	userData, err := helper.VerifyToken(token[7:])
-	if err != nil {
-		return nil, errors.New("invalid token")
-	}
-
-	userTransactions, err := user_serv.userRepository.GetUserTransactions(userData.ID)
-	if err != nil {
-		return nil, errors.New("failed to get user transactions")
-	}
-	if len(userTransactions) == 0 {
-		return nil, nil
-	}
-
-	return userTransactions, nil
 }

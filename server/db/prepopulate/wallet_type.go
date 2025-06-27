@@ -5,7 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
 )
 
 func WalletTypesSeeder(db *gorm.DB) {
@@ -15,7 +15,7 @@ func WalletTypesSeeder(db *gorm.DB) {
 		Physical     entity.WalletType = "physical"
 		OthersWallet entity.WalletType = "others"
 	)
-	
+
 	// Data prepopulate
 	walletTypes := []entity.WalletTypes{
 		// Bank

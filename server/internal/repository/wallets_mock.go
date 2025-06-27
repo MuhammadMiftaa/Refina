@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -19,7 +20,7 @@ func NewWalletsRepositoryMock() *walletsRepositoryMock {
 
 func (wallet_repo *walletsRepositoryMock) GetAllWallets(ctx context.Context, tx Transaction) ([]entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx)
-	
+
 	result, ok := arguments.Get(0).([]entity.Wallets)
 	if !ok {
 		return nil, errors.New("error getting all wallets")
@@ -30,7 +31,7 @@ func (wallet_repo *walletsRepositoryMock) GetAllWallets(ctx context.Context, tx 
 
 func (wallet_repo *walletsRepositoryMock) GetWalletByID(ctx context.Context, tx Transaction, id string) (entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, id)
-	
+
 	result, ok := arguments.Get(0).(entity.Wallets)
 	if !ok || arguments.Get(1) != nil {
 		return entity.Wallets{}, errors.New("error getting wallet by ID")
@@ -39,10 +40,10 @@ func (wallet_repo *walletsRepositoryMock) GetWalletByID(ctx context.Context, tx 
 	return result, nil
 }
 
-func (wallet_repo *walletsRepositoryMock) GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.Wallets, error) {
+func (wallet_repo *walletsRepositoryMock) GetWalletsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserWallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, id)
-	
-	result, ok := arguments.Get(0).([]entity.Wallets)
+
+	result, ok := arguments.Get(0).([]view.ViewUserWallets)
 	if !ok {
 		return nil, errors.New("error getting wallets by user ID")
 	}
@@ -52,7 +53,7 @@ func (wallet_repo *walletsRepositoryMock) GetWalletsByUserID(ctx context.Context
 
 func (wallet_repo *walletsRepositoryMock) CreateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, wallet)
-	
+
 	result, ok := arguments.Get(0).(entity.Wallets)
 	if !ok {
 		return entity.Wallets{}, errors.New("error creating wallet")
@@ -63,7 +64,7 @@ func (wallet_repo *walletsRepositoryMock) CreateWallet(ctx context.Context, tx T
 
 func (wallet_repo *walletsRepositoryMock) UpdateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, wallet)
-	
+
 	result, ok := arguments.Get(0).(entity.Wallets)
 	if !ok {
 		return entity.Wallets{}, errors.New("error updating wallet")
@@ -74,7 +75,7 @@ func (wallet_repo *walletsRepositoryMock) UpdateWallet(ctx context.Context, tx T
 
 func (wallet_repo *walletsRepositoryMock) DeleteWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, wallet)
-	
+
 	result, ok := arguments.Get(0).(entity.Wallets)
 	if !ok {
 		return entity.Wallets{}, errors.New("error deleting wallet")

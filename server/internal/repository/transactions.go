@@ -4,7 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"gorm.io/gorm"
 )
@@ -13,7 +14,7 @@ type TransactionsRepository interface {
 	GetAllTransactions(ctx context.Context, tx Transaction) ([]entity.TransactionsData, error)
 	GetTransactionByID(ctx context.Context, tx Transaction, id string) (entity.Transactions, error)
 	GetTransactionByIDJoin(ctx context.Context, tx Transaction, id string) (entity.TransactionsData, error)
-	GetTransactionsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.TransactionsData, error)
+	GetTransactionsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserTransactions, error)
 	CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 	UpdateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 	DeleteTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
@@ -98,28 +99,18 @@ func (transaction_repo *transactionsRepository) GetTransactionByIDJoin(ctx conte
 	return transaction, nil
 }
 
-func (transaction_repo *transactionsRepository) GetTransactionsByUserID(ctx context.Context, tx Transaction, id string) ([]entity.TransactionsData, error) {
+func (transaction_repo *transactionsRepository) GetTransactionsByUserID(ctx context.Context, tx Transaction, id string) ([]view.ViewUserTransactions, error) {
 	db, err := transaction_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var transactions []entity.TransactionsData
-	err = db.Table("users").Select("transactions.id AS transaction_id, users.name AS user_name, wallets.name AS wallet_name, wallet_types.name AS wallet_type, categories.name AS category_name, categories.type AS category_type, transactions.amount, transactions.transaction_date, transactions.description, attachments.image").
-		Joins("LEFT JOIN wallets ON users.id = wallets.user_id AND wallets.deleted_at IS NULL").
-		Joins("LEFT JOIN wallet_types ON wallets.wallet_type_id = wallet_types.id AND wallet_types.deleted_at IS NULL").
-		Joins("INNER JOIN transactions ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL").
-		Joins("LEFT JOIN categories ON transactions.category_id = categories.id AND categories.deleted_at IS NULL").
-		Joins("LEFT JOIN attachments ON transactions.id = attachments.transaction_id AND attachments.deleted_at IS NULL").
-		Where("users.id = ?", id).
-		Where("users.deleted_at IS NULL").
-		Find(&transactions).
-		Order("transactions.transaction_date DESC").Error
+	var userTransactions []view.ViewUserTransactions
+	err = db.Table("view_user_transactions").Where("user_id = ?", id).Order("transaction_date DESC").Find(&userTransactions).Error
 	if err != nil {
 		return nil, errors.New("user transactions not found")
 	}
-
-	return transactions, nil
+	return userTransactions, nil
 }
 
 func (transaction_repo *transactionsRepository) CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error) {

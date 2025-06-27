@@ -20,12 +20,14 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	Transaction_serv := service.NewTransactionService(txManager, transactionRepo, walletRepo, categoryRepo, attachmentRepo)
 	Transaction_handler := handler.NewTransactionHandler(Transaction_serv)
 
-	version.Use(middleware.AuthMiddleware())
-	version.GET("transactions", Transaction_handler.GetAllTransactions)
-	version.GET("transactions/:id", Transaction_handler.GetTransactionByID)
-	version.GET("transactions/user", Transaction_handler.GetTransactionsByUserID)
-	version.POST("transactions/:type", Transaction_handler.CreateTransaction)
-	version.POST("transactions/attachment/:id", Transaction_handler.UploadAttachment)
-	version.PUT("transactions/:id", Transaction_handler.UpdateTransaction)
-	version.DELETE("transactions/:id", Transaction_handler.DeleteTransaction)
+	transaction := version.Group("/transactions")
+	transaction.Use(middleware.AuthMiddleware())
+
+	transaction.GET("", Transaction_handler.GetAllTransactions)
+	transaction.GET(":id", Transaction_handler.GetTransactionByID)
+	transaction.GET("user", Transaction_handler.GetTransactionsByUserID)
+	transaction.POST(":type", Transaction_handler.CreateTransaction)
+	transaction.POST("attachment/:id", Transaction_handler.UploadAttachment)
+	transaction.PUT(":id", Transaction_handler.UpdateTransaction)
+	transaction.DELETE(":id", Transaction_handler.DeleteTransaction)
 }

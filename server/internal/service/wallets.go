@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/dto"
-	"server/internal/entity"
-	"server/internal/helper"
+	"server/helper"
 	"server/internal/repository"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 )
 
 type WalletsService interface {
 	GetAllWallets(ctx context.Context) ([]dto.WalletsResponse, error)
 	GetWalletByID(ctx context.Context, id string) (dto.WalletsResponse, error)
-	GetWalletsByUserID(ctx context.Context, id string) ([]dto.WalletsResponse, error)
+	GetWalletsByUserID(ctx context.Context, token string) ([]view.ViewUserWallets, error)
 	CreateWallet(ctx context.Context, token string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	UpdateWallet(ctx context.Context, id string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	DeleteWallet(ctx context.Context, id string) (dto.WalletsResponse, error)
@@ -42,7 +43,7 @@ func (wallet_serv *walletsService) GetAllWallets(ctx context.Context) ([]dto.Wal
 		walletResponse := helper.ConvertToResponseType(wallet).(dto.WalletsResponse)
 		walletsResponse = append(walletsResponse, walletResponse)
 	}
-	
+
 	return walletsResponse, nil
 }
 
@@ -57,19 +58,18 @@ func (wallet_serv *walletsService) GetWalletByID(ctx context.Context, id string)
 	return walletResponse, nil
 }
 
-func (wallet_serv *walletsService) GetWalletsByUserID(ctx context.Context, id string) ([]dto.WalletsResponse, error) {
-	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserID(ctx, nil, id)
+func (wallet_serv *walletsService) GetWalletsByUserID(ctx context.Context, token string) ([]view.ViewUserWallets, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
+	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserID(ctx, nil, userData.ID)
 	if err != nil {
 		return nil, errors.New("failed to get wallets")
 	}
 
-	var walletsResponse []dto.WalletsResponse
-	for _, wallet := range wallets {
-		walletResponse := helper.ConvertToResponseType(wallet).(dto.WalletsResponse)
-		walletsResponse = append(walletsResponse, walletResponse)
-	}
-	
-	return walletsResponse, err
+	return wallets, err
 }
 
 func (wallet_serv *walletsService) CreateWallet(ctx context.Context, token string, wallet dto.WalletsRequest) (dto.WalletsResponse, error) {

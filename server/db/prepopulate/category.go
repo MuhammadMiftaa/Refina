@@ -3,7 +3,7 @@ package prepopulate
 import (
 	"sync"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

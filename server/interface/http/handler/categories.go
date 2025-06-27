@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"server/internal/dto"
 	"server/internal/service"
+	"server/internal/types/dto"
 
 	"github.com/gin-gonic/gin"
 )

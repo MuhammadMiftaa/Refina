@@ -6,7 +6,8 @@ import (
 	"os"
 
 	"server/db/prepopulate"
-	"server/internal/entity"
+	"server/db/views"
+	"server/internal/types/entity"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
@@ -40,6 +41,7 @@ func SetupDatabase() (*gorm.DB, error) {
 	}
 
 	PrePopulate(db)
+	CreateView(db)
 
 	return db, nil
 }
@@ -59,4 +61,26 @@ func PrePopulate(db *gorm.DB) {
 	prepopulate.WalletTypesSeeder(db)
 	prepopulate.CategoryTypeSeeder(db)
 	prepopulate.InvestmentTypesSeeder(db)
+}
+
+func CreateView(db *gorm.DB) {
+	errors := []error{}
+
+	if err := views.ViewUserWallets(db); err != nil {
+		errors = append(errors, err)
+	}
+	if err := views.ViewUserInvestments(db); err != nil {
+		errors = append(errors, err)
+	}
+	if err := views.ViewUserTransactions(db); err != nil {
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		for _, err := range errors {
+			log.Println("Error creating view:", err)
+		}
+	} else {
+		log.Println("All views created successfully")
+	}
 }

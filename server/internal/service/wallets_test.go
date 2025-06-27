@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"server/internal/dto"
-	"server/internal/entity"
 	"server/internal/repository"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

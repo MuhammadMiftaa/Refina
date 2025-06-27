@@ -1,4 +1,4 @@
-package dto
+package view
 
 type ViewUserTransactions struct {
 	ID              string  `json:"id"`
@@ -13,5 +13,4 @@ type ViewUserTransactions struct {
 	Amount          float64 `json:"amount"`
 	TransactionDate string  `json:"transaction_date"`
 	Description     string  `json:"description"`
-	Image           string  `json:"image"`
 }

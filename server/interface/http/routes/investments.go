@@ -15,12 +15,14 @@ func InvestmentRoute(version *gin.RouterGroup, db *gorm.DB) {
 	Investment_repo := repository.NewInvestmentRepository(db)
 	Investment_serv := service.NewInvestmentService(txManager, Investment_repo)
 	Investment_handler := handler.NewInvestmentHandler(Investment_serv)
-	
-	version.Use(middleware.AuthMiddleware())
-	version.GET("investments", Investment_handler.GetAllInvestments)
-	version.GET("investments/:id", Investment_handler.GetInvestmentByID)
-	version.GET("investments/user/:id", Investment_handler.GetInvestmentsByUserID)
-	version.POST("investments", Investment_handler.CreateInvestment)
-	version.PUT("investments/:id", Investment_handler.UpdateInvestment)
-	version.DELETE("investments/:id", Investment_handler.DeleteInvestment)
+
+	investments := version.Group("/investments")
+	investments.Use(middleware.AuthMiddleware())
+
+	investments.GET("", Investment_handler.GetAllInvestments)
+	investments.GET(":id", Investment_handler.GetInvestmentByID)
+	investments.GET("user", Investment_handler.GetInvestmentsByUserID)
+	investments.POST("", Investment_handler.CreateInvestment)
+	investments.PUT(":id", Investment_handler.UpdateInvestment)
+	investments.DELETE(":id", Investment_handler.DeleteInvestment)
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/entity"
+	"server/internal/types/entity"
 
 	"gorm.io/gorm"
 )
@@ -111,10 +111,10 @@ func (category_repo *categoryRepository) DeleteCategory(ctx context.Context, tx 
 	if err != nil {
 		return entity.Categories{}, err
 	}
-	
+
 	if err := db.Delete(&category).Error; err != nil {
 		return entity.Categories{}, err
 	}
-	
+
 	return category, nil
 }

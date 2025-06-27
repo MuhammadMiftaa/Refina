@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/dto"
-	"server/internal/entity"
-	"server/internal/helper"
+	"server/helper"
 	"server/internal/repository"
+	"server/internal/types/dto"
+	"server/internal/types/entity"
+	"server/internal/types/view"
 )
 
 type InvestmentsService interface {
 	GetAllInvestments(ctx context.Context) ([]dto.InvestmentsResponse, error)
 	GetInvestmentByID(ctx context.Context, id string) (dto.InvestmentsResponse, error)
-	GetInvestmentsByUserID(ctx context.Context, id string) ([]dto.InvestmentsResponse, error)
+	GetInvestmentsByUserID(ctx context.Context, token string) ([]view.ViewUserInvestments, error)
 	CreateInvestment(ctx context.Context, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error)
 	UpdateInvestment(ctx context.Context, id string, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error)
 	DeleteInvestment(ctx context.Context, id string) (dto.InvestmentsResponse, error)
@@ -57,19 +58,18 @@ func (investment_serv *investmentsService) GetInvestmentByID(ctx context.Context
 	return investmentResponse, nil
 }
 
-func (investment_serv *investmentsService) GetInvestmentsByUserID(ctx context.Context, id string) ([]dto.InvestmentsResponse, error) {
-	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(ctx, nil, id)
+func (investment_serv *investmentsService) GetInvestmentsByUserID(ctx context.Context, token string) ([]view.ViewUserInvestments, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
+	investments, err := investment_serv.investmentsRepository.GetInvestmentsByUserID(ctx, nil, userData.ID)
 	if err != nil {
 		return nil, errors.New("failed to get investments")
 	}
 
-	var investmentsResponse []dto.InvestmentsResponse
-	for _, investment := range investments {
-		investmentResponse := helper.ConvertToResponseType(investment).(dto.InvestmentsResponse)
-		investmentsResponse = append(investmentsResponse, investmentResponse)
-	}
-
-	return investmentsResponse, nil
+	return investments, nil
 }
 
 func (investment_serv *investmentsService) CreateInvestment(ctx context.Context, investment dto.InvestmentsRequest) (dto.InvestmentsResponse, error) {

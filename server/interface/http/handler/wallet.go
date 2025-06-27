@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"server/internal/dto"
 	"server/internal/service"
+	"server/internal/types/dto"
 
 	"github.com/gin-gonic/gin"
 )
@@ -63,13 +63,12 @@ func (wallet_handler *walletHandler) GetWalletByID(c *gin.Context) {
 
 func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	id := c.Param("id")
-
-	wallets, err := wallet_handler.walletService.GetWalletsByUserID(ctx, id)
+	userWallets, err := wallet_handler.walletService.GetWalletsByUserID(ctx, token)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"statusCode": 500,
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
 			"status":     false,
 			"message":    err.Error(),
 		})
@@ -79,8 +78,8 @@ func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"statusCode": 200,
 		"status":     true,
-		"message":    "Get wallets by user ID",
-		"data":       wallets,
+		"message":    "Get user wallets data",
+		"data":       userWallets,
 	})
 }
 

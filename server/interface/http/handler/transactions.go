@@ -3,8 +3,8 @@ package handler
 import (
 	"net/http"
 
-	"server/internal/dto"
 	"server/internal/service"
+	"server/internal/types/dto"
 
 	"github.com/gin-gonic/gin"
 )
@@ -62,9 +62,8 @@ func (transactionHandler *TransactionHandler) GetTransactionByID(c *gin.Context)
 }
 
 func (transactionHandler *TransactionHandler) GetTransactionsByUserID(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
 	transactions, err := transactionHandler.transactionServ.GetTransactionsByUserID(ctx, token)
 	if err != nil {
