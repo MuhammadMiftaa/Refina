@@ -22,6 +22,7 @@ func WalletRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	wallets.GET("", Wallet_handler.GetAllWallets)
 	wallets.GET(":id", Wallet_handler.GetWalletByID)
 	wallets.GET("user", Wallet_handler.GetWalletsByUserID)
+	wallets.GET("user-by-type", Wallet_handler.GetWalletsByUserIDGroupByType)
 	wallets.POST("", Wallet_handler.CreateWallet)
 	wallets.PUT(":id", Wallet_handler.UpdateWallet)
 	wallets.DELETE(":id", Wallet_handler.DeleteWallet)

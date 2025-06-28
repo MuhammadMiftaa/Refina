@@ -15,6 +15,7 @@ type WalletsService interface {
 	GetAllWallets(ctx context.Context) ([]dto.WalletsResponse, error)
 	GetWalletByID(ctx context.Context, id string) (dto.WalletsResponse, error)
 	GetWalletsByUserID(ctx context.Context, token string) ([]view.ViewUserWallets, error)
+	GetWalletsByUserIDGroupByType(ctx context.Context, token string) ([]view.ViewUserWalletsGroupByType, error)
 	CreateWallet(ctx context.Context, token string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	UpdateWallet(ctx context.Context, id string, wallet dto.WalletsRequest) (dto.WalletsResponse, error)
 	DeleteWallet(ctx context.Context, id string) (dto.WalletsResponse, error)
@@ -67,6 +68,20 @@ func (wallet_serv *walletsService) GetWalletsByUserID(ctx context.Context, token
 	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserID(ctx, nil, userData.ID)
 	if err != nil {
 		return nil, errors.New("failed to get wallets")
+	}
+
+	return wallets, err
+}
+
+func (wallet_serv *walletsService) GetWalletsByUserIDGroupByType(ctx context.Context, token string) ([]view.ViewUserWalletsGroupByType, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
+	wallets, err := wallet_serv.walletsRepository.GetWalletsByUserIDGroupByType(ctx, nil, userData.ID)
+	if err != nil {
+		return nil, err
 	}
 
 	return wallets, err

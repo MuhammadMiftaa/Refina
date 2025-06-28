@@ -16,3 +16,9 @@ type WalletsRequest struct {
 	Number       string  `json:"number"`
 	Balance      float64 `json:"balance"`
 }
+
+type WalletsGroupByType struct {
+	GroupName string                `json:"group_name"`
+	Category  []WalletTypesResponse `json:"wallets"`
+	Type      CategoryType          `json:"type"`
+}

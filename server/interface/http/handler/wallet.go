@@ -83,6 +83,28 @@ func (wallet_handler *walletHandler) GetWalletsByUserID(c *gin.Context) {
 	})
 }
 
+func (wallet_handler *walletHandler) GetWalletsByUserIDGroupByType(c *gin.Context) {
+	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
+
+	userWallets, err := wallet_handler.walletService.GetWalletsByUserIDGroupByType(ctx, token)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"statusCode": 400,
+			"status":     false,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"statusCode": 200,
+		"status":     true,
+		"message":    "Get user wallets data",
+		"data":       userWallets,
+	})
+}
+
 func (wallet_handler *walletHandler) CreateWallet(c *gin.Context) {
 	ctx := c.Request.Context()
 	token := c.GetHeader("Authorization")

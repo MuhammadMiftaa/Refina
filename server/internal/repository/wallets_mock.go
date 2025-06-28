@@ -51,6 +51,20 @@ func (wallet_repo *walletsRepositoryMock) GetWalletsByUserID(ctx context.Context
 	return result, nil
 }
 
+func (wallet_repo *walletsRepositoryMock) GetWalletsByUserIDGroupByType(ctx context.Context, tx Transaction, id string) ([]view.ViewUserWalletsGroupByType, error) {
+	arguments := wallet_repo.Mock.Called(ctx, tx, id)
+	result, ok := arguments.Get(0).([]view.ViewUserWalletsGroupByType)
+
+	if !ok {
+		return nil, errors.New("error getting wallets by user ID grouped by type")
+	}
+	if arguments.Get(1) != nil {
+		return nil, arguments.Error(1)
+	}
+
+	return result, nil
+}
+
 func (wallet_repo *walletsRepositoryMock) CreateWallet(ctx context.Context, tx Transaction, wallet entity.Wallets) (entity.Wallets, error) {
 	arguments := wallet_repo.Mock.Called(ctx, tx, wallet)
 
