@@ -61,7 +61,7 @@ func ViewUserTransactions(db *gorm.DB) error {
 			wallet_types.name AS wallet_type, wallets.balance AS wallet_balance,
 			categories.name AS category_name, categories.type AS category_type,
 			transactions.amount, transactions.transaction_date, transactions.description,
-			wallet_types.type AS wallet_type_name
+			wallet_types.type AS wallet_type_name, categories.id AS category_id
 		FROM transactions
 		LEFT JOIN wallets ON wallets.id = transactions.wallet_id AND transactions.deleted_at IS NULL
 		LEFT JOIN users ON users.id = wallets.user_id AND users.deleted_at IS NULL
