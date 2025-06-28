@@ -78,6 +78,9 @@ func CreateView(db *gorm.DB) {
 	if err := views.ViewUserWalletsGroupByType(db); err != nil {
 		errors = append(errors, err)
 	}
+	if err := views.ViewCategoryGroupByType(db); err != nil {
+		errors = append(errors, err)
+	}
 
 	if len(errors) > 0 {
 		for _, err := range errors {

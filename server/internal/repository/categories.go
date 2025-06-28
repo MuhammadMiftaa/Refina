@@ -2,9 +2,13 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"log"
 
 	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +16,7 @@ import (
 type CategoriesRepository interface {
 	GetAllCategories(ctx context.Context, tx Transaction) ([]entity.Categories, error)
 	GetCategoryByID(ctx context.Context, tx Transaction, id string) (entity.Categories, error)
-	GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]entity.Categories, error)
+	GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]view.ViewCategoriesGroupByType, error)
 	CreateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
 	UpdateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
 	DeleteCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error)
@@ -66,18 +70,43 @@ func (category_repo *categoryRepository) GetCategoryByID(ctx context.Context, tx
 	return category, nil
 }
 
-func (category_repo *categoryRepository) GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]entity.Categories, error) {
+func (category_repo *categoryRepository) GetCategoriesByType(ctx context.Context, tx Transaction, typeCategory string) ([]view.ViewCategoriesGroupByType, error) {
 	db, err := category_repo.getDB(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var categories []entity.Categories
-	if err := db.Preload("Parent").Preload("Children").Where("type = ?", typeCategory).Find(&categories).Error; err != nil {
-		return nil, err
+	var rawResults []struct {
+		GroupName string
+		Type      string
+		Category  []byte
+	}
+	err = db.Raw(`SELECT * FROM view_category_group_by_type WHERE type = $1`, typeCategory).Scan(&rawResults).Error
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err != nil {
+		return nil, errors.New("category group by type not found")
 	}
 
-	return categories, nil
+	var results []view.ViewCategoriesGroupByType
+
+	for _, row := range rawResults {
+		var categories []view.ViewCategoriesGroupByTypeDetail
+
+		err := json.Unmarshal(row.Category, &categories)
+		if err != nil {
+			return nil, fmt.Errorf("gagal decode JSON categories (type: %s): %w", row.Type, err)
+		}
+
+		results = append(results, view.ViewCategoriesGroupByType{
+			GroupName: row.GroupName,
+			Type:      row.Type,
+			Category:  categories,
+		})
+	}
+
+	return results, nil
 }
 
 func (category_repo *categoryRepository) CreateCategory(ctx context.Context, tx Transaction, category entity.Categories) (entity.Categories, error) {

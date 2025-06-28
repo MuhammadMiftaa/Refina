@@ -6,6 +6,7 @@ import (
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
+	"server/internal/types/view"
 
 	"github.com/google/uuid"
 )
@@ -13,7 +14,7 @@ import (
 type CategoriesService interface {
 	GetAllCategories(ctx context.Context) ([]dto.CategoriesResponse, error)
 	GetCategoryByID(ctx context.Context, id string) (dto.CategoriesResponse, error)
-	GetCategoriesByType(ctx context.Context, typeCategory string) ([]dto.CategoriesResponse, error)
+	GetCategoriesByType(ctx context.Context, typeCategory string) ([]view.ViewCategoriesGroupByType, error)
 	CreateCategory(ctx context.Context, category dto.CategoriesRequest) (dto.CategoriesResponse, error)
 	UpdateCategory(ctx context.Context, id string, category dto.CategoriesRequest) (dto.CategoriesResponse, error)
 	DeleteCategory(ctx context.Context, id string) (dto.CategoriesResponse, error)
@@ -100,45 +101,13 @@ func (category_serv *categoriesService) GetCategoryByID(ctx context.Context, id 
 	return response, nil
 }
 
-func (category_serv *categoriesService) GetCategoriesByType(ctx context.Context, typeCategory string) ([]dto.CategoriesResponse, error) {
+func (category_serv *categoriesService) GetCategoriesByType(ctx context.Context, typeCategory string) ([]view.ViewCategoriesGroupByType, error) {
 	categories, err := category_serv.categoryRepository.GetCategoriesByType(ctx, nil, typeCategory)
 	if err != nil {
 		return nil, err
 	}
 
-	var groupedCategories []dto.CategoriesResponse
-	for _, category := range categories {
-		if category.ParentID == nil {
-			exists := false
-			for _, group := range groupedCategories {
-				if group.GroupName == category.Name {
-					exists = true
-					break
-				}
-			}
-			if !exists {
-				groupName := category.Name
-				groupedCategories = append(groupedCategories, dto.CategoriesResponse{
-					GroupName: groupName,
-					Category:  []dto.Category{},
-					Type:      dto.CategoryType(category.Type),
-				})
-			}
-		} else {
-			if category.Parent != nil {
-				for i, group := range groupedCategories {
-					if group.GroupName == category.Parent.Name {
-						groupedCategories[i].Category = append(groupedCategories[i].Category, dto.Category{
-							ID:   category.ID.String(),
-							Name: category.Name,
-						})
-					}
-				}
-			}
-		}
-	}
-
-	return groupedCategories, nil
+	return categories, nil
 }
 
 func (category_serv *categoriesService) CreateCategory(ctx context.Context, category dto.CategoriesRequest) (dto.CategoriesResponse, error) {
