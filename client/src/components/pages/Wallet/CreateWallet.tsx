@@ -21,6 +21,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getBackendURL } from "@/lib/readenv";
+import GlobalLoading from "@/components/ui/global-loading";
 
 async function fetchWalletTypes() {
   const backendURL = getBackendURL();
@@ -60,7 +61,7 @@ export default function CreateWallet() {
       balance: 0,
     },
   });
-  const { data } = useQuery({
+  const { data, isLoading: walletTypesLoading } = useQuery({
     queryKey: ["wallet-types"],
     queryFn: fetchWalletTypes,
   });
@@ -93,6 +94,10 @@ export default function CreateWallet() {
     if (response.ok) navigate(-1);
     else console.error(res.message);
   });
+
+  if (walletTypesLoading) {
+    return <GlobalLoading />;
+  }
 
   return (
     <div className="font-poppins min-h-screen w-full p-4 md:p-6">

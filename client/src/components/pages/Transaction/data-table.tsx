@@ -38,17 +38,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { TransactionType } from "@/types/UserTransaction";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  setIsOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  setIsOpen,
 }: DataTableProps<TData, TValue>) {
+  const navigate = useNavigate();
+
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -68,6 +73,11 @@ export function DataTable<TData, TValue>({
       columnVisibility,
     },
   });
+
+  const handleIsOpen = (id: string, type: string) => {
+    setIsOpen?.(true);
+    navigate(`?id=${id}&type=${type}`);
+  };
 
   return (
     <div>
@@ -219,6 +229,13 @@ export function DataTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    handleIsOpen(
+                      (row.original as TransactionType).id,
+                      row.getValue("category_type"),
+                    );
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

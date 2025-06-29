@@ -31,7 +31,7 @@ async function fetchWallets() {
 
   const token = Cookies.get("token");
 
-  const res = await fetch(`${backendURL}/users/wallets`, {
+  const res = await fetch(`${backendURL}/wallets/user`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +51,7 @@ async function fetchTransactions() {
 
   const token = Cookies.get("token");
 
-  const res = await fetch(`${backendURL}/users/transactions`, {
+  const res = await fetch(`${backendURL}/transactions/user`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -290,13 +290,13 @@ export default function Wallets() {
                       <div>
                         <h1 className="text-zinc-300">Account Number</h1>
                         <h2 className="-mt-1 text-xl">
-                          {wallet.wallet_number === "—"
-                            ? wallet.wallet_number
-                            : wallet.wallet_number.slice(0, 4) +
+                          {wallet?.wallet_number === "—"
+                            ? wallet?.wallet_number
+                            : wallet?.wallet_number?.slice(0, 4) +
                               "–" +
-                              wallet.wallet_number.slice(4, 8) +
+                              wallet?.wallet_number?.slice(4, 8) +
                               "–" +
-                              wallet.wallet_number.slice(8)}
+                              wallet?.wallet_number?.slice(8)}
                         </h2>
                       </div>
                       <div className="flex gap-4">

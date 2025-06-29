@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
+import GlobalLoading from "@/components/ui/global-loading";
 
 async function fetchCategories(type: string) {
   const backendURL = getBackendURL();
@@ -44,7 +45,7 @@ async function fetchWallets() {
 
   const token = Cookies.get("token");
 
-  const res = await fetch(`${backendURL}/users/wallets`, {
+  const res = await fetch(`${backendURL}/wallets/user`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -193,7 +194,7 @@ export default function AddTransaction() {
   };
 
   if (categoriesLoading || walletsLoading) {
-    return <div>Loading...</div>;
+    return <GlobalLoading />;
   }
 
   return (
@@ -214,7 +215,9 @@ export default function AddTransaction() {
       >
         {type !== "fund_transfer" ? (
           <>
+            {/* Transaction Type: Income and Expense */}
             <div className="flex w-full flex-col items-center gap-4 md:flex-row">
+              {/* Transaction Category */}
               <div className="flex w-full flex-col">
                 <label className="mb-2" htmlFor="type">
                   Type
@@ -273,6 +276,7 @@ export default function AddTransaction() {
                 />
               </div>
 
+              {/* Transaction Date */}
               <div className="flex w-full flex-col">
                 <label className="mb-2" htmlFor="date">
                   Date
@@ -332,6 +336,7 @@ export default function AddTransaction() {
               </div>
             </div>
 
+            {/* Transaction Amount */}
             <div className="flex w-full flex-col">
               <label className="mb-2">Amount (IDR)</label>
               <NumericFormat
@@ -375,6 +380,7 @@ export default function AddTransaction() {
               />
             </div>
 
+            {/* Transaction Wallet */}
             <div className="flex w-full flex-col">
               <label className="mb-2">Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -460,18 +466,20 @@ export default function AddTransaction() {
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.wallet_number === "—"
-                            ? wallet.wallet_number
-                            : wallet.wallet_number.slice(0, 4) +
+                          {wallet?.wallet_number === "—"
+                            ? wallet?.wallet_number
+                            : wallet?.wallet_number?.slice(0, 4) +
                               "–" +
-                              wallet.wallet_number.slice(4, 8) +
+                              wallet?.wallet_number?.slice(4, 8) +
                               "–" +
-                              wallet.wallet_number.slice(8)}
+                              wallet?.wallet_number?.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.wallet_balance)}
-                          </span>
+                          {wallet?.wallet_balance && (
+                            <span className="text-right text-lg font-semibold">
+                              RP {formatCurrency(wallet?.wallet_balance)}
+                            </span>
+                          )}
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
                           </span>
@@ -483,10 +491,11 @@ export default function AddTransaction() {
               </div>
             </div>
 
+            {/* Transaction Description */}
             <div className="flex w-full flex-col">
               <label className="mb-2">Description</label>
               <input
-                className="w-full rounded-lg border border-gray-200 px-4 py-2 text-lg shadow-md"
+                className="w-full rounded-lg border border-gray-200 px-4 py-3.5 text-lg shadow-md focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
                 type="text"
                 id="name"
                 placeholder="Transaction Description"
@@ -502,6 +511,8 @@ export default function AddTransaction() {
           </>
         ) : (
           <>
+            {/* Transaction Type: Fund Transfer  */}
+            {/* Transaction Wallet (From) */}
             <div className="flex w-full flex-col">
               <label className="mb-2">From Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -587,18 +598,20 @@ export default function AddTransaction() {
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.wallet_number === "—"
-                            ? wallet.wallet_number
-                            : wallet.wallet_number.slice(0, 4) +
+                          {wallet?.wallet_number === "—"
+                            ? wallet?.wallet_number
+                            : wallet?.wallet_number?.slice(0, 4) +
                               "–" +
-                              wallet.wallet_number.slice(4, 8) +
+                              wallet?.wallet_number?.slice(4, 8) +
                               "–" +
-                              wallet.wallet_number.slice(8)}
+                              wallet?.wallet_number?.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.wallet_balance)}
-                          </span>
+                          {wallet?.wallet_balance && (
+                            <span className="text-right text-lg font-semibold">
+                              RP {formatCurrency(wallet?.wallet_balance)}
+                            </span>
+                          )}
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
                           </span>
@@ -610,6 +623,7 @@ export default function AddTransaction() {
               </div>
             </div>
 
+            {/* Transaction Amount */}
             <div className="flex flex-col items-center gap-4 md:flex-row">
               <div className="flex w-full basis-2/3 flex-col">
                 <label className="mb-2">Amount (IDR)</label>
@@ -699,6 +713,7 @@ export default function AddTransaction() {
               )}
             </div>
 
+            {/* Transaction Wallet (To) */}
             <div className="flex w-full flex-col">
               <label className="mb-2">To Wallets</label>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -784,18 +799,20 @@ export default function AddTransaction() {
                       </div>
                       <div className="flex items-end justify-between gap-4">
                         <span className="line-clamp-1 bg-gradient-to-br from-indigo-900 to-emerald-700 bg-clip-text font-semibold text-transparent">
-                          {wallet.wallet_number === "—"
-                            ? wallet.wallet_number
-                            : wallet.wallet_number.slice(0, 4) +
+                          {wallet?.wallet_number === "—"
+                            ? wallet?.wallet_number
+                            : wallet?.wallet_number?.slice(0, 4) +
                               "–" +
-                              wallet.wallet_number.slice(4, 8) +
+                              wallet?.wallet_number?.slice(4, 8) +
                               "–" +
-                              wallet.wallet_number.slice(8)}
+                              wallet?.wallet_number?.slice(8)}
                         </span>
                         <div className="flex flex-col items-end">
-                          <span className="text-right text-lg font-semibold">
-                            RP {formatCurrency(wallet.wallet_balance)}
-                          </span>
+                          {wallet?.wallet_balance && (
+                            <span className="text-right text-lg font-semibold">
+                              RP {formatCurrency(wallet?.wallet_balance)}
+                            </span>
+                          )}
                           <span className="-mt-2 text-sm text-zinc-500">
                             Balance
                           </span>
@@ -807,6 +824,7 @@ export default function AddTransaction() {
               </div>
             </div>
 
+            {/* Transaction Date */}
             <div className="flex w-full flex-col">
               <label className="mb-2" htmlFor="date">
                 Date
@@ -865,6 +883,7 @@ export default function AddTransaction() {
               </LocalizationProvider>
             </div>
 
+            {/* Transaction Description */}
             <div className="flex w-full flex-col">
               <label className="mb-2">Description</label>
               <input
@@ -884,6 +903,7 @@ export default function AddTransaction() {
           </>
         )}
 
+        {/* File Upload Section */}
         <div className="flex min-h-96 w-full flex-col items-center justify-center">
           <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
             <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
