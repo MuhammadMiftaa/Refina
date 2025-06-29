@@ -337,7 +337,7 @@ export default function Transactions() {
         throw new Error("Failed to add transaction");
       }
 
-      const resData = await res.json();
+      // const resData = await res.json();
 
       // if (type === "fund_transfer") {
       //   await uploadAttachment(
