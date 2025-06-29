@@ -101,7 +101,7 @@ func (investment_repo *investmentsRepository) UpdateInvestment(ctx context.Conte
 		return entity.Investments{}, err
 	}
 
-	if err := db.Save(&investment).Error; err != nil {
+	if err := db.Omit("InvestmentTypes", "User").Save(&investment).Error; err != nil {
 		return entity.Investments{}, err
 	}
 

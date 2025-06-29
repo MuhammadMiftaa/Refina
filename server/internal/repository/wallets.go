@@ -147,7 +147,7 @@ func (wallet_repo *walletsRepository) UpdateWallet(ctx context.Context, tx Trans
 		return entity.Wallets{}, err
 	}
 
-	if err := db.Save(&wallet).Error; err != nil {
+	if err := db.Omit("User", "WalletType").Save(&wallet).Error; err != nil {
 		return entity.Wallets{}, err
 	}
 

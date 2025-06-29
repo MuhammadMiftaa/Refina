@@ -116,9 +116,10 @@ func (transaction_repo *transactionsRepository) UpdateTransaction(ctx context.Co
 		return entity.Transactions{}, err
 	}
 
-	if err := db.Save(&transaction).Error; err != nil {
+	if err := db.Omit("Wallet", "Category").Save(&transaction).Error; err != nil {
 		return entity.Transactions{}, err
 	}
+
 	return transaction, nil
 }
 

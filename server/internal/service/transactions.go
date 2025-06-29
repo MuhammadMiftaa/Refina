@@ -327,42 +327,116 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 }
 
 func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
-	// Check if transaction exist
-	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, nil, id)
+	// ! Begin a new transaction
+	tx, err := transaction_serv.txManager.Begin(ctx)
+	if err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
+	}
+
+	// ! Defer rollback if there is an error or panic
+	defer func() {
+		// Rollback otomatis jika transaksi belum di-commit
+		if r := recover(); r != nil || err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// ? Check if transaction exist
+	transactionExist, err := transaction_serv.transactionRepo.GetTransactionByID(ctx, tx, id)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("transaction not found")
 	}
 
-	// Update transaction only if the field is not empty
-	if transaction.CategoryID != "" {
+	// ? If category ID is different, update category
+	if transaction.CategoryID != transactionExist.CategoryID.String() {
 		CategoryID, err := helper.ParseUUID(transaction.CategoryID)
 		if err != nil {
 			return dto.TransactionsResponse{}, errors.New("invalid category id")
 		}
 
+		// * Check if category exist
+		_, err = transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID)
+		if err != nil {
+			return dto.TransactionsResponse{}, errors.New("category not found")
+		}
+
 		transactionExist.CategoryID = CategoryID
 	}
-	if transaction.WalletID != "" {
+
+	// ? If wallet ID is different, update wallet balance
+	if transaction.WalletID != transactionExist.WalletID.String() {
+		// *  Check if wallet exist
+		oldWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transactionExist.WalletID.String())
+		if err != nil {
+			return dto.TransactionsResponse{}, errors.New("wallet not found")
+		}
+
+		// *  Update wallet balance
+		switch transactionExist.Category.Type {
+		case "expense":
+			oldWallet.Balance += transactionExist.Amount
+		case "income":
+			oldWallet.Balance -= transactionExist.Amount
+		default:
+			return dto.TransactionsResponse{}, errors.New("invalid transaction type")
+		}
+
+		if _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, oldWallet); err != nil {
+			return dto.TransactionsResponse{}, errors.New("failed to update wallet")
+		}
+
+		// *  Check if new wallet exist
+		newWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID)
+		if err != nil {
+			return dto.TransactionsResponse{}, errors.New("new wallet not found")
+		}
+
+		// *  Update wallet balance
+		switch transactionExist.Category.Type {
+		case "expense":
+			newWallet.Balance -= transaction.Amount
+		case "income":
+			newWallet.Balance += transaction.Amount
+		default:
+			return dto.TransactionsResponse{}, errors.New("invalid transaction type")
+		}
+
+		if _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, newWallet); err != nil {
+			return dto.TransactionsResponse{}, errors.New("failed to update new wallet")
+		}
+
+		// *  Parse ID from JSON to valid UUID
 		WalletID, err := helper.ParseUUID(transaction.WalletID)
 		if err != nil {
 			return dto.TransactionsResponse{}, errors.New("invalid wallet id")
 		}
-
 		transactionExist.WalletID = WalletID
 	}
+
+	// ? Update transaction fields
 	if transaction.Amount != 0 {
 		transactionExist.Amount = transaction.Amount
 	}
+
+	// ? Update transaction date
 	if !transaction.Date.IsZero() {
 		transactionExist.TransactionDate = transaction.Date
 	}
+
+	// ? Update description
 	if transaction.Description != "" {
 		transactionExist.Description = transaction.Description
 	}
 
-	transactionUpdated, err := transaction_serv.transactionRepo.UpdateTransaction(ctx, nil, transactionExist)
+	// ? Update transaction
+	transactionUpdated, err := transaction_serv.transactionRepo.UpdateTransaction(ctx, tx, transactionExist)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("failed to update transaction")
+	}
+
+	// ! Commit transaction if all operations are successful
+	if err = tx.Commit(); err != nil {
+		return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
 	}
 
 	transactionResponse := helper.ConvertToResponseType(transactionUpdated).(dto.TransactionsResponse)
