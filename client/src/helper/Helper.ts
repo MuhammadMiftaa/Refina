@@ -99,7 +99,7 @@ export function generateColorByType(type: string): string {
 }
 
 export function toLocalISOString(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
+  const pad = (n: number) => n.toString().padStart(2, "0");
 
   const year = date.getFullYear();
   const month = pad(date.getMonth() + 1);
@@ -109,10 +109,34 @@ export function toLocalISOString(date: Date): string {
   const seconds = pad(date.getSeconds());
 
   const offsetMinutes = date.getTimezoneOffset(); // dalam menit, negatif untuk GMT+
-  const offsetSign = offsetMinutes <= 0 ? '+' : '-';
+  const offsetSign = offsetMinutes <= 0 ? "+" : "-";
   const offsetAbs = Math.abs(offsetMinutes);
   const offsetHours = pad(Math.floor(offsetAbs / 60));
   const offsetMins = pad(offsetAbs % 60);
 
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMins}`;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+      } else {
+        reject("Failed to convert file to base64");
+      }
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+export async function convertFilesToBase64(files: File[]): Promise<string[]> {
+  const base64Array = await Promise.all(
+    files.map((file) => fileToBase64(file)),
+  );
+  return base64Array;
 }

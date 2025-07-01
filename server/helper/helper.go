@@ -285,3 +285,13 @@ func ExpandPathAndCreateDir(path string) (string, error) {
 
 	return absPath, nil
 }
+
+func GenerateFileName(prefix, id string) string {
+
+	t := time.Now()
+	timestamp := t.Format("20060102150405000000000")
+
+	filename := fmt.Sprintf("%s_%s_%s", prefix, id, timestamp)
+
+	return filename
+}

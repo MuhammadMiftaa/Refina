@@ -135,11 +135,8 @@ func (transactionHandler *TransactionHandler) CreateTransaction(c *gin.Context) 
 
 func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 	ID := c.Param("id")
-	ctx := c.Request.Context()
-
-	// Check if attachment is exist
-	file, handler, err := c.Request.FormFile("attachment")
-	if err != nil {
+	var payload dto.Attachments
+	if err := c.Bind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
 			"statusCode": 400,
@@ -147,9 +144,10 @@ func (transactionHandler *TransactionHandler) UploadAttachment(c *gin.Context) {
 		})
 		return
 	}
-	defer file.Close()
 
-	attachment, err := transactionHandler.transactionServ.UploadAttachment(ctx, ID, file, handler)
+	ctx := c.Request.Context()
+
+	attachment, err := transactionHandler.transactionServ.UploadAttachment(ctx, ID, payload.Files)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":     false,

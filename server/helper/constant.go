@@ -1,7 +1,7 @@
 package helper
 
 var (
-	ATTACHMENT_MAX_SIZE    = 1 * 1024 * 1024 // 1 MB
+	ATTACHMENT_MAX_SIZE    = 10 * 1024 * 1024 // 10 MB
 	ATTACHMENT_EXT_ALLOWED = map[string]bool{
 		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
 		".pdf": true,

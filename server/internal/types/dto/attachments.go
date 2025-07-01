@@ -11,3 +11,7 @@ type AttachmentsRequest struct {
 	TransactionID string `json:"transaction_id"`
 	Image         string `json:"image"`
 }
+
+type Attachments struct {
+	Files []string `json:"files"`
+}

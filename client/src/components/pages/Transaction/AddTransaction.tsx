@@ -7,7 +7,11 @@ import Autocomplete from "@mui/material/Autocomplete";
 import { CategoryType } from "@/types/Category";
 import { WalletType } from "@/types/UserWallet";
 import { FormEvent, useEffect, useState } from "react";
-import { formatCurrency, toLocalISOString } from "@/helper/Helper";
+import {
+  convertFilesToBase64,
+  formatCurrency,
+  toLocalISOString,
+} from "@/helper/Helper";
 import styled from "styled-components";
 import { NumericFormat } from "react-number-format";
 import { CancelButton } from "@/components/ui/cancel-button";
@@ -96,6 +100,7 @@ export default function AddTransaction() {
     admin_fee: 0,
   });
   const [files, setFiles] = useState<File[]>([]);
+  const [base64Files, setBase64Files] = useState<string[]>([]);
   const [clearFiles, setClearFiles] = useState(false);
 
   useEffect(() => {
@@ -111,11 +116,18 @@ export default function AddTransaction() {
 
   useEffect(() => {
     if (clearFiles) {
-      setClearFiles(true);
-
-      setTimeout(() => setClearFiles(false), 1000);
+      const timeout = setTimeout(() => setClearFiles(false), 1000);
+      return () => clearTimeout(timeout); // cleanup
     }
   }, [clearFiles]);
+
+  useEffect(() => {
+    if (files.length > 0) {
+      convertFilesToBase64(files)
+        .then(setBase64Files)
+        .catch((err) => console.error("Error converting files:", err));
+    }
+  }, [files]);
 
   const handleFileUpload = (file: File[]) => {
     const Files = [...files, ...file];
@@ -153,19 +165,13 @@ export default function AddTransaction() {
 
       const resData = await res.json();
 
-      if (type === "fund_transfer") {
-        await uploadAttachment(
-          resData.data.cash_in_transaction_id,
-          files,
-          token,
-        );
-        await uploadAttachment(
-          resData.data.cash_out_transaction_id,
-          files,
-          token,
-        );
-      } else {
-        await uploadAttachment(resData.data.id, files, token);
+      if (base64Files.length > 0) {
+        if (type === "fund_transfer") {
+          await uploadAttachment(resData.data.cash_in_transaction_id);
+          await uploadAttachment(resData.data.cash_out_transaction_id);
+        } else {
+          await uploadAttachment(resData.data.id);
+        }
       }
 
       navigate("/transactions");
@@ -174,23 +180,25 @@ export default function AddTransaction() {
     }
   };
 
-  const uploadAttachment = async (ID: string, files: File[], token: string) => {
-    const uploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append("attachment", file);
+  const uploadAttachment = async (ID: string) => {
+    const token = Cookies.get("token") || "";
 
+    try {
       const res = await fetch(`${backendURL}/transactions/attachment/${ID}`, {
         method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: formData,
+        body: JSON.stringify({
+          files: base64Files,
+        }),
       });
 
-      if (!res.ok) throw new Error(`Failed to upload file: ${file.name}`);
-    });
-
-    await Promise.all(uploadPromises);
+      if (!res.ok) throw new Error(`Failed to upload file`);
+    } catch (error) {
+      console.error("Error uploading attachment:", error);
+    }
   };
 
   if (categoriesLoading || walletsLoading) {

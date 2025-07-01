@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
-	"io"
-	"mime/multipart"
+	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"server/helper"
 	"server/internal/repository"
@@ -25,7 +25,7 @@ type TransactionsService interface {
 	GetTransactionsByUserID(ctx context.Context, token string) ([]view.ViewUserTransactions, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error)
-	UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error)
+	UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
 }
@@ -270,60 +270,83 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 	return response, nil
 }
 
-func (transaction_serv *transactionsService) UploadAttachment(ctx context.Context, transactionID string, file multipart.File, handler *multipart.FileHeader) (dto.AttachmentsResponse, error) {
-	if handler.Size > int64(helper.ATTACHMENT_MAX_SIZE) {
-		return dto.AttachmentsResponse{}, errors.New("file size exceeds 10MB")
+func (transaction_serv *transactionsService) UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error) {
+	var attachmentResponses []dto.AttachmentsResponse
+
+	if transactionID == "" {
+		return nil, errors.New("transaction ID is required")
+	}
+	if len(files) == 0 {
+		return nil, errors.New("no files to upload")
 	}
 
-	ext := strings.ToLower(filepath.Ext(handler.Filename))
-	if !helper.ATTACHMENT_EXT_ALLOWED[ext] {
-		return dto.AttachmentsResponse{}, errors.New("invalid file type")
+	for _, file := range files {
+		if file == "" {
+			return nil, errors.New("file is empty")
+		}
+
+		// Ambil metadata prefix (contoh: "data:image/png;base64")
+		prefixSplit := strings.SplitN(file, ",", 2)
+		if len(prefixSplit) != 2 {
+			return nil, errors.New("invalid base64 format")
+		}
+		base64Data := prefixSplit[1]
+
+		// Decode the base64 string
+		decodedFile, err := base64.StdEncoding.DecodeString(base64Data)
+		if err != nil {
+			return nil, errors.New("failed to decode base64 file")
+		}
+
+		if len(decodedFile) > helper.ATTACHMENT_MAX_SIZE {
+			return nil, errors.New("file size exceeds 10MB")
+		}
+
+		if !helper.ATTACHMENT_EXT_ALLOWED[fmt.Sprintf(".%s", strings.Split(http.DetectContentType(decodedFile), "/")[1])] {
+			return nil, errors.New("invalid file type")
+		}
+
+		// Generate file name
+		mimeType := http.DetectContentType(decodedFile)
+		ext := strings.ToLower("." + strings.Split(mimeType, "/")[1])
+		fileName := fmt.Sprintf("%s.%s", helper.GenerateFileName("TA", transactionID), ext)
+
+		absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
+		if err := helper.StorageIsExist(absolutePath); err != nil {
+			return nil, errors.New("storage not found")
+		}
+		filePath := filepath.Join(absolutePath, fileName)
+
+		// Simpan file ke disk
+		if err := os.WriteFile(filePath, decodedFile, 0o644); err != nil {
+			return nil, errors.New("failed to save file")
+		}
+
+		// Save attachment to database
+		TransactionUUID, err := uuid.Parse(transactionID)
+		if err != nil {
+			return nil, errors.New("invalid transaction id")
+		}
+
+		attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
+			Image:         fileName,
+			TransactionID: TransactionUUID,
+		})
+		if err != nil {
+			return nil, errors.New("failed to create attachment")
+		}
+
+		attachmentResponse := dto.AttachmentsResponse{
+			ID:            attachment.ID.String(),
+			Image:         attachment.Image,
+			TransactionID: attachment.TransactionID.String(),
+			CreatedAt:     attachment.CreatedAt.String(),
+		}
+
+		attachmentResponses = append(attachmentResponses, attachmentResponse)
 	}
 
-	absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
-
-	if err := helper.StorageIsExist(absolutePath); err != nil {
-		return dto.AttachmentsResponse{}, errors.New("storage not found")
-	}
-	// Pastikan file bisa dibaca ulang
-	file.Seek(0, 0)
-
-	// Create file name with timestamp
-	fileName := time.Now().Format("20060102150405") + "-" + transactionID + filepath.Ext(handler.Filename)
-	filePath := filepath.Join(absolutePath, fileName)
-	dst, err := os.Create(filePath)
-	if err != nil {
-		return dto.AttachmentsResponse{}, errors.New("failed to create file")
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, file)
-	if err != nil {
-		return dto.AttachmentsResponse{}, errors.New("failed to save file")
-	}
-
-	// Save attachment to database
-	TransactionUUID, err := uuid.Parse(transactionID)
-	if err != nil {
-		return dto.AttachmentsResponse{}, errors.New("invalid transaction id")
-	}
-
-	attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
-		Image:         fileName,
-		TransactionID: TransactionUUID,
-	})
-	if err != nil {
-		return dto.AttachmentsResponse{}, errors.New("failed to create attachment")
-	}
-
-	attachmentResponse := dto.AttachmentsResponse{
-		ID:            attachment.ID.String(),
-		Image:         attachment.Image,
-		TransactionID: attachment.TransactionID.String(),
-		CreatedAt:     attachment.CreatedAt.String(),
-	}
-
-	return attachmentResponse, nil
+	return attachmentResponses, nil
 }
 
 func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
