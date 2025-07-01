@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"server/helper"
@@ -280,7 +281,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 		return nil, errors.New("no files to upload")
 	}
 
-	for _, file := range files {
+	for idx, file := range files {
 		if file == "" {
 			return nil, errors.New("file is empty")
 		}
@@ -309,7 +310,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 		// Generate file name
 		mimeType := http.DetectContentType(decodedFile)
 		ext := strings.ToLower("." + strings.Split(mimeType, "/")[1])
-		fileName := fmt.Sprintf("%s.%s", helper.GenerateFileName("TA", transactionID), ext)
+		fileName := fmt.Sprintf("%s.%s", helper.GenerateFileName("TA", transactionID, strconv.Itoa(idx)), ext)
 
 		absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
 		if err := helper.StorageIsExist(absolutePath); err != nil {
