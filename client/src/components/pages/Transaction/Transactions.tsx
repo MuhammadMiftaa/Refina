@@ -249,14 +249,13 @@ export default function Transactions() {
       hasValidCategory
     ) {
       setIsAutocompleteReady(true);
-    } else {
-      console.log("Categories loading:", categoriesLoading);
-      console.log("Transaction loading:", transactionLoading);
-      console.log("Wallets loading:", walletsLoading);
-      console.log("Categories:", hasValidCategory);
-      console.log("User input category ID:", userInput.category_id);
-      console.log("Categories:", categories);
     }
+    console.log("Categories loading:", categoriesLoading);
+    console.log("Transaction loading:", transactionLoading);
+    console.log("Wallets loading:", walletsLoading);
+    console.log("Categories:", hasValidCategory);
+    console.log("User input category ID:", userInput.category_id);
+    console.log("Categories:", categories);
   }, [
     categoriesLoading,
     transactionLoading,
@@ -875,7 +874,7 @@ const columns: ColumnDef<TransactionType>[] = [
           </DropdownMenuContent>
 
           <div
-            className={`fixed inset-0 flex items-center justify-center bg-zinc-800/70 duration-100 ${deleteConfirm ? "z-[9999] opacity-100" : "opacity-0 -z-[9999]"}`}
+            className={`fixed inset-0 flex items-center justify-center bg-zinc-800/70 duration-100 ${deleteConfirm ? "z-[9999] opacity-100" : "-z-[9999] opacity-0"}`}
             onClick={(e) => {
               e.stopPropagation();
               setDeleteConfirm(false);
