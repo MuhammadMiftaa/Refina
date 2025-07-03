@@ -245,8 +245,8 @@ export default function Transactions() {
     if (
       !categoriesLoading &&
       !transactionLoading &&
-      !walletsLoading &&
-      hasValidCategory
+      !walletsLoading
+      // hasValidCategory
     ) {
       setIsAutocompleteReady(true);
     }
@@ -254,7 +254,9 @@ export default function Transactions() {
     console.log("Transaction loading:", transactionLoading);
     console.log("Wallets loading:", walletsLoading);
     console.log("Categories:", hasValidCategory);
-    console.log("User input category ID:", userInput.category_id);
+    console.log("User input category ID:", userInput);
+    console.log("User input category ID cok:", TransactionDetail.category_id);
+    console.log("User input category ID hancok:", userInput.category_id);
     console.log("Categories:", categories);
   }, [
     categoriesLoading,
