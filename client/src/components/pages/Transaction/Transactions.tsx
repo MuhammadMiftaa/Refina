@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
 import { FormEvent, useEffect, useState } from "react";
 import { DataTable } from "./data-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
 import {
@@ -27,6 +27,14 @@ import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
 import { NumericFormat } from "react-number-format";
 import { FileUpload } from "@/components/ui/file-upload";
 import { SubmitButton } from "@/components/ui/submit-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { IoCopyOutline } from "react-icons/io5";
+import { FaRegTrashAlt } from "react-icons/fa";
 
 async function fetchTransactions() {
   const backendURL = getBackendURL();
@@ -241,6 +249,13 @@ export default function Transactions() {
       hasValidCategory
     ) {
       setIsAutocompleteReady(true);
+    } else {
+      console.log("Categories loading:", categoriesLoading);
+      console.log("Transaction loading:", transactionLoading);
+      console.log("Wallets loading:", walletsLoading);
+      console.log("Categories:", hasValidCategory);
+      console.log("User input category ID:", userInput.category_id);
+      console.log("Categories:", categories);
     }
   }, [
     categoriesLoading,
@@ -392,7 +407,7 @@ export default function Transactions() {
             <IoCloseOutline className="" />
           </button>
         </div>
-        <div className="h-1 w-full bg-sky-100" />
+        <div className="h-1 w-full bg-zinc-800" />
         <div className="h-full w-full">
           {isAutocompleteReady ? (
             <form
@@ -798,88 +813,105 @@ const columns: ColumnDef<TransactionType>[] = [
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
-  // {
-  //   id: "actions",
-  //   cell: ({ row }: { row: any }) => {
-  //     const transaction = row.original;
-  //     const backendURL = getBackendURL();
-  //     const [deleteConfirm, setDeleteConfirm] = useState(false);
+  {
+    id: "actions",
+    cell: ({ row }: { row: any }) => {
+      const transaction = row.original;
+      const backendURL = getBackendURL();
+      const [deleteConfirm, setDeleteConfirm] = useState(false);
 
-  //     const deleteTransaction = async (id: string) => {
-  //       const token = Cookies.get("token") || "";
+      const deleteTransaction = async (id: string) => {
+        const token = Cookies.get("token") || "";
 
-  //       try {
-  //         const res = await fetch(`${backendURL}/transactions/${id}`, {
-  //           method: "DELETE",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //             Authorization: `Bearer ${token}`,
-  //           },
-  //         });
+        try {
+          const res = await fetch(`${backendURL}/transactions/${id}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-  //         if (!res.ok) {
-  //           throw new Error("Failed to add transaction");
-  //         }
+          if (!res.ok) {
+            throw new Error("Failed to add transaction");
+          }
 
-  //         setDeleteConfirm(false);
-  //       } catch (error) {
-  //         console.error("Error deleting transaction:", error);
-  //         setDeleteConfirm(false);
-  //       }
-  //     };
+          setDeleteConfirm(false);
+        } catch (error) {
+          console.error("Error deleting transaction:", error);
+          setDeleteConfirm(false);
+        }
+      };
 
-  //     return (
-  //       <DropdownMenu>
-  //         <DropdownMenuTrigger asChild>
-  //           <Button variant="ghost" className="h-8 w-8 p-0">
-  //             <span className="sr-only">Open menu</span>
-  //             <MoreHorizontal className="h-4 w-4" />
-  //           </Button>
-  //         </DropdownMenuTrigger>
-  //         <DropdownMenuContent align="end" className="font-poppins border">
-  //           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-  //           <DropdownMenuItem
-  //             className=""
-  //             onClick={() => navigator.clipboard.writeText(transaction.id)}
-  //           >
-  //             Copy transaction ID
-  //           </DropdownMenuItem>
-  //           <DropdownMenuItem className="">Update Transaction</DropdownMenuItem>
-  //           <DropdownMenuItem
-  //             onClick={() => setDeleteConfirm(true)}
-  //             className=""
-  //           >
-  //             Delete Transaction
-  //           </DropdownMenuItem>
-  //         </DropdownMenuContent>
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="mx-auto flex h-8 w-8 cursor-pointer items-center justify-center p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="font-poppins border">
+            {/* <DropdownMenuLabel>Actions</DropdownMenuLabel> */}
+            <DropdownMenuItem
+              className="flex items-center justify-between gap-5 focus:bg-sky-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigator.clipboard.writeText(transaction.id);
+              }}
+            >
+              Copy transaction ID
+              <IoCopyOutline />
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeleteConfirm(true);
+              }}
+              className="flex items-center justify-between gap-5 focus:bg-rose-500"
+            >
+              Delete Transaction
+              <FaRegTrashAlt />
+            </DropdownMenuItem>
+          </DropdownMenuContent>
 
-  //         <div
-  //           className={`fixed inset-0 flex items-center justify-center bg-zinc-800/70 duration-100 ${deleteConfirm ? "scale-100" : "scale-0"}`}
-  //         >
-  //           <div className="flex flex-col rounded-xl bg-sky-100 p-7 text-black">
-  //             <h1 className="text-lg font-bold">
-  //               Are you sure to delete this transaction?
-  //             </h1>
-  //             <hr />
-  //             <p>This action cannot be canceled.</p>
-  //             <div className="mt-4 flex justify-end gap-3">
-  //               <button
-  //                 onClick={() => setDeleteConfirm(false)}
-  //                 className="cursor-pointer rounded-lg bg-zinc-300 px-4 py-1 text-lg duration-300 hover:bg-zinc-600 hover:text-white"
-  //               >
-  //                 Cancel
-  //               </button>
-  //               <button
-  //                 onClick={() => deleteTransaction(transaction.id)}
-  //                 className="cursor-pointer rounded-lg bg-red-500 px-4 py-1 text-lg duration-300 hover:bg-black hover:text-white"
-  //               >
-  //                 Delete
-  //               </button>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </DropdownMenu>
-  //     );
-  //   },
-  // },
+          <div
+            className={`fixed inset-0 flex items-center justify-center bg-zinc-800/70 duration-100 ${deleteConfirm ? "z-[9999] opacity-100" : "opacity-0 -z-[9999]"}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteConfirm(false);
+            }}
+          >
+            <div className="flex flex-col rounded-xl bg-gray-100 p-7 text-black">
+              <h1 className="text-lg font-bold">
+                Are you sure to delete this transaction?
+              </h1>
+              <hr />
+              <p>This action cannot be canceled.</p>
+              <div className="mt-4 flex justify-end gap-3">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirm(false);
+                  }}
+                  className="cursor-pointer rounded-lg bg-zinc-300 px-6 py-3 duration-300 hover:bg-zinc-400"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteTransaction(transaction.id);
+                  }}
+                  className="flex cursor-pointer items-center justify-between gap-4 rounded-lg bg-rose-500 px-6 py-3 text-white duration-300 hover:bg-rose-600"
+                >
+                  Delete
+                  <FaRegTrashAlt />
+                </button>
+              </div>
+            </div>
+          </div>
+        </DropdownMenu>
+      );
+    },
+  },
 ];
