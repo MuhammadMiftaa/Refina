@@ -2,13 +2,18 @@ package views
 
 import (
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
 
 func ViewUserWallets(db *gorm.DB) error {
-	if viewExist := db.Migrator().HasTable("view_user_wallets"); !viewExist {
-		queryCreateUserWalletsView := `
+	queryDropView := `DROP VIEW IF EXISTS view_user_wallets;`
+	if err := db.Exec(queryDropView).Error; err != nil {
+		return fmt.Errorf("failed to drop existing view: %w", err)
+	}
+
+	queryCreateUserWalletsView := `
 		CREATE OR REPLACE VIEW view_user_wallets AS
 		SELECT wallets.id, users.id AS user_id,
 			wallets.number AS wallet_number, wallets.balance AS wallet_balance,
@@ -20,17 +25,20 @@ func ViewUserWallets(db *gorm.DB) error {
 		WHERE wallets.deleted_at IS NULL;
 	`
 
-		if err := db.Exec(queryCreateUserWalletsView).Error; err != nil {
-			return errors.New("failed to create user wallets view")
-		}
+	if err := db.Exec(queryCreateUserWalletsView).Error; err != nil {
+		return errors.New("failed to create user wallets view")
 	}
 
 	return nil
 }
 
 func ViewUserInvestments(db *gorm.DB) error {
-	if viewExist := db.Migrator().HasTable("view_user_investments"); !viewExist {
-		queryCreateUserInvestmentsView := `		
+	queryDropView := `DROP VIEW IF EXISTS view_user_investments;`
+	if err := db.Exec(queryDropView).Error; err != nil {
+		return fmt.Errorf("failed to drop existing view: %w", err)
+	}
+
+	queryCreateUserInvestmentsView := `		
 		CREATE OR REPLACE VIEW view_user_investments AS
 		SELECT investments.id, users.id AS user_id,
 			investment_types.name AS investment_type,
@@ -44,17 +52,20 @@ func ViewUserInvestments(db *gorm.DB) error {
 		LEFT JOIN investment_types ON investment_types.id = investments.investment_type_id AND investment_types.deleted_at IS NULL
 		WHERE investments.deleted_at IS NULL;
 	`
-		if err := db.Exec(queryCreateUserInvestmentsView).Error; err != nil {
-			return errors.New("failed to create user investments view")
-		}
+	if err := db.Exec(queryCreateUserInvestmentsView).Error; err != nil {
+		return errors.New("failed to create user investments view")
 	}
 
 	return nil
 }
 
 func ViewUserTransactions(db *gorm.DB) error {
-	if viewExist := db.Migrator().HasTable("view_user_transactions"); !viewExist {
-		queryCreateUserTransactionsView := `
+	queryDropView := `DROP VIEW IF EXISTS view_user_transactions;`
+	if err := db.Exec(queryDropView).Error; err != nil {
+		return fmt.Errorf("failed to drop existing view: %w", err)
+	}
+
+	queryCreateUserTransactionsView := `
 		CREATE OR REPLACE VIEW view_user_transactions AS
 		SELECT transactions.id AS id, users.id AS user_id,
 			wallets.id AS wallet_id, wallets.number AS wallet_number, 
@@ -69,9 +80,8 @@ func ViewUserTransactions(db *gorm.DB) error {
 		LEFT JOIN categories ON categories.id = transactions.category_id AND categories.deleted_at IS NULL
 		WHERE transactions.deleted_at IS NULL;
 	`
-		if err := db.Exec(queryCreateUserTransactionsView).Error; err != nil {
-			return errors.New("failed to create user transactions view")
-		}
+	if err := db.Exec(queryCreateUserTransactionsView).Error; err != nil {
+		return errors.New("failed to create user transactions view")
 	}
 
 	return nil

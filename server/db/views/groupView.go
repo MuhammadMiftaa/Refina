@@ -1,10 +1,18 @@
 package views
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+
+	"gorm.io/gorm"
+)
 
 func ViewUserWalletsGroupByType(db *gorm.DB) error {
-	if viewExist := db.Migrator().HasTable("view_user_wallets_group_by_type"); !viewExist {
-		queryCreateUserWalletsGroupByTypeView := `
+	queryDropView := `DROP VIEW IF EXISTS view_user_wallets_group_by_type;`
+	if err := db.Exec(queryDropView).Error; err != nil {
+		return fmt.Errorf("failed to drop existing view: %w", err)
+	}
+
+	queryCreateUserWalletsGroupByTypeView := `
 		CREATE OR REPLACE VIEW view_user_wallets_group_by_type AS
 		SELECT 
 			users.id AS user_id,
@@ -24,17 +32,20 @@ func ViewUserWalletsGroupByType(db *gorm.DB) error {
 		GROUP BY users.id, wallet_types.type;
 	`
 
-		if err := db.Exec(queryCreateUserWalletsGroupByTypeView).Error; err != nil {
-			return err
-		}
+	if err := db.Exec(queryCreateUserWalletsGroupByTypeView).Error; err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func ViewCategoryGroupByType(db *gorm.DB) error {
-	if viewExist := db.Migrator().HasTable("view_category_group_by_type"); !viewExist {
-		queryCreateCategoryGroupByTypeView := `
+	queryDropView := `DROP VIEW IF EXISTS view_category_group_by_type;`
+	if err := db.Exec(queryDropView).Error; err != nil {
+		return fmt.Errorf("failed to drop existing view: %w", err)
+	}
+
+	queryCreateCategoryGroupByTypeView := `
 		CREATE OR REPLACE VIEW view_category_group_by_type AS
 		SELECT 
 			parent.name AS group_name,
@@ -53,9 +64,8 @@ func ViewCategoryGroupByType(db *gorm.DB) error {
 
 	`
 
-		if err := db.Exec(queryCreateCategoryGroupByTypeView).Error; err != nil {
-			return err
-		}
+	if err := db.Exec(queryCreateCategoryGroupByTypeView).Error; err != nil {
+		return err
 	}
 
 	return nil
