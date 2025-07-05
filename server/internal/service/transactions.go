@@ -75,10 +75,20 @@ func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Cont
 		return view.ViewUserTransactions{}, errors.New("failed to get attachments")
 	}
 
-	for _, attachment := range attachments {
-		if attachment.Image != "" {
-			transaction.Attachments = append(transaction.Attachments, attachment.Image)
+	if len(attachments) > 0 {
+		for _, attachment := range attachments {
+			if attachment.Image != "" {
+				result := view.Attachment{
+					ID:            attachment.ID.String(),
+					TransactionID: attachment.TransactionID.String(),
+					Image:         attachment.Image,
+					Format:        attachment.Format,
+				}
+				transaction.Attachments = append(transaction.Attachments, result)
+			}
 		}
+	} else {
+		transaction.Attachments = make([]view.Attachment, 0, len(attachments))
 	}
 
 	return transaction, nil
@@ -332,6 +342,8 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 		attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
 			Image:         fileName,
 			TransactionID: TransactionUUID,
+			Size:          int64(len(decodedFile)),
+			Format:        ext,
 		})
 		if err != nil {
 			return nil, errors.New("failed to create attachment")
