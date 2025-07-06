@@ -83,6 +83,7 @@ func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Cont
 					TransactionID: attachment.TransactionID.String(),
 					Image:         attachment.Image,
 					Format:        attachment.Format,
+					Size:          attachment.Size,
 				}
 				transaction.Attachments = append(transaction.Attachments, result)
 			}
@@ -450,7 +451,30 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 	}
 
 	// ? Update transaction fields
-	if transaction.Amount != 0 {
+	if transaction.Amount != transactionExist.Amount {
+		// *  Update wallet balance
+		oldWallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transactionExist.WalletID.String())
+		if err != nil {
+			return dto.TransactionsResponse{}, errors.New("wallet not found")
+		}
+
+		// *  Update wallet balance
+		switch transactionExist.Category.Type {
+		case "expense":
+			oldWallet.Balance += transactionExist.Amount
+			oldWallet.Balance -= transaction.Amount
+		case "income":
+			oldWallet.Balance -= transactionExist.Amount
+			oldWallet.Balance += transaction.Amount
+		default:
+			return dto.TransactionsResponse{}, errors.New("invalid transaction type")
+		}
+
+		if _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, oldWallet); err != nil {
+			return dto.TransactionsResponse{}, errors.New("failed to update wallet")
+		}
+
+		// *  Update transaction amount
 		transactionExist.Amount = transaction.Amount
 	}
 
@@ -468,6 +492,50 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 	transactionUpdated, err := transaction_serv.transactionRepo.UpdateTransaction(ctx, tx, transactionExist)
 	if err != nil {
 		return dto.TransactionsResponse{}, errors.New("failed to update transaction")
+	}
+
+	// ? If attachments exist, update attachments
+	if len(transaction.Attachments) > 0 {
+		for _, attachment := range transaction.Attachments {
+			switch attachment.Status {
+			case "create":
+				// * Create new attachment
+				if len(attachment.Files) == 0 {
+					return dto.TransactionsResponse{}, errors.New("no files to upload")
+				}
+
+				if _, err := transaction_serv.UploadAttachment(ctx, transactionUpdated.ID.String(), attachment.Files); err != nil {
+					return dto.TransactionsResponse{}, fmt.Errorf("failed to upload attachment: %w", err)
+				}
+
+			case "delete":
+				// * Delete attachment
+				if len(attachment.Files) == 0 {
+					return dto.TransactionsResponse{}, errors.New("no files to delete")
+				}
+
+				for _, ID := range attachment.Files {
+					// * Get attachment by ID
+					attachmentToDelete, err := transaction_serv.attachmentRepo.GetAttachmentByID(ctx, tx, ID)
+					if err != nil {
+						return dto.TransactionsResponse{}, fmt.Errorf("attachment with file %s not found: %w", ID, err)
+					}
+
+					// * Check if attachment belongs to transaction
+					if attachmentToDelete.TransactionID != transactionUpdated.ID {
+						return dto.TransactionsResponse{}, fmt.Errorf("attachment with file %s does not belong to transaction %s", ID, transactionUpdated.ID)
+					}
+
+					// * Delete file from database
+					if _, err := transaction_serv.attachmentRepo.DeleteAttachment(ctx, tx, attachmentToDelete); err != nil {
+						return dto.TransactionsResponse{}, fmt.Errorf("attachment with file %v not found: %w", attachmentToDelete, err)
+					}
+				}
+			
+			default:
+				return dto.TransactionsResponse{}, errors.New("invalid attachment status")
+			}
+		}
 	}
 
 	// ! Commit transaction if all operations are successful

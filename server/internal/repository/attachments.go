@@ -59,7 +59,7 @@ func (attachments_repo *attachmentsRepository) GetAttachmentByID(ctx context.Con
 	}
 
 	var attachment entity.Attachments
-	if err := db.Preload("Parent").Preload("Children").First(&attachment, "id = ?", id).Error; err != nil {
+	if err := db.First(&attachment, "id = ?", id).Error; err != nil {
 		return entity.Attachments{}, err
 	}
 

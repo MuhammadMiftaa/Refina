@@ -5,6 +5,7 @@ type Attachment struct {
 	TransactionID string `json:"transaction_id"`
 	Image         string `json:"image"`
 	Format        string `json:"format"`
+	Size          int64  `json:"size"`
 }
 
 type ViewUserTransactions struct {

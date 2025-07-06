@@ -19,12 +19,18 @@ type TransactionsResponse struct {
 	Image           string    `json:"image"`
 }
 
+type UpdateAttachmentsRequest struct {
+	Status string   `json:"status"`
+	Files  []string `json:"files"`
+}
+
 type TransactionsRequest struct {
-	WalletID    string    `json:"wallet_id"`
-	CategoryID  string    `json:"category_id"`
-	Amount      float64   `json:"amount"`
-	Date        time.Time `json:"date"`
-	Description string    `json:"description"`
+	WalletID    string                     `json:"wallet_id"`
+	CategoryID  string                     `json:"category_id"`
+	Amount      float64                    `json:"amount"`
+	Date        time.Time                  `json:"date"`
+	Description string                     `json:"description"`
+	Attachments []UpdateAttachmentsRequest `json:"attachments"`
 }
 
 type FundTransferResponse struct {
