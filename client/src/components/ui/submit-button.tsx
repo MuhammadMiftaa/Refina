@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 export const SubmitButton = ({ text }: { text: string }) => {
   return (
-    <StyledWrapper className="w-full">
+    <StyledWrapper className="w-[90%]">
       <button type="submit" className="btn-donate">{text}</button>
     </StyledWrapper>
   );

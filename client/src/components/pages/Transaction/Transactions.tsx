@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import Cookies from "js-cookie";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, MouseEvent, useEffect, useState } from "react";
 import { DataTable } from "./data-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
 import {
+  bytesToMegabytes,
+  convertFilesToBase64,
   formatRawDate,
   generateColorByType,
+  shortenFilename,
   toLocalISOString,
 } from "@/helper/Helper";
 import { PiArrowsLeftRightLight } from "react-icons/pi";
@@ -25,7 +28,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
 import { NumericFormat } from "react-number-format";
-import { FileUpload } from "@/components/ui/file-upload";
+import { FileUploadEdited } from "@/components/ui/file-upload";
 import { SubmitButton } from "@/components/ui/submit-button";
 import {
   DropdownMenu,
@@ -35,6 +38,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IoCopyOutline } from "react-icons/io5";
 import { FaRegTrashAlt } from "react-icons/fa";
+import { LuArrowUpRight } from "react-icons/lu";
+import FileIcon from "@/components/ui/file-icon";
+import { AttachmentType } from "@/types/Attachments";
 
 async function fetchTransactions() {
   const backendURL = getBackendURL();
@@ -114,6 +120,11 @@ async function fetchWallets() {
   return res.json();
 }
 
+type UpdatedFilesType = {
+  status: string;
+  files: string[];
+};
+
 export default function Transactions() {
   const backendURL = getBackendURL();
   const navigate = useNavigate();
@@ -179,9 +190,8 @@ export default function Transactions() {
       type: "",
     },
   ]);
-  type FileItem = File | string;
-  const [files, setFiles] = useState<FileItem[]>([]);
-  const [clearFiles, setClearFiles] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [updatedFiles, setUpdateFiles] = useState<UpdatedFilesType[]>([]);
   const [userInput, setUserInput] = useState({
     id: "",
     amount: 0,
@@ -189,7 +199,7 @@ export default function Transactions() {
     category_id: "",
     date: toLocalISOString(new Date()),
     description: "",
-    attachments: [""],
+    attachments: [] as AttachmentType[],
     // FUND TRANSFER
     from_wallet_id: "",
     to_wallet_id: "",
@@ -197,6 +207,7 @@ export default function Transactions() {
   });
   const [isAutocompleteReady, setIsAutocompleteReady] = useState(false);
 
+  // Untuk mengubah data Category ke flat map untuk autocomplete
   useEffect(() => {
     if (Categories.length > 0) {
       const flatMap = Categories.flatMap((group) =>
@@ -209,6 +220,7 @@ export default function Transactions() {
     }
   }, [categoriesData]);
 
+  // Untuk mengubah data Wallet ke flat map untuk autocomplete
   useEffect(() => {
     if (Wallets.length > 0) {
       const flatMap = Wallets.flatMap((group) =>
@@ -221,6 +233,7 @@ export default function Transactions() {
     }
   }, [walletsData]);
 
+  // Melakukan Inisialisasi state user input saat data transaction detail telah difetch
   useEffect(() => {
     if (!transactionLoading && TransactionDetail.id) {
       setUserInput({
@@ -235,9 +248,12 @@ export default function Transactions() {
         admin_fee: 0,
         attachments: TransactionDetail.attachments,
       });
+
+      setUpdateFiles([]);
     }
   }, [TransactionDetail.id, transactionLoading]);
 
+  // Sebagai monitoring apakah data yang digunakan di drawer telah difetch sepenuhnya
   useEffect(() => {
     const hasValidCategory =
       categories.length > 0 &&
@@ -258,6 +274,7 @@ export default function Transactions() {
     userInput.category_id,
   ]);
 
+  // Melakukan Initial Fetch saat drawer terbuka
   useEffect(() => {
     if (isOpen && id) {
       refetchTransaction();
@@ -274,20 +291,31 @@ export default function Transactions() {
     setIsAutocompleteReady(false);
   }, [id, type]);
 
+  // Untuk menambahkan file baru dalam format base64
   useEffect(() => {
-    if (!transactionLoading && TransactionDetail.id) {
-      if (
-        TransactionDetail.attachments &&
-        TransactionDetail.attachments.length > 0
-      ) {
-        setFiles(TransactionDetail.attachments);
-      } else {
-        setFiles([]);
-      }
-      setClearFiles(false);
-    }
-  }, [TransactionDetail.attachments, transactionLoading]);
+    if (files.length > 0) {
+      convertFilesToBase64(files)
+        .then((result) => {
+          setUpdateFiles((prev) => {
+            const updated = [...prev];
+            const index = updated.findIndex((item) => item.status === "create");
 
+            if (index !== -1) {
+              // Jika sudah ada, replace files-nya
+              updated[index] = { ...updated[index], files: result };
+            } else {
+              // Jika belum ada, push object baru
+              updated.push({ status: "create", files: result });
+            }
+
+            return updated;
+          });
+        })
+        .catch((err) => console.error("Error converting files:", err));
+    }
+  }, [files]);
+
+  // Handler untuk drawer
   const handleIsOpen = () => {
     if (!isOpen) {
       // Reset state dulu agar tidak ada stale state
@@ -311,15 +339,64 @@ export default function Transactions() {
     setIsOpen((prev) => !prev);
   };
 
-  const handleFileUpload = (file: File[]) => {
+  // Handler untuk file upload component
+  const handleFileChange = (file: File[]) => {
     const Files = [...files, ...file];
     setFiles(Files);
   };
 
+  // Handler untuk menghapus file yang sudah diupload
+  const handleFileDelete = (files: File[]) => {
+    setFiles(files);
+  };
+
+  // Handler untuk menghapus file yang sudah ada di database
+  const handleDeleteExistFile = (
+    e: MouseEvent<HTMLButtonElement>,
+    id: string,
+  ) => {
+    e.stopPropagation();
+    const files = userInput.attachments.filter(
+      (transaction) => transaction.id !== id,
+    );
+    setUserInput((prev) => ({
+      ...prev,
+      attachments: files,
+    }));
+    const result = TransactionDetail.attachments.find(
+      (transaction) => transaction.id === id,
+    )?.id;
+
+    if (result) {
+      setUpdateFiles((prev) => {
+        const existing = prev.find((item) => item.status === "delete");
+        if (existing) {
+          return prev.map((item) =>
+            item.status === "delete"
+              ? {
+                  ...item,
+                  files: [...item.files, result], // gabungkan
+                }
+              : item,
+          );
+        } else {
+          return [
+            ...prev,
+            {
+              status: "delete",
+              files: [result],
+            },
+          ];
+        }
+      });
+    }
+  };
+
+  // Handler untuk submit data
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const token = Cookies.get("token") || "";
-
+console.log("Update Files:", updatedFiles);
     const data =
       type === "fund_transfer"
         ? {
@@ -338,7 +415,7 @@ export default function Transactions() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, attachments: updatedFiles }),
       });
 
       if (!res.ok) {
@@ -392,7 +469,7 @@ export default function Transactions() {
         onClick={handleIsOpen}
       />
       <div
-        className={`fixed top-0 bottom-0 w-screen bg-white duration-500 md:w-[30vw] ${isOpen ? "right-0 z-[98]" : "-right-[100vw] md:-right-[30vw]"}`}
+        className={`fixed top-0 bottom-0 w-screen bg-white pb-24 duration-500 md:w-[30vw] ${isOpen ? "right-0 z-[98]" : "-right-[100vw] md:-right-[30vw]"}`}
       >
         <div className="flex w-full items-center justify-between p-4">
           <h1 className="text-xl">Edit your transaction</h1>
@@ -404,7 +481,7 @@ export default function Transactions() {
         <div className="h-full w-full">
           {isAutocompleteReady ? (
             <form
-              className="relative flex flex-col gap-4 p-6"
+              className="flex h-full flex-col gap-4 overflow-y-auto p-6 pb-20"
               onSubmit={(e) => handleSubmit(e)}
             >
               {/* Transaction Category */}
@@ -659,21 +736,70 @@ export default function Transactions() {
 
               {/* File Upload Section */}
               <div className="flex min-h-96 w-full flex-col items-center justify-center">
-                <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
-                  <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
-                    Upload Receipt/Invoice (optional)
-                  </p>
-                  <p className="relative z-20 text-center text-base font-normal text-neutral-400 dark:text-neutral-400">
-                    Drag or drop your files here or click to upload
-                  </p>
+                <div className="w-full">
+                  {userInput.attachments &&
+                    userInput.attachments.length > 0 && (
+                      <label className="mb-2">Attachments</label>
+                    )}
+                  {userInput.attachments &&
+                    userInput.attachments.length > 0 &&
+                    userInput.attachments.map((file, index) => (
+                      <div
+                        className="flex w-full items-center justify-between gap-4 rounded-xl p-4 shadow-sm"
+                        key={index}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="rounded-lg bg-sky-50 p-2">
+                            <FileIcon ext={file.format} />
+                          </div>
+                          <div className="flex flex-col">
+                            <a
+                              href={`https://api-refina.miftech.web.id/uploads/transactions-attachments/${file.image}`}
+                              className="flex items-center gap-1 text-sky-500 duration-300 hover:text-sky-600"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <h1>{shortenFilename(file.image)}</h1>
+                              <LuArrowUpRight />
+                            </a>
+                            <div className="flex items-center gap-2 text-sm text-neutral-500">
+                              <h2>{bytesToMegabytes(file.size)}</h2>
+                              <div className="h-1 w-1 rounded-full bg-neutral-500" />
+                              <h3 className="rounded-md bg-gray-100 px-1 py-0.5 uppercase">
+                                {file.format}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          className="cursor-pointer text-lg text-black duration-300 hover:text-rose-500"
+                          onClick={(e) => handleDeleteExistFile(e, file.id)}
+                          type="button"
+                        >
+                          <IoCloseOutline />
+                        </button>
+                      </div>
+                    ))}
                 </div>
-                <FileUpload
-                  onChange={handleFileUpload}
-                  clearFiles={clearFiles}
+                {!(
+                  userInput.attachments && userInput.attachments.length > 0
+                ) && (
+                  <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
+                    <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
+                      Upload Receipt/Invoice (optional)
+                    </p>
+                    <p className="relative z-20 text-center text-base font-normal text-neutral-400 dark:text-neutral-400">
+                      Drag or drop your files here or click to upload
+                    </p>
+                  </div>
+                )}
+                <FileUploadEdited
+                  onChange={handleFileChange}
+                  onDelete={handleFileDelete}
                 />
               </div>
 
-              <div className="absolute right-10 bottom-10 left-10">
+              <div className="absolute right-0 bottom-0 left-0 z-40 flex h-28 items-center justify-center bg-white">
                 <SubmitButton text="Save Transaction" />
               </div>
             </form>

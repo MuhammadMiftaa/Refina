@@ -15,7 +15,15 @@ const Transaction = z.object({
   transaction_date: z.string(),
   description: z.string(),
   image: z.string().nullable(),
-  attachments: z.array(z.string()).default([]),
+  attachments: z.array(
+    z.object({
+      id: z.string(),
+      transaction_id: z.string(),
+      image: z.string(),
+      format: z.string(),
+      size: z.number(),
+    }),
+  ),
 });
 
 export type TransactionType = z.infer<typeof Transaction>;
