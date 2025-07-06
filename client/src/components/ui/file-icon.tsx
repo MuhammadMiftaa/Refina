@@ -3,16 +3,16 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { FaRegImage } from "react-icons/fa6";
 
 export default function FileIcon({ ext }: { ext: string }) {
-  if (ext.toLocaleLowerCase() === "pdf") {
+  if (ext.toLowerCase() === "pdf") {
     return <IoDocumentTextOutline />;
   }
 
   if (
-    ext.toLocaleLowerCase() === "jpg" ||
-    ext.toLocaleLowerCase() === "jpeg" ||
-    ext.toLocaleLowerCase() === "png" ||
-    ext.toLocaleLowerCase() === "gif" ||
-    ext.toLocaleLowerCase() === "webp"
+    ext.toLowerCase() === "jpg" ||
+    ext.toLowerCase() === "jpeg" ||
+    ext.toLowerCase() === "png" ||
+    ext.toLowerCase() === "gif" ||
+    ext.toLowerCase() === "webp"
   ) {
     return <FaRegImage />;
   }

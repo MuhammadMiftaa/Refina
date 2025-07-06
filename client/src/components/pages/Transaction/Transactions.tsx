@@ -248,8 +248,6 @@ export default function Transactions() {
         admin_fee: 0,
         attachments: TransactionDetail.attachments,
       });
-
-      setUpdateFiles([]);
     }
   }, [TransactionDetail.id, transactionLoading]);
 
@@ -396,7 +394,7 @@ export default function Transactions() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const token = Cookies.get("token") || "";
-console.log("Update Files:", updatedFiles);
+
     const data =
       type === "fund_transfer"
         ? {
@@ -438,10 +436,14 @@ console.log("Update Files:", updatedFiles);
       // } else {
       //   await uploadAttachment(resData.data.id, files, token);
       // }
-
+      
+      setFiles([]);
+      setUpdateFiles([]);
       setIsOpen(false);
       navigate("/transactions");
     } catch (error) {
+      setFiles([]);
+      setUpdateFiles( []);
       console.error("Error creating transaction:", error);
     }
   };
