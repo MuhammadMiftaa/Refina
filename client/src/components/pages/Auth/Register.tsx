@@ -93,8 +93,7 @@ export default function Register(props: {
     <div
       className="grid min-h-screen w-full place-items-center text-[#645e74]"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1567201864585-6baec9110dac?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+        backgroundImage: "url('/background.jpeg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -174,7 +173,7 @@ export default function Register(props: {
             </p>
           )}
 
-          <div className="flex h-11 items-center gap-4 rounded-md border border-[#d0d0d6] px-4 text-[16px] outline-[#8864f0] relative">
+          <div className="relative flex h-11 items-center gap-4 rounded-md border border-[#d0d0d6] px-4 text-[16px] outline-[#8864f0]">
             <div>
               <SlLock className="text-lg text-neutral-500" />
             </div>
@@ -326,8 +325,7 @@ export function RegisterOTP(props: { isAuthenticated: boolean }) {
     <div
       className="grid min-h-screen w-full place-items-center text-[#645e74]"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1567201864585-6baec9110dac?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+        backgroundImage: "url('/background.jpeg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

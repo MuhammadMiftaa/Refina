@@ -1,3 +1,25 @@
+export function createCookiesOpts(): Cookies.CookieAttributes {
+  const mode = import.meta.env.VITE_MODE;
+  let options: Cookies.CookieAttributes = { expires: 7 };
+  switch (mode) {
+    case "production":
+      options = {
+        expires: 7,
+        secure: true,
+        sameSite: "None",
+        domain: ".miftech.web.id",
+      };
+      break;
+    case "development":
+      options = {
+        expires: 7,
+      };
+      break;
+  }
+
+  return options;
+}
+
 export const GetInitials = (username: string): string => {
   if (!username) return "";
 

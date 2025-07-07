@@ -2,7 +2,9 @@ FROM oven/bun:1.1.13-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_MODE
 ARG VITE_API_URL
+ENV VITE_MODE=$VITE_MODE
 ENV VITE_API_URL=$VITE_API_URL
 
 COPY package.json ./

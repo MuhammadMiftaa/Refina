@@ -102,6 +102,7 @@ export default function AddTransaction() {
   const [files, setFiles] = useState<File[]>([]);
   const [base64Files, setBase64Files] = useState<string[]>([]);
   const [clearFiles, setClearFiles] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   useEffect(() => {
     const flatMap = Categories.flatMap((group) =>
@@ -136,6 +137,7 @@ export default function AddTransaction() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setSubmitLoading(true);
     const token = Cookies.get("token") || "";
 
     const data =
@@ -178,6 +180,7 @@ export default function AddTransaction() {
     } catch (error) {
       console.error("Error creating transaction:", error);
     }
+    setSubmitLoading(false);
   };
 
   const uploadAttachment = async (ID: string) => {
@@ -942,7 +945,7 @@ export default function AddTransaction() {
               setClearFiles(true);
             }}
           />
-          <SubmitButton text="Add Transaction" />
+          <SubmitButton text="Add Transaction" loading={submitLoading} />
         </div>
       </form>
     </div>

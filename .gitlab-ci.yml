@@ -39,7 +39,7 @@ build_client:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo "Building client application..."
-    - docker build --build-arg VITE_API_URL=https://api-refina.miftech.web.id/v1 -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
+    - docker build --build-arg VITE_API_URL=https://api-refina.miftech.web.id/v1 --build-arg VITE_MODE=production -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
     - docker push "$CI_REGISTRY_IMAGE/client" --all-tags
     - echo "$CI_JOB_ID" > client_build_job_id.txt
   artifacts:
@@ -84,7 +84,7 @@ release:
 #     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
 #   script:
 #     - |
-#       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} " 
+#       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "
 #         export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
 #         export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
 #         export APP_IMAGE_STG_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&

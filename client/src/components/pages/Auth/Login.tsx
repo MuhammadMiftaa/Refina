@@ -9,8 +9,9 @@ import { decodeJwt } from "jose";
 import { useProfile } from "@/store/useProfile";
 import { useShallow } from "zustand/shallow";
 import { SlLock } from "react-icons/sl";
-import { MdOutlineAlternateEmail } from "react-icons/md";
 import { LuEye, LuEyeOff } from "react-icons/lu";
+import { IoMailOutline } from "react-icons/io5";
+import { createCookiesOpts } from "@/helper/Helper";
 
 const postFormSchema = z.object({
   email: z.string().email(),
@@ -52,7 +53,7 @@ export default function Login(props: {
     }).then((res) => res.json());
 
     if (res.status) {
-      Cookies.set("token", res.data);
+      Cookies.set("token", res.data, createCookiesOpts());
       props.handleLogin();
       navigate("/");
     } else {
@@ -84,7 +85,7 @@ export default function Login(props: {
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
-      Cookies.set("token", token);
+      Cookies.set("token", token, createCookiesOpts());
       const decoded = decodeJwt(token);
       setProfile({
         username: decoded.username as string,
@@ -101,8 +102,7 @@ export default function Login(props: {
     <div
       className="grid min-h-screen w-full place-items-center bg-[#e8dfff] text-[#645e74]"
       style={{
-        backgroundImage:
-          "url('https://images.unsplash.com/photo-1567201864585-6baec9110dac?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
+        backgroundImage: "url('/background.jpeg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -163,7 +163,7 @@ export default function Login(props: {
 
           <div className="flex h-11 items-center gap-4 rounded-md border border-[#d0d0d6] px-4 text-[16px] outline-[#8864f0]">
             <div>
-              <MdOutlineAlternateEmail className="text-lg text-neutral-500" />
+              <IoMailOutline className="text-lg text-neutral-500" />
             </div>
             <input
               type="email"
