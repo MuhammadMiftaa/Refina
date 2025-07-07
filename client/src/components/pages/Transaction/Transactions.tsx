@@ -4,16 +4,13 @@ import { FormEvent, MouseEvent, useEffect, useState } from "react";
 import { DataTable } from "./data-table";
 import { ArrowUpDown, MoreHorizontal } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
-import { BsArrowDownLeftCircle, BsArrowUpRightCircle } from "react-icons/bs";
 import {
   bytesToMegabytes,
   convertFilesToBase64,
   formatRawDate,
-  generateColorByType,
   shortenFilename,
   toLocalISOString,
 } from "@/helper/Helper";
-import { PiArrowsLeftRightLight } from "react-icons/pi";
 import { getBackendURL } from "@/lib/readenv";
 import { TransactionType } from "@/types/UserTransaction";
 import GlobalLoading from "@/components/ui/global-loading";
@@ -41,6 +38,7 @@ import { FaRegTrashAlt } from "react-icons/fa";
 import { LuArrowUpRight } from "react-icons/lu";
 import FileIcon from "@/components/ui/file-icon";
 import { AttachmentType } from "@/types/Attachments";
+import CategoryTypeComponent from "@/components/ui/category-type";
 
 async function fetchTransactions() {
   const backendURL = getBackendURL();
@@ -436,14 +434,14 @@ export default function Transactions() {
       // } else {
       //   await uploadAttachment(resData.data.id, files, token);
       // }
-      
+
       setFiles([]);
       setUpdateFiles([]);
       setIsOpen(false);
       navigate("/transactions");
     } catch (error) {
       setFiles([]);
-      setUpdateFiles( []);
+      setUpdateFiles([]);
       console.error("Error creating transaction:", error);
     }
   };
@@ -882,22 +880,7 @@ const columns: ColumnDef<TransactionType>[] = [
     ),
     cell: ({ row }: { row: any }) => {
       const type: string = row.getValue("category_type");
-      return (
-        <h1
-          className={`mx-auto flex w-fit items-center gap-2 rounded-2xl border px-3 py-1 font-light text-nowrap uppercase text-${generateColorByType(type)} border-${generateColorByType(type)}`}
-        >
-          {type.replace(/_/g, " ")}{" "}
-          <span className={`text-${generateColorByType(type)}`}>
-            {type === "expense" ? (
-              <BsArrowUpRightCircle />
-            ) : type === "income" ? (
-              <BsArrowDownLeftCircle />
-            ) : (
-              <PiArrowsLeftRightLight />
-            )}
-          </span>
-        </h1>
-      );
+      return <CategoryTypeComponent type={type} />;
     },
   },
   {

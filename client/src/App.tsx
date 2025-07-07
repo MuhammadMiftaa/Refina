@@ -3,7 +3,7 @@ import { useState } from "react";
 import Cookies from "js-cookie";
 import MainLayout from "./components/layouts/MainLayout";
 import Login from "./components/pages/Auth/Login";
-import Register from "./components/pages/Auth/Register";
+import Register, { RegisterOTP } from "./components/pages/Auth/Register";
 import { decodeJwt } from "jose";
 import { useProfile } from "./store/useProfile";
 import { useShallow } from "zustand/shallow";
@@ -101,6 +101,10 @@ function App() {
             handleLogin={handleLogin}
           />
         }
+      />
+      <Route
+        path="register/verification"
+        element={<RegisterOTP isAuthenticated={isAuthenticated} />}
       />
     </Routes>
   );
