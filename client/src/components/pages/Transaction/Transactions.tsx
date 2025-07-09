@@ -854,14 +854,14 @@ const columns: ColumnDef<TransactionType>[] = [
     ),
     cell: ({ row }: { row: any }) => {
       const date: string = row.getValue("transaction_date");
+      // console.log("date", date);
       const formattedDate = formatRawDate(date);
 
       return (
         <div className="flex flex-col items-center">
-          {/* <h1 className="font-light">{formattedDate[1]}</h1> */}
+          <h1 className="font-light">{formattedDate[1]}</h1>
           <p className="text-sm text-nowrap text-zinc-500">
-            {/* {formattedDate[0]}, {formattedDate[2]} */}
-            {formattedDate}
+            {formattedDate[0]}, {formattedDate[2]}
           </p>
         </div>
       );

@@ -94,14 +94,14 @@ export function formatRawDate(rawDate: string): [string, string, string] {
     "Desember",
   ];
 
-  const dayName = days[date.getDay()];
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const dayName = days[date.getUTCDay()];
+  const hours = date.getUTCHours().toString().padStart(2, "0");
+  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
   const time = `${hours}:${minutes} WIB`;
 
-  const dateNum = date.getDate();
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
+  const dateNum = date.getUTCDate();
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
   const fullDate = `${dateNum} ${month} ${year}`;
 
   return [dayName, time, fullDate];
