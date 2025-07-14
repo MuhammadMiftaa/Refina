@@ -7,6 +7,7 @@ import Register, { RegisterOTP } from "./components/pages/Auth/Register";
 import { decodeJwt } from "jose";
 import { useProfile } from "./store/useProfile";
 import { useShallow } from "zustand/shallow";
+import Dashboard from "./components/pages/Dashboard/Index";
 import Wallets from "./components/pages/Wallet/Wallets";
 import Transactions from "./components/pages/Transaction/Transactions";
 import Investments from "./components/pages/Investments";
@@ -41,7 +42,7 @@ function App() {
           path={"/"}
           element={
             <ProtectedRoute isAuthenticated={isAuthenticated}>
-              <></>
+              <Dashboard></Dashboard>
             </ProtectedRoute>
           }
         />
