@@ -54,7 +54,7 @@ services:
 
   ref-staging-postgres:
     container_name: ref-staging-postgres
-    image: postgres:17.5-alpine
+    image: cleisonfmelo/postgres-pg-cron
     ports:
       - "127.0.0.1:${DB_PORT}:5432"
     environment:
