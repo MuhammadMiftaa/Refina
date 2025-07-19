@@ -82,8 +82,23 @@ services:
       - refina_network
     restart: always
 
+  ref-production-pgadmin:
+    container_name: ref-production-pgadmin
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ideamint.com
+      PGADMIN_DEFAULT_PASSWORD: M1ft4m1ft4
+    depends_on:
+      - ref-production-postgres
+    volumes:
+      - production_pgadmin_data:/var/lib/pgadmin
+    restart: always
+
 volumes:
   production_postgres_data:
+  production_pgadmin_data:
 
 networks:
   refina_network:

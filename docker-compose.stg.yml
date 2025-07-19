@@ -82,8 +82,23 @@ services:
       - refina_staging_network
     restart: always
 
+  ref-staging-pgadmin:
+    container_name: ref-staging-pgadmin
+    image: dpage/pgadmin4:latest
+    ports:
+      - "5051:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ideamint.com
+      PGADMIN_DEFAULT_PASSWORD: M1ft4m1ft4
+    depends_on:
+      - ref-staging-postgres
+    volumes:
+      - staging_pgadmin_data:/var/lib/pgadmin
+    restart: always
+
 volumes:
   staging_postgres_data:
+  staging_pgadmin_data:
 
 networks:
   refina_staging_network:

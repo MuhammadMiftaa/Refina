@@ -321,7 +321,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 		// Generate file name
 		mimeType := http.DetectContentType(decodedFile)
 		ext := strings.ToLower("." + strings.Split(mimeType, "/")[1])
-		fileName := fmt.Sprintf("%s.%s", helper.GenerateFileName("TA", transactionID, strconv.Itoa(idx)), ext)
+		fileName := fmt.Sprintf("%s%s", helper.GenerateFileName("TA", transactionID, strconv.Itoa(idx)), ext)
 
 		absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
 		if err := helper.StorageIsExist(absolutePath); err != nil {
