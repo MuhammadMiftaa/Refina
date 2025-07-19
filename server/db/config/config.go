@@ -14,14 +14,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var mode = func() string {
-	m := os.Getenv("MODE")
-	if m == "" {
-		m = "development"
-	}
-	return m
-}()
-
 func SetupDatabase() (*gorm.DB, error) {
 	user := os.Getenv("DB_USER")
 	host := os.Getenv("DB_HOST")
@@ -79,6 +71,15 @@ func CreateView(db *gorm.DB) {
 		errors = append(errors, err)
 	}
 	if err := views.ViewCategoryGroupByType(db); err != nil {
+		errors = append(errors, err)
+	}
+	if err := views.MVUserMonthlySummary(db); err != nil {
+		errors = append(errors, err)
+	}
+	if err := views.MVUserMostExpense(db); err != nil {
+		errors = append(errors, err)
+	}
+	if err := views.MVUserWalletDailySummary(db); err != nil {
 		errors = append(errors, err)
 	}
 
