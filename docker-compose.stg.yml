@@ -94,6 +94,8 @@ services:
       - ref-staging-postgres
     volumes:
       - staging_pgadmin_data:/var/lib/pgadmin
+    networks:
+      - refina_staging_network
     restart: always
 
 volumes:

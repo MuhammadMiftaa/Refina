@@ -94,6 +94,8 @@ services:
       - ref-production-postgres
     volumes:
       - production_pgadmin_data:/var/lib/pgadmin
+    networks:
+      - refina_network
     restart: always
 
 volumes:
