@@ -11,11 +11,11 @@ func MVUserMonthlySummary(db *gorm.DB) error {
 	// Create a materialized view for user monthly summary
 	log.Println("[INFO] Creating materialized view for user monthly summary...")
 	queryCreateUserMonthlySummaryView := `
-	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_monthly_summary AS
+	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_monthly_summaries AS
 	SELECT 
 		u.id AS user_id,
 		to_char(t.transaction_date, 'YYYY-MM') AS month,
-		to_char(t.transaction_date, 'month') as month_name,
+		rtrim(to_char(t.transaction_date, 'month')) as month_name,
 		SUM(CASE WHEN c."type" = 'income' THEN t.amount ELSE 0 END) AS total_income,
 		SUM(CASE WHEN c."type" = 'expense' THEN t.amount ELSE 0 END) AS total_expense
 	FROM 
@@ -35,39 +35,39 @@ func MVUserMonthlySummary(db *gorm.DB) error {
 	`
 
 	if err := db.Exec(queryCreateUserMonthlySummaryView).Error; err != nil {
-		log.Printf("[ERROR] failed to create view_user_monthly_summary: %v", err)
-		return fmt.Errorf("failed to create view_user_monthly_summary: %w", err)
+		log.Printf("[ERROR] failed to create view_user_monthly_summaries: %v", err)
+		return fmt.Errorf("failed to create view_user_monthly_summaries: %w", err)
 	}
 
 	// Create an index on the user monthly summary view for better performance
 	log.Println("[INFO] Creating index for user monthly summary view...")
 	queryCreateUserMonthlySummaryIndex := `
-	CREATE INDEX IF NOT EXISTS idx_view_user_monthly_summary_user_id ON view_user_monthly_summary (user_id, month_name);
+	CREATE INDEX IF NOT EXISTS idx_view_user_monthly_summaries_user_id ON view_user_monthly_summaries (user_id, month_name);
 	`
 
 	if err := db.Exec(queryCreateUserMonthlySummaryIndex).Error; err != nil {
-		log.Printf("[ERROR] failed to create index on view_user_monthly_summary: %v", err)
-		return fmt.Errorf("failed to create index on view_user_monthly_summary: %w", err)
+		log.Printf("[ERROR] failed to create index on view_user_monthly_summaries: %v", err)
+		return fmt.Errorf("failed to create index on view_user_monthly_summaries: %w", err)
 	}
 
 	log.Println("[INFO] Checking for existing cron job for user monthly summary view...")
 	queryCheckCron := `
-  	SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_monthly_summary';
+  	SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_monthly_summaries';
 	`
 	var count int64
 	if err := db.Raw(queryCheckCron).Scan(&count).Error; err != nil {
-		log.Printf("[ERROR] failed to check cron job for view_user_monthly_summary: %v", err)
-		return fmt.Errorf("failed to check cron job for view_user_monthly_summary: %w", err)
+		log.Printf("[ERROR] failed to check cron job for view_user_monthly_summaries: %v", err)
+		return fmt.Errorf("failed to check cron job for view_user_monthly_summaries: %w", err)
 	}
 
 	if count == 0 {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user monthly summary view...")
 		queryCreateUserMonthlySummaryAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_monthly_summary');
+		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_monthly_summaries');
 		`
 		if err := db.Exec(queryCreateUserMonthlySummaryAutoRefresh).Error; err != nil {
-			return fmt.Errorf("failed to create auto-refresh for view_user_monthly_summary: %w", err)
+			return fmt.Errorf("failed to create auto-refresh for view_user_monthly_summaries: %w", err)
 		}
 	} else {
 		log.Println("[INFO] Cron job for user monthly summary view already exists, skipping creation.")
@@ -78,12 +78,12 @@ func MVUserMonthlySummary(db *gorm.DB) error {
 
 func MVUserMostExpense(db *gorm.DB) error {
 	queryCreateUserMostExpense := `
-	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_most_expense AS
+	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_most_expenses AS
 		WITH transaction_totals AS (
 			SELECT 
 				user_id,
 				parent.name AS parent_category_name,
-				SUM(transactions.amount) AS transaction_total,
+				SUM(transactions.amount) AS total,
 				ROW_NUMBER() OVER (
 				PARTITION BY user_id 
 				ORDER BY SUM(transactions.amount) DESC
@@ -100,40 +100,40 @@ func MVUserMostExpense(db *gorm.DB) error {
 		SELECT *
 		FROM transaction_totals
 		WHERE rank <= 7
-		ORDER BY user_id ASC, transaction_total DESC;
+		ORDER BY user_id ASC, total DESC;
 	`
 
 	if err := db.Exec(queryCreateUserMostExpense).Error; err != nil {
-		log.Printf("[ERROR] failed to create view_user_most_expense: %v", err)
-		return fmt.Errorf("failed to create view_user_most_expense: %v", err)
+		log.Printf("[ERROR] failed to create view_user_most_expenses: %v", err)
+		return fmt.Errorf("failed to create view_user_most_expenses: %v", err)
 	}
 
 	log.Println("[INFO] Creating index for user most expense view...")
 	queryCreateUserMostExpenseIndex := `
-	CREATE INDEX IF NOT EXISTS idx_view_user_most_expense_user_id ON view_user_most_expense (user_id, parent_category_name);
+	CREATE INDEX IF NOT EXISTS idx_view_user_most_expenses_user_id ON view_user_most_expenses (user_id, parent_category_name);
 	`
 	if err := db.Exec(queryCreateUserMostExpenseIndex).Error; err != nil {
-		log.Printf("[ERROR] failed to create index on view_user_most_expense: %v", err)
-		return fmt.Errorf("failed to create index on view_user_most_expense: %w", err)
+		log.Printf("[ERROR] failed to create index on view_user_most_expenses: %v", err)
+		return fmt.Errorf("failed to create index on view_user_most_expenses: %w", err)
 	}
 
 	log.Println("[INFO] Checking for existing cron job for user most expense view...")
-	queryCheckCron := `SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_most_expense';`
+	queryCheckCron := `SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_most_expenses';`
 
 	var count int64
 	if err := db.Raw(queryCheckCron).Scan(&count).Error; err != nil {
-		log.Printf("[ERROR] failed to check cron job for view_user_most_expense: %v", err)
-		return fmt.Errorf("failed to check cron job for view_user_most_expense: %w", err)
+		log.Printf("[ERROR] failed to check cron job for view_user_most_expenses: %v", err)
+		return fmt.Errorf("failed to check cron job for view_user_most_expenses: %w", err)
 	}
 
 	if count == 0 {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user most expense view...")
 		queryCreateUserMostExpenseAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_most_expense');
+		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_most_expenses');
 		`
 		if err := db.Exec(queryCreateUserMostExpenseAutoRefresh).Error; err != nil {
-			return fmt.Errorf("failed to create auto-refresh for view_user_most_expense: %w", err)
+			return fmt.Errorf("failed to create auto-refresh for view_user_most_expenses: %w", err)
 		}
 	} else {
 		log.Println("[INFO] Cron job for user most expense view already exists, skipping creation.")
@@ -144,7 +144,7 @@ func MVUserMostExpense(db *gorm.DB) error {
 
 func MVUserWalletDailySummary(db *gorm.DB) error {
 	queryCreateUserWalletBalanceHistory := `
-	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_wallet_daily_summary AS
+	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_wallet_daily_summaries AS
 	WITH date_series AS (
 	SELECT generate_series(
 		CURRENT_DATE - INTERVAL '89 days',
@@ -202,29 +202,29 @@ func MVUserWalletDailySummary(db *gorm.DB) error {
 	}
 
 	log.Println("[INFO] Creating index for user wallet balance history view...")
-	queryCreateUserWalletBalanceHistoryIndex := `CREATE INDEX IF NOT EXISTS idx_view_user_wallet_daily_summary_user_id ON view_user_wallet_daily_summary (user_id, date);`
+	queryCreateUserWalletBalanceHistoryIndex := `CREATE INDEX IF NOT EXISTS idx_view_user_wallet_daily_summaries_user_id ON view_user_wallet_daily_summaries (user_id, date);`
 	if err := db.Exec(queryCreateUserWalletBalanceHistoryIndex).Error; err != nil {
-		log.Printf("[ERROR] failed to create index on view_user_wallet_daily_summary: %v", err)
-		return fmt.Errorf("failed to create index on view_user_wallet_daily_summary: %w", err)
+		log.Printf("[ERROR] failed to create index on view_user_wallet_daily_summaries: %v", err)
+		return fmt.Errorf("failed to create index on view_user_wallet_daily_summaries: %w", err)
 	}
 
 	log.Println("[INFO] Checking for existing cron job for user wallet balance history view...")
-	queryCheckCron := `SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summary';`
+	queryCheckCron := `SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summaries';`
 
 	var count int64
 	if err := db.Raw(queryCheckCron).Scan(&count).Error; err != nil {
-		log.Printf("[ERROR] failed to check cron job for view_user_wallet_daily_summary: %v", err)
-		return fmt.Errorf("failed to check cron job for view_user_wallet_daily_summary: %w", err)
+		log.Printf("[ERROR] failed to check cron job for view_user_wallet_daily_summaries: %v", err)
+		return fmt.Errorf("failed to check cron job for view_user_wallet_daily_summaries: %w", err)
 	}
 
 	if count == 0 {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user wallet balance history view...")
 		queryCreateAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summary');
+		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summaries');
 		`
 		if err := db.Exec(queryCreateAutoRefresh).Error; err != nil {
-			return fmt.Errorf("failed to create auto-refresh for view_user_wallet_daily_summary: %w", err)
+			return fmt.Errorf("failed to create auto-refresh for view_user_wallet_daily_summaries: %w", err)
 		}
 	} else {
 		log.Println("[INFO] Cron job for user wallet balance history view already exists, skipping creation.")

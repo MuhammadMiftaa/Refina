@@ -18,6 +18,9 @@ type TransactionsRepository interface {
 	CreateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 	UpdateTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
 	DeleteTransaction(ctx context.Context, tx Transaction, transaction entity.Transactions) (entity.Transactions, error)
+	GetUserMonthlySummary(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserMonthlySummaries, error)
+	GetUserMostExpenses(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserMostExpenses, error)
+	GetUserWalletDailySummary(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserWalletDailySummaries, error)
 }
 
 type transactionsRepository struct {
@@ -133,4 +136,61 @@ func (transaction_repo *transactionsRepository) DeleteTransaction(ctx context.Co
 		return entity.Transactions{}, err
 	}
 	return transaction, nil
+}
+
+func (transaction_repo *transactionsRepository) GetUserMonthlySummary(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserMonthlySummaries, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	var summaries []view.MVUserMonthlySummaries
+	query := db.Table("view_user_monthly_summaries")
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err = query.Find(&summaries).Error
+	if err != nil {
+		return nil, errors.New("user monthly summaries not found")
+	}
+
+	return summaries, nil
+}
+
+func (transaction_repo *transactionsRepository) GetUserMostExpenses(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserMostExpenses, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	var expenses []view.MVUserMostExpenses
+	query := db.Table("view_user_most_expenses")
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err = query.Find(&expenses).Error
+	if err != nil {
+		return nil, errors.New("user most expenses not found")
+	}
+
+	return expenses, nil
+}
+
+func (transaction_repo *transactionsRepository) GetUserWalletDailySummary(ctx context.Context, tx Transaction, userID *string) ([]view.MVUserWalletDailySummaries, error) {
+	db, err := transaction_repo.getDB(ctx, tx)
+	if err != nil {
+		return nil, err
+	}
+
+	var summaries []view.MVUserWalletDailySummaries
+	query := db.Table("view_user_wallet_daily_summaries")
+	if userID != nil {
+		query = query.Where("user_id = ?", *userID)
+	}
+	err = query.Find(&summaries).Error
+	if err != nil {
+		return nil, errors.New("user wallet daily summaries not found")
+	}
+
+	return summaries, nil
 }

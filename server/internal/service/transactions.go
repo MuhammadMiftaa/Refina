@@ -21,7 +21,7 @@ import (
 )
 
 type TransactionsService interface {
-	GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error)
+	GetAllTransactions(ctx context.Context) ([]view.ViewUserTransactions, error)
 	GetTransactionByID(ctx context.Context, id string) (view.ViewUserTransactions, error)
 	GetTransactionsByUserID(ctx context.Context, token string) ([]view.ViewUserTransactions, error)
 	CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
@@ -29,6 +29,9 @@ type TransactionsService interface {
 	UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
+	GetUserMonthlySummary(ctx context.Context, userID *string) ([]view.MVUserMonthlySummaries, error)
+	GetUserMostExpenses(ctx context.Context, userID *string) ([]view.MVUserMostExpenses, error)
+	GetUserWalletDailySummary(ctx context.Context, userID *string) ([]view.MVUserWalletDailySummaries, error)
 }
 
 type transactionsService struct {
@@ -49,19 +52,13 @@ func NewTransactionService(txManager repository.TxManager, transactionRepo repos
 	}
 }
 
-func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Context) ([]dto.TransactionsResponse, error) {
+func (transaction_serv *transactionsService) GetAllTransactions(ctx context.Context) ([]view.ViewUserTransactions, error) {
 	transactions, err := transaction_serv.transactionRepo.GetAllTransactions(ctx, nil)
 	if err != nil {
 		return nil, errors.New("failed to get transactions")
 	}
 
-	var transactionsResponse []dto.TransactionsResponse
-	for _, transaction := range transactions {
-		transactionResponse := helper.ConvertToResponseType(transaction).(dto.TransactionsResponse)
-		transactionsResponse = append(transactionsResponse, transactionResponse)
-	}
-
-	return transactionsResponse, nil
+	return transactions, nil
 }
 
 func (transaction_serv *transactionsService) GetTransactionByID(ctx context.Context, id string) (view.ViewUserTransactions, error) {
@@ -531,7 +528,7 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 						return dto.TransactionsResponse{}, fmt.Errorf("attachment with file %v not found: %w", attachmentToDelete, err)
 					}
 				}
-			
+
 			default:
 				return dto.TransactionsResponse{}, errors.New("invalid attachment status")
 			}
@@ -601,4 +598,52 @@ func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Conte
 	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(dto.TransactionsResponse)
 
 	return transactionResponse, nil
+}
+
+func (transaction_serv *transactionsService) GetUserMonthlySummary(ctx context.Context, userID *string) ([]view.MVUserMonthlySummaries, error) {
+	var summary []view.MVUserMonthlySummaries
+	var err error
+
+	if userID == nil {
+		summary, err = transaction_serv.transactionRepo.GetUserMonthlySummary(ctx, nil, nil)
+	} else {
+		summary, err = transaction_serv.transactionRepo.GetUserMonthlySummary(ctx, nil, userID)
+	}
+	if err != nil {
+		return nil, errors.New("failed to get user monthly summary")
+	}
+
+	return summary, nil
+}
+
+func (transaction_serv *transactionsService) GetUserMostExpenses(ctx context.Context, userID *string) ([]view.MVUserMostExpenses, error) {
+	var expenses []view.MVUserMostExpenses
+	var err error
+
+	if userID == nil {
+		expenses, err = transaction_serv.transactionRepo.GetUserMostExpenses(ctx, nil, nil)
+	} else {
+		expenses, err = transaction_serv.transactionRepo.GetUserMostExpenses(ctx, nil, userID)
+	}
+	if err != nil {
+		return nil, errors.New("failed to get user most expenses")
+	}
+
+	return expenses, nil
+}
+
+func (transaction_serv *transactionsService) GetUserWalletDailySummary(ctx context.Context, userID *string) ([]view.MVUserWalletDailySummaries, error) {
+	var summary []view.MVUserWalletDailySummaries
+	var err error
+
+	if userID == nil {
+		summary, err = transaction_serv.transactionRepo.GetUserWalletDailySummary(ctx, nil, nil)
+	} else {
+		summary, err = transaction_serv.transactionRepo.GetUserWalletDailySummary(ctx, nil, userID)
+	}
+	if err != nil {
+		return nil, errors.New("failed to get user wallet daily summary")
+	}
+
+	return summary, nil
 }

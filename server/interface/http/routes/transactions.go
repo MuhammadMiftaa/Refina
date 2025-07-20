@@ -30,4 +30,10 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	transaction.POST("attachment/:id", Transaction_handler.UploadAttachment)
 	transaction.PUT(":id", Transaction_handler.UpdateTransaction)
 	transaction.DELETE(":id", Transaction_handler.DeleteTransaction)
+	transaction.GET("user-monthly-summary", Transaction_handler.GetUserMonthlySummary)
+	transaction.GET("user-monthly-summary/:userID", Transaction_handler.GetUserMonthlySummaryByUserID)
+	transaction.GET("user-most-expenses", Transaction_handler.GetUserMostExpenses)
+	transaction.GET("user-most-expenses/:userID", Transaction_handler.GetUserMostExpensesByUserID)
+	transaction.GET("user-wallet-daily-summary", Transaction_handler.GetUserWalletDailySummary)
+	transaction.GET("user-wallet-daily-summary/:userID", Transaction_handler.GetUserWalletDailySummaryByUserID)
 }

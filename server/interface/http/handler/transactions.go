@@ -220,3 +220,135 @@ func (transactionHandler *TransactionHandler) DeleteTransaction(c *gin.Context) 
 		"data":       transactionDeleted,
 	})
 }
+
+func (transactionHandler *TransactionHandler) GetUserMonthlySummary(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, nil)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user monthly summary",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserMonthlySummaryByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID := c.Param("userID")
+
+	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, &userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user monthly summary by user ID",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserMostExpenses(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, nil)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user most expenses",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserMostExpensesByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID := c.Param("userID")
+
+	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, &userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user most expenses by user ID",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserWalletDailySummary(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, nil)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user wallet daily summary",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserWalletDailySummaryByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	userID := c.Param("userID")
+
+	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, &userID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user wallet daily summary by user ID",
+		"data":       summary,
+	})
+}
