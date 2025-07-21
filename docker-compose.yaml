@@ -1,22 +1,7 @@
+# ! This Docker Compose file sets up a pgAdmin, RedisInsight, and Portainer.
+# ! for local, development, staging and production environment.
+
 services:
-  postgres:
-    container_name: postgres
-    image: cleisonfmelo/postgres-pg-cron
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      POSTGRES_DB: refina
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: always
   pg_admin:
     container_name: pgadmin
     image: dpage/pgadmin4:latest
@@ -25,16 +10,24 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@ideamint.com
       PGADMIN_DEFAULT_PASSWORD: admin
-    depends_on:
-      - postgres
     volumes:
       - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - local_network
+      - refina_network # Refina network for production
+      - refina_staging_network # Refina staging network
     restart: always
-  redis:
-    container_name: redis
-    image: redis:7.2-alpine
+  redis_insights:
+    container_name: redis_insights
+    image: redis/redisinsight:latest
     ports:
-      - "6379:6379"
+      - "5540:5540"
+    volumes:
+      - redisinsights_data:/data
+    networks:
+      - local_network
+      - refina_network # Refina network for production
+      - refina_staging_network # Refina staging network
     restart: always
   portainer:
     container_name: portainer
@@ -45,9 +38,18 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
+    networks:
+      - local_network
+      - refina_network # Refina network for production
+      - refina_staging_network # Refina staging network
     restart: always
 
 volumes:
-  postgres_data:
   pgadmin_data:
   portainer_data:
+  redisinsights_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/redis_insights
+      o: bind
