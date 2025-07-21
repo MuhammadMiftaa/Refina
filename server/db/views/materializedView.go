@@ -156,7 +156,8 @@ func MVUserWalletDailySummary(db *gorm.DB) error {
 	SELECT
 		w.id AS wallet_id,
 		w.user_id,
-		wt.type AS wallet_type
+		wt.type AS wallet_type,
+		w.balance AS current_balance
 	FROM wallets w
 	JOIN wallet_types wt ON wt.id = w.wallet_type_id
 	),
@@ -164,22 +165,33 @@ func MVUserWalletDailySummary(db *gorm.DB) error {
 	SELECT
 		t.wallet_id,
 		DATE(t.transaction_date) AS date,
-		SUM(t.amount) AS amount
+		SUM(
+		CASE
+			WHEN c.type = 'expense' OR (c.type = 'fund_transfer' AND c.name = 'Cash Out') THEN -1 * t.amount
+			WHEN c.type = 'income' OR (c.type = 'fund_transfer' AND c.name = 'Cash In') THEN t.amount
+			ELSE 0
+		END
+		) AS amount
 	FROM transactions t
+	JOIN categories c ON t.category_id = c.id
 	WHERE t.deleted_at IS NULL
 	GROUP BY t.wallet_id, DATE(t.transaction_date)
 	),
-	daily_cumulative AS (
+	daily_reverse_cumulative AS (
 	SELECT
 		ds.date,
 		wi.user_id,
+		wi.wallet_id,
 		wi.wallet_type,
-		COALESCE(SUM(ts.amount), 0) AS total_amount
+		wi.current_balance 
+		- COALESCE((
+			SELECT SUM(ts2.amount)
+			FROM tx_summary ts2
+			WHERE ts2.wallet_id = wi.wallet_id
+			AND ts2.date > ds.date
+		), 0) AS total_amount
 	FROM date_series ds
 	CROSS JOIN wallet_info wi
-	LEFT JOIN tx_summary ts
-		ON ts.wallet_id = wi.wallet_id AND ts.date <= ds.date
-	GROUP BY ds.date, wi.user_id, wi.wallet_type
 	),
 	pivoted AS (
 	SELECT
@@ -189,11 +201,11 @@ func MVUserWalletDailySummary(db *gorm.DB) error {
 		SUM(CASE WHEN wallet_type = 'e-wallet' THEN total_amount ELSE 0 END) AS e_wallet,
 		SUM(CASE WHEN wallet_type = 'bank' THEN total_amount ELSE 0 END) AS bank,
 		SUM(CASE WHEN wallet_type NOT IN ('physical', 'e-wallet', 'bank') THEN total_amount ELSE 0 END) AS others
-	FROM daily_cumulative
+	FROM daily_reverse_cumulative
 	GROUP BY date, user_id
 	)
-	SELECT * FROM pivoted 
-	ORDER BY user_id, date ASC;
+	SELECT * FROM pivoted
+	ORDER BY user_id, date;
 	`
 
 	if err := db.Exec(queryCreateUserWalletBalanceHistory).Error; err != nil {

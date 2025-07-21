@@ -223,8 +223,9 @@ func (transactionHandler *TransactionHandler) DeleteTransaction(c *gin.Context) 
 
 func (transactionHandler *TransactionHandler) GetUserMonthlySummary(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, nil)
+	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, token, false)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -244,10 +245,9 @@ func (transactionHandler *TransactionHandler) GetUserMonthlySummary(c *gin.Conte
 
 func (transactionHandler *TransactionHandler) GetUserMonthlySummaryByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	userID := c.Param("userID")
-
-	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, &userID)
+	summary, err := transactionHandler.transactionServ.GetUserMonthlySummary(ctx, token, true)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -267,8 +267,9 @@ func (transactionHandler *TransactionHandler) GetUserMonthlySummaryByUserID(c *g
 
 func (transactionHandler *TransactionHandler) GetUserMostExpenses(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, nil)
+	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, token, false)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -288,10 +289,9 @@ func (transactionHandler *TransactionHandler) GetUserMostExpenses(c *gin.Context
 
 func (transactionHandler *TransactionHandler) GetUserMostExpensesByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	userID := c.Param("userID")
-
-	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, &userID)
+	summary, err := transactionHandler.transactionServ.GetUserMostExpenses(ctx, token, true)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -311,8 +311,9 @@ func (transactionHandler *TransactionHandler) GetUserMostExpensesByUserID(c *gin
 
 func (transactionHandler *TransactionHandler) GetUserWalletDailySummary(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, nil)
+	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, token, false)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,
@@ -332,10 +333,9 @@ func (transactionHandler *TransactionHandler) GetUserWalletDailySummary(c *gin.C
 
 func (transactionHandler *TransactionHandler) GetUserWalletDailySummaryByUserID(c *gin.Context) {
 	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
 
-	userID := c.Param("userID")
-
-	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, &userID)
+	summary, err := transactionHandler.transactionServ.GetUserWalletDailySummary(ctx, token, true)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":     false,

@@ -29,9 +29,9 @@ type TransactionsService interface {
 	UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
-	GetUserMonthlySummary(ctx context.Context, userID *string) ([]view.MVUserMonthlySummaries, error)
-	GetUserMostExpenses(ctx context.Context, userID *string) ([]view.MVUserMostExpenses, error)
-	GetUserWalletDailySummary(ctx context.Context, userID *string) ([]view.MVUserWalletDailySummaries, error)
+	GetUserMonthlySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserMonthlySummaries, error)
+	GetUserMostExpenses(ctx context.Context, token string, isDetail bool) ([]view.MVUserMostExpenses, error)
+	GetUserWalletDailySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserWalletDailySummaries, error)
 }
 
 type transactionsService struct {
@@ -600,14 +600,18 @@ func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Conte
 	return transactionResponse, nil
 }
 
-func (transaction_serv *transactionsService) GetUserMonthlySummary(ctx context.Context, userID *string) ([]view.MVUserMonthlySummaries, error) {
-	var summary []view.MVUserMonthlySummaries
-	var err error
+func (transaction_serv *transactionsService) GetUserMonthlySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserMonthlySummaries, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
 
-	if userID == nil {
+	var summary []view.MVUserMonthlySummaries
+
+	if !isDetail {
 		summary, err = transaction_serv.transactionRepo.GetUserMonthlySummary(ctx, nil, nil)
 	} else {
-		summary, err = transaction_serv.transactionRepo.GetUserMonthlySummary(ctx, nil, userID)
+		summary, err = transaction_serv.transactionRepo.GetUserMonthlySummary(ctx, nil, &userData.ID)
 	}
 	if err != nil {
 		return nil, errors.New("failed to get user monthly summary")
@@ -616,14 +620,18 @@ func (transaction_serv *transactionsService) GetUserMonthlySummary(ctx context.C
 	return summary, nil
 }
 
-func (transaction_serv *transactionsService) GetUserMostExpenses(ctx context.Context, userID *string) ([]view.MVUserMostExpenses, error) {
-	var expenses []view.MVUserMostExpenses
-	var err error
+func (transaction_serv *transactionsService) GetUserMostExpenses(ctx context.Context, token string, isDetail bool) ([]view.MVUserMostExpenses, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
 
-	if userID == nil {
+	var expenses []view.MVUserMostExpenses
+
+	if !isDetail {
 		expenses, err = transaction_serv.transactionRepo.GetUserMostExpenses(ctx, nil, nil)
 	} else {
-		expenses, err = transaction_serv.transactionRepo.GetUserMostExpenses(ctx, nil, userID)
+		expenses, err = transaction_serv.transactionRepo.GetUserMostExpenses(ctx, nil, &userData.ID)
 	}
 	if err != nil {
 		return nil, errors.New("failed to get user most expenses")
@@ -632,14 +640,18 @@ func (transaction_serv *transactionsService) GetUserMostExpenses(ctx context.Con
 	return expenses, nil
 }
 
-func (transaction_serv *transactionsService) GetUserWalletDailySummary(ctx context.Context, userID *string) ([]view.MVUserWalletDailySummaries, error) {
-	var summary []view.MVUserWalletDailySummaries
-	var err error
+func (transaction_serv *transactionsService) GetUserWalletDailySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserWalletDailySummaries, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
 
-	if userID == nil {
+	var summary []view.MVUserWalletDailySummaries
+
+	if !isDetail {
 		summary, err = transaction_serv.transactionRepo.GetUserWalletDailySummary(ctx, nil, nil)
 	} else {
-		summary, err = transaction_serv.transactionRepo.GetUserWalletDailySummary(ctx, nil, userID)
+		summary, err = transaction_serv.transactionRepo.GetUserWalletDailySummary(ctx, nil, &userData.ID)
 	}
 	if err != nil {
 		return nil, errors.New("failed to get user wallet daily summary")

@@ -31,9 +31,9 @@ func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	transaction.PUT(":id", Transaction_handler.UpdateTransaction)
 	transaction.DELETE(":id", Transaction_handler.DeleteTransaction)
 	transaction.GET("user-monthly-summary", Transaction_handler.GetUserMonthlySummary)
-	transaction.GET("user-monthly-summary/:userID", Transaction_handler.GetUserMonthlySummaryByUserID)
+	transaction.GET("user-monthly-summary/detail", Transaction_handler.GetUserMonthlySummaryByUserID)
 	transaction.GET("user-most-expenses", Transaction_handler.GetUserMostExpenses)
-	transaction.GET("user-most-expenses/:userID", Transaction_handler.GetUserMostExpensesByUserID)
+	transaction.GET("user-most-expenses/detail", Transaction_handler.GetUserMostExpensesByUserID)
 	transaction.GET("user-wallet-daily-summary", Transaction_handler.GetUserWalletDailySummary)
-	transaction.GET("user-wallet-daily-summary/:userID", Transaction_handler.GetUserWalletDailySummaryByUserID)
+	transaction.GET("user-wallet-daily-summary/detail", Transaction_handler.GetUserWalletDailySummaryByUserID)
 }
