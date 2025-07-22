@@ -1,19 +1,20 @@
 export type AreaChartType = {
   date: string;
-  bank: number;
+  physical: number;
   "e-wallet": number;
-  cash: number;
+  bank: number;
   others: number;
 };
 
 export type BarChartType = {
   month: string;
-  income: number;
-  expense: number;
+  month_name: string;
+  total_income: number;
+  total_expense: number;
 };
 
 export type PieChartType = {
-  category: string;
-  value: number;
+  parent_category_name: string;
+  total: number;
   fill: string;
 }

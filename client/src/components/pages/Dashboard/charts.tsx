@@ -7,6 +7,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
   Pie,
   PieChart,
   XAxis,
@@ -36,6 +37,8 @@ import {
 } from "@/components/ui/select";
 import { AreaChartType, BarChartType, PieChartType } from "@/types/Chart";
 import { TrendingUp } from "lucide-react";
+import { FaRegChartBar } from "react-icons/fa6";
+import { getLast6MonthsRange } from "@/helper/Helper";
 
 export function ChartArea({
   chartData,
@@ -64,13 +67,15 @@ export function ChartArea({
     <Card className="pt-0">
       <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
         <div className="grid flex-1 gap-1">
-          <CardTitle>Area Chart - Interactive</CardTitle>
+          <CardTitle>Daily Wallet Balance Overview</CardTitle>
           <CardDescription>
-            Showing total visitors for the last 3 months
+            A 3 months overview of your wallet balances across different sources
+            including physical cash, bank accounts, e-wallets, and others.
           </CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
+        <Select value={timeRange} onValueChange={setTimeRange} disabled>
           <SelectTrigger
+            disabled
             className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
             aria-label="Select a value"
           >
@@ -98,7 +103,7 @@ export function ChartArea({
             <defs>
               {Object.entries(chartConfig).map(
                 ([key, config]) =>
-                  key !== "visitors" && (
+                  key !== "balance" && (
                     <linearGradient
                       key={key}
                       id={`fill${key.charAt(0).toUpperCase() + key.slice(1)}`}
@@ -152,7 +157,7 @@ export function ChartArea({
             />
             {Object.entries(chartConfig).map(
               ([key, config]) =>
-                key !== "visitors" && (
+                key !== "balance" && (
                   <Area
                     key={key}
                     dataKey={key}
@@ -178,18 +183,55 @@ export function ChartBar({
   chartData: BarChartType[];
   chartConfig: ChartConfig;
 }) {
+  const chartDataConverted = chartData.map((item) => ({
+    ...item,
+    month_name: item.month_name
+      .split("")[0]
+      .toUpperCase()
+      .concat(item.month_name.slice(1)),
+  }));
+
+  const maxMonthIncome =
+    chartData
+      .reduce((max, curr) =>
+        curr.total_income > max.total_income ? curr : max,
+      )
+      .month_name.split("")[0]
+      .toUpperCase() +
+    chartData
+      .reduce((max, curr) =>
+        curr.total_income > max.total_income ? curr : max,
+      )
+      .month_name.slice(1);
+
+  const maxMonthExpense =
+    chartData
+      .reduce((max, curr) =>
+        curr.total_expense > max.total_expense ? curr : max,
+      )
+      .month_name.split("")[0]
+      .toUpperCase() +
+    chartData
+      .reduce((max, curr) =>
+        curr.total_expense > max.total_expense ? curr : max,
+      )
+      .month_name.slice(1);
+
   return (
     <Card className="h-full">
       <CardHeader>
-        <CardTitle>Bar Chart - Multiple</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Monthly Income vs Expenses</CardTitle>
+        <CardDescription>
+          Total income and spending tracked per month for the past 6 months to
+          help monitor your financial flow and trends.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={chartDataConverted}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="month"
+              dataKey="month_name"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
@@ -206,16 +248,46 @@ export function ChartBar({
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+        <div className="flex items-center gap-2 leading-none font-medium">
+          Spending peaked in {maxMonthExpense}, while income was highest in{" "}
+          {maxMonthIncome}. <FaRegChartBar className="h-4 w-4" />
         </div>
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          Data covers the last 6 months ({getLast6MonthsRange()})
         </div>
       </CardFooter>
     </Card>
   );
 }
+
+const formatRupiah = (angka: number) => `Rp ${angka.toLocaleString("id-ID")}`;
+
+const renderLabel = ({
+  value,
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+}: any) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN) * 2.5;
+  const y = cy + radius * Math.sin(-midAngle * RADIAN) * 2.5;
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#000"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+      fontSize={12}
+    >
+      {formatRupiah(value)}
+    </text>
+  );
+};
 
 export function ChartPie({
   chartData,
@@ -227,26 +299,34 @@ export function ChartPie({
   return (
     <Card className="flex h-full flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Label</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Top 7 Spending Categories</CardTitle>
+        <CardDescription>
+          Shows your highest spending categories over the last 3 months, helping
+          you identify where most of your money goes.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={chartConfig}
-          className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[250px] pb-0"
+          className="[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[250px] pb-0"
         >
           <PieChart>
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <Pie data={chartData} dataKey="value" label nameKey="category" />
+            <Pie
+              data={chartData}
+              dataKey="total"
+              label={renderLabel}
+              nameKey="parent_category_name"
+            />
           </PieChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 leading-none font-medium">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+          Most of your spending is concentrated in a few key categories.
         </div>
         <div className="text-muted-foreground leading-none">
-          Showing total visitors for the last 6 months
+          Your top expense categories is {chartData[0].parent_category_name} with a total of {formatRupiah(chartData[0].total)}
         </div>
       </CardFooter>
     </Card>

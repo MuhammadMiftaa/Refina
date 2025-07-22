@@ -64,7 +64,7 @@ func MVUserMonthlySummary(db *gorm.DB) error {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user monthly summary view...")
 		queryCreateUserMonthlySummaryAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_monthly_summaries');
+		SELECT cron.schedule('0 18 * * *', 'REFRESH MATERIALIZED VIEW view_user_monthly_summaries');
 		`
 		if err := db.Exec(queryCreateUserMonthlySummaryAutoRefresh).Error; err != nil {
 			return fmt.Errorf("failed to create auto-refresh for view_user_monthly_summaries: %w", err)
@@ -130,7 +130,7 @@ func MVUserMostExpense(db *gorm.DB) error {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user most expense view...")
 		queryCreateUserMostExpenseAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_most_expenses');
+		SELECT cron.schedule('0 18 * * *', 'REFRESH MATERIALIZED VIEW view_user_most_expenses');
 		`
 		if err := db.Exec(queryCreateUserMostExpenseAutoRefresh).Error; err != nil {
 			return fmt.Errorf("failed to create auto-refresh for view_user_most_expenses: %w", err)
@@ -233,7 +233,7 @@ func MVUserWalletDailySummary(db *gorm.DB) error {
 		// Create the cron job to refresh the materialized view daily at 1 AM
 		log.Println("[INFO] Creating auto-refresh cron job for user wallet balance history view...")
 		queryCreateAutoRefresh := `
-		SELECT cron.schedule('0 1 * * *', 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summaries');
+		SELECT cron.schedule('0 18 * * *', 'REFRESH MATERIALIZED VIEW view_user_wallet_daily_summaries');
 		`
 		if err := db.Exec(queryCreateAutoRefresh).Error; err != nil {
 			return fmt.Errorf("failed to create auto-refresh for view_user_wallet_daily_summaries: %w", err)

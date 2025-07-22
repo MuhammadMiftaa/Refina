@@ -1,3 +1,5 @@
+import { PieChartType } from "@/types/Chart";
+
 export function createCookiesOpts(): Cookies.CookieAttributes {
   const mode = import.meta.env.VITE_MODE;
   let options: Cookies.CookieAttributes = { expires: 7 };
@@ -174,3 +176,75 @@ export function bytesToMegabytes(bytes: number): string {
   const mb = bytes / (1024 * 1024);
   return `${mb.toFixed(2)} MB`;
 }
+
+const generateSoftBlue = (input: number, total: number): string => {
+  if (input < 1 || input > total) throw new Error("Input out of range");
+
+  const hue = 216; // tetap di sekitar warna #2A7CFA
+  const saturationBase = 96;
+  const saturationRange = 10; // ±10% variasi
+  const lightnessBase = 57;
+  const lightnessRange = 15; // ±15% variasi
+
+  const step = (input - 1) / (total - 1);
+
+  const saturation = Math.max(
+    0,
+    Math.min(
+      100,
+      saturationBase - saturationRange / 2 + step * saturationRange,
+    ),
+  );
+  const lightness = Math.max(
+    0,
+    Math.min(100, lightnessBase - lightnessRange / 2 + step * lightnessRange),
+  );
+
+  return `hsl(${hue}, ${saturation.toFixed(0)}%, ${lightness.toFixed(0)}%)`;
+};
+
+type ChartConfig = Record<
+  string,
+  {
+    label: string;
+    color?: string;
+  }
+>;
+
+export const buildPieChartConfig = (
+  categories: PieChartType[],
+): ChartConfig => {
+  const config: ChartConfig = {
+    value: {
+      label: "Value",
+    },
+  };
+
+  categories.forEach((item, index) => {
+    config[item.parent_category_name] = {
+      label: item.parent_category_name,
+      color: generateSoftBlue(index + 1, categories.length),
+    };
+  });
+
+  return config;
+};
+
+export const getLast6MonthsRange = (): string => {
+  const today = new Date();
+  const end = new Intl.DateTimeFormat("en-US", { month: "long" }).format(today);
+  const endYear = today.getFullYear();
+
+  const past = new Date(today);
+  past.setMonth(today.getMonth() - 5); // karena bulan dimulai dari 0
+  const start = new Intl.DateTimeFormat("en-US", { month: "long" }).format(
+    past,
+  );
+  const startYear = past.getFullYear();
+
+  if (startYear !== endYear) {
+    return `${start} ${startYear} – ${end} ${endYear}`;
+  }
+
+  return `${start} – ${end} ${endYear}`;
+};
