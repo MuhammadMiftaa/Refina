@@ -73,6 +73,9 @@ func CreateView(db *gorm.DB) {
 	if err := views.ViewCategoryGroupByType(db); err != nil {
 		errors = append(errors, err)
 	}
+	if err := views.MVUserSummaries(db); err != nil {
+		errors = append(errors, err)
+	}
 	if err := views.MVUserMonthlySummary(db); err != nil {
 		errors = append(errors, err)
 	}

@@ -7,6 +7,66 @@ import (
 	"gorm.io/gorm"
 )
 
+func MVUserSummaries(db *gorm.DB) error {
+	// Create a materialized view for user summaries
+	log.Println("[INFO] Creating materialized view for user summaries...")
+	queryCreateUserSummariesView := `
+	CREATE MATERIALIZED VIEW IF NOT EXISTS view_user_summaries AS
+	SELECT
+	  users.id,
+	  users.name,
+	  SUM(CASE WHEN categories.type = 'income' THEN transactions.amount ELSE 0 END) AS user_income,
+	  SUM(CASE WHEN categories.type = 'expense' THEN transactions.amount ELSE 0 END) AS user_expense,
+	  SUM(CASE WHEN categories.type = 'income' THEN transactions.amount ELSE 0 END) -
+	  SUM(CASE WHEN categories.type = 'expense' THEN transactions.amount ELSE 0 END) AS user_profit,
+	  SUM(wallets.balance) AS total_balance
+	FROM users
+	JOIN wallets ON wallets.user_id = users.id
+	LEFT JOIN transactions ON transactions.wallet_id = wallets.id
+	LEFT JOIN categories ON categories.id = transactions.category_id
+	WHERE transaction_date >= date_trunc('month', current_date) AND transaction_date < date_trunc('month', current_date + INTERVAL '1 month')
+	GROUP BY users.id, users.name;
+	`
+
+	if err := db.Exec(queryCreateUserSummariesView).Error; err != nil {
+		log.Printf("[ERROR] failed to create view_user_summaries: %v", err)
+		return fmt.Errorf("failed to create view_user_summaries: %w", err)
+	}
+
+	// Create an index on the user summaries view for better performance
+	log.Println("[INFO] Creating index for user summaries view...")
+	queryCreateUserSummariesIndex := `
+	CREATE INDEX IF NOT EXISTS idx_view_user_summaries_user_id ON view_user_summaries (id);
+	`
+	if err := db.Exec(queryCreateUserSummariesIndex).Error; err != nil {
+		log.Printf("[ERROR] failed to create index on view_user_summaries: %v", err)
+		return fmt.Errorf("failed to create index on view_user_summaries: %w", err)
+	}
+
+	log.Println("[INFO] Checking for existing cron job for user summaries view...")
+	queryCheckCron := `	SELECT COUNT(*) FROM cron.job WHERE command = 'REFRESH MATERIALIZED VIEW view_user_summaries';`
+	var count int64
+	if err := db.Raw(queryCheckCron).Scan(&count).Error; err != nil {
+		log.Printf("[ERROR] failed to check cron job for view_user_summaries: %v", err)
+		return fmt.Errorf("failed to check cron job for view_user_summaries: %w", err)
+	}
+
+	if count == 0 {
+		// Create the cron job to refresh the materialized view daily at 1 AM
+		log.Println("[INFO] Creating auto-refresh cron job for user summaries view...")
+		queryCreateUserSummariesAutoRefresh := `
+		SELECT cron.schedule('0 18 * * *', 'REFRESH MATERIALIZED VIEW view_user_summaries');
+		`
+		if err := db.Exec(queryCreateUserSummariesAutoRefresh).Error; err != nil {
+			return fmt.Errorf("failed to create auto-refresh for view_user_summaries: %w", err)
+		}
+	} else {
+		log.Println("[INFO] Cron job for user summaries view already exists, skipping creation.")
+	}
+
+	return nil
+}
+
 func MVUserMonthlySummary(db *gorm.DB) error {
 	// Create a materialized view for user monthly summary
 	log.Println("[INFO] Creating materialized view for user monthly summary...")

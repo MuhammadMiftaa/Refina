@@ -29,6 +29,7 @@ type TransactionsService interface {
 	UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error)
 	UpdateTransaction(ctx context.Context, id string, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error)
 	DeleteTransaction(ctx context.Context, id string) (dto.TransactionsResponse, error)
+	GetUserSummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserSummaries, error)
 	GetUserMonthlySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserMonthlySummaries, error)
 	GetUserMostExpenses(ctx context.Context, token string, isDetail bool) ([]view.MVUserMostExpenses, error)
 	GetUserWalletDailySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserWalletDailySummaries, error)
@@ -598,6 +599,26 @@ func (transaction_serv *transactionsService) DeleteTransaction(ctx context.Conte
 	transactionResponse := helper.ConvertToResponseType(transactionDeleted).(dto.TransactionsResponse)
 
 	return transactionResponse, nil
+}
+
+func (transaction_serv *transactionsService) GetUserSummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserSummaries, error) {
+	userData, err := helper.VerifyToken(token[7:])
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
+	var summary []view.MVUserSummaries
+
+	if !isDetail {
+		summary, err = transaction_serv.transactionRepo.GetUserSummary(ctx, nil, nil)
+	} else {
+		summary, err = transaction_serv.transactionRepo.GetUserSummary(ctx, nil, &userData.ID)
+	}
+	if err != nil {
+		return nil, errors.New("failed to get user summary")
+	}
+
+	return summary, nil
 }
 
 func (transaction_serv *transactionsService) GetUserMonthlySummary(ctx context.Context, token string, isDetail bool) ([]view.MVUserMonthlySummaries, error) {

@@ -221,6 +221,50 @@ func (transactionHandler *TransactionHandler) DeleteTransaction(c *gin.Context) 
 	})
 }
 
+func (transactionHandler *TransactionHandler) GetUserSummary(c *gin.Context) {
+	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
+
+	summary, err := transactionHandler.transactionServ.GetUserSummary(ctx, token, false)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user  summary",
+		"data":       summary,
+	})
+}
+
+func (transactionHandler *TransactionHandler) GetUserSummaryByUserID(c *gin.Context) {
+	ctx := c.Request.Context()
+	token := c.GetHeader("Authorization")
+
+	summary, err := transactionHandler.transactionServ.GetUserSummary(ctx, token, true)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status":     false,
+			"statusCode": 400,
+			"message":    err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":     true,
+		"statusCode": 200,
+		"message":    "Get user  summary by user ID",
+		"data":       summary,
+	})
+}
+
 func (transactionHandler *TransactionHandler) GetUserMonthlySummary(c *gin.Context) {
 	ctx := c.Request.Context()
 	token := c.GetHeader("Authorization")
