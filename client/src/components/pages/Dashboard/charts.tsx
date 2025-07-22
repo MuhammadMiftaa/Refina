@@ -7,7 +7,6 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   Pie,
   PieChart,
   XAxis,
@@ -36,7 +35,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AreaChartType, BarChartType, PieChartType } from "@/types/Chart";
-import { TrendingUp } from "lucide-react";
 import { FaRegChartBar } from "react-icons/fa6";
 import { getLast6MonthsRange } from "@/helper/Helper";
 
