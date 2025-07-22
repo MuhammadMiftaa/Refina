@@ -18,6 +18,26 @@ import Cookies from "js-cookie";
 import { useQuery } from "@tanstack/react-query";
 import { buildPieChartConfig } from "@/helper/Helper";
 import { useEffect, useState } from "react";
+import { UserSummaryType } from "@/types/UserSummary";
+
+async function fetchUserSummary() {
+  const backendURL = getBackendURL();
+
+  const token = Cookies.get("token");
+
+  const res = await fetch(`${backendURL}/transactions/user-summary/detail`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch transactions");
+  }
+
+  return res.json();
+}
 
 async function fetchUserMonthlySummary() {
   const backendURL = getBackendURL();
@@ -160,6 +180,10 @@ const barChartConfig = {
 // } satisfies ChartConfig;
 
 export default function Dashboard() {
+  const { data: userSummary, isLoading: userSummaryLoading } = useQuery({
+    queryKey: ["user-summary"],
+    queryFn: fetchUserSummary,
+  });
   const { data: userMonthlySummary, isLoading: userMonthlySummaryLoading } =
     useQuery({
       queryKey: ["user-monthly-summary"],
@@ -178,6 +202,7 @@ export default function Dashboard() {
     queryFn: fetchUserWalletDailySummary,
   });
 
+  const UserSummary: UserSummaryType = userSummary?.data[0] || {};
   const UserMonthlySummary: BarChartType[] = userMonthlySummary?.data || [];
   const UserMostExpenses: PieChartType[] = userMostExpenses?.data || [];
   const UserWalletDailySummary: AreaChartType[] =
@@ -206,84 +231,90 @@ export default function Dashboard() {
         <h1 className="text-3xl font-semibold md:text-4xl">Dashboard</h1>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-4">
-        <div className="col-span-3 grid grid-cols-4 gap-4">
-          {/* INCOME */}
-          <Card>
-            <CardHeader className="flex justify-between">
-              <div>
-                <CardTitle className="text-lg">Total Income</CardTitle>
-                <CardDescription>June 2024</CardDescription>
-              </div>
-              <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
-                <PiBoxArrowDownLight />
-              </div>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4 text-2xl font-bold">
-              <h1>RP 4.500.000</h1>
-              <div className="flex items-center gap-2 rounded bg-emerald-50 px-1 py-0.5 text-base font-medium text-emerald-600">
-                <IoIosTrendingUp />
-                <h2>4.5 %</h2>
-              </div>
-            </CardContent>
-          </Card>
-          {/* EXPENSE */}
-          <Card>
-            <CardHeader className="flex justify-between">
-              <div>
-                <CardTitle className="text-lg">Total Expense</CardTitle>
-                <CardDescription>June 2024</CardDescription>
-              </div>
-              <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
-                <TbMoneybag />
-              </div>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4 text-2xl font-bold">
-              <h1>RP 3.500.000</h1>
-              <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
-                <IoIosTrendingDown />
-                <h2>2.5 %</h2>
-              </div>
-            </CardContent>
-          </Card>
-          {/* PROFIT */}
-          <Card>
-            <CardHeader className="flex justify-between">
-              <div>
-                <CardTitle className="text-lg">Total Profit</CardTitle>
-                <CardDescription>June 2024</CardDescription>
-              </div>
-              <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
-                <CiMoneyCheck1 />
-              </div>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4 text-2xl font-bold">
-              <h1>RP 1.000.000</h1>
-              <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
-                <IoIosTrendingDown />
-                <h2>0.5 %</h2>
-              </div>
-            </CardContent>
-          </Card>
-          {/* TOTAL BALANCE */}
-          <Card className="bg-gradient-to-r from-sky-200 to-sky-300">
-            <CardHeader className="flex justify-between">
-              <div>
-                <CardTitle className="text-lg">Total Balance</CardTitle>
-                <CardDescription>June 2024</CardDescription>
-              </div>
-              <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
-                <IoWalletOutline />
-              </div>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4 text-2xl font-bold">
-              <h1>RP 12.000.000</h1>
-              <div className="flex items-center gap-2 rounded px-1 py-0.5 text-base font-medium text-black">
-                <IoIosTrendingDown />
-                <h2>5.5 %</h2>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {!userSummaryLoading && UserSummary && (
+          <div className="col-span-3 grid grid-cols-4 gap-4">
+            {/* INCOME */}
+            <Card>
+              <CardHeader className="flex justify-between">
+                <div>
+                  <CardTitle className="text-lg">Total Income</CardTitle>
+                  <CardDescription>June 2024</CardDescription>
+                </div>
+                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                  <PiBoxArrowDownLight />
+                </div>
+              </CardHeader>
+              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+                <h1>Rp {UserSummary?.income_now?.toLocaleString("id-ID")}</h1>
+                <div className="flex items-center gap-2 rounded bg-emerald-50 px-1 py-0.5 text-base font-medium text-emerald-600">
+                  <IoIosTrendingUp />
+                  <h2>{UserSummary?.user_income_growth_percentage} %</h2>
+                </div>
+              </CardContent>
+            </Card>
+            {/* EXPENSE */}
+            <Card>
+              <CardHeader className="flex justify-between">
+                <div>
+                  <CardTitle className="text-lg">Total Expense</CardTitle>
+                  <CardDescription>June 2024</CardDescription>
+                </div>
+                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                  <TbMoneybag />
+                </div>
+              </CardHeader>
+              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+                <h1>
+                  Rp {UserSummary?.expense_now?.toLocaleString("id-ID")}
+                </h1>
+                <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
+                  <IoIosTrendingDown />
+                  <h2>{UserSummary?.user_expense_growth_percentage} %</h2>
+                </div>
+              </CardContent>
+            </Card>
+            {/* PROFIT */}
+            <Card>
+              <CardHeader className="flex justify-between">
+                <div>
+                  <CardTitle className="text-lg">Total Profit</CardTitle>
+                  <CardDescription>June 2024</CardDescription>
+                </div>
+                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                  <CiMoneyCheck1 />
+                </div>
+              </CardHeader>
+              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+                <h1>Rp {UserSummary?.profit_now?.toLocaleString("id-ID")}</h1>
+                <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
+                  <IoIosTrendingDown />
+                  <h2>{UserSummary?.user_profit_growth_percentage} %</h2>
+                </div>
+              </CardContent>
+            </Card>
+            {/* TOTAL BALANCE */}
+            <Card className="bg-gradient-to-r from-sky-200 to-sky-300">
+              <CardHeader className="flex justify-between">
+                <div>
+                  <CardTitle className="text-lg">Total Balance</CardTitle>
+                  <CardDescription>June 2024</CardDescription>
+                </div>
+                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                  <IoWalletOutline />
+                </div>
+              </CardHeader>
+              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+                <h1>
+                  Rp {UserSummary?.balance_now?.toLocaleString("id-ID")}
+                </h1>
+                <div className="flex items-center gap-2 rounded px-1 py-0.5 text-base font-medium text-black">
+                  <IoIosTrendingDown />
+                  <h2>{UserSummary?.user_balance_growth_percentage} %</h2>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         <div className="col-span-3">
           {!userWalletDailySummaryLoading &&
             UserWalletDailySummary.length > 0 && (
