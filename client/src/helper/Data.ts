@@ -73,3 +73,41 @@ export const data = {
     // },
   ],
 };
+
+export const INVESTMENT_TYPE = {
+  Gold: {
+    id: "gold",
+    label: "Gold",
+    color: "bg-yellow-300",
+  },
+  Bonds: {
+    id: "bonds",
+    label: "Bonds",
+    color: "bg-green-300",
+  },
+  Stocks: {
+    id: "stocks",
+    label: "Stocks",
+    color: "bg-blue-300",
+  },
+  Deposits: {
+    id: "deposits",
+    label: "Deposits",
+    color: "bg-purple-300",
+  },
+  "Mutual Funds": {
+    id: "mutual_funds",
+    label: "Mutual Funds",
+    color: "bg-pink-300",
+  },
+  "Government Securities": {
+    id: "government_securities",
+    label: "Government Securities",
+    color: "bg-red-300",
+  },
+  Others: {
+    id: "others",
+    label: "Others",
+    color: "bg-gray-300",
+  },
+} as const;

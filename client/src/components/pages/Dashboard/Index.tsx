@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -19,6 +20,9 @@ import { useQuery } from "@tanstack/react-query";
 import { buildPieChartConfig } from "@/helper/Helper";
 import { useEffect, useState } from "react";
 import { UserSummaryType } from "@/types/UserSummary";
+import { INVESTMENT_TYPE } from "@/helper/Data";
+import { BsFillSafeFill } from "react-icons/bs";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 async function fetchUserSummary() {
   const backendURL = getBackendURL();
@@ -150,34 +154,41 @@ const barChartConfig = {
   },
 } satisfies ChartConfig;
 
-// const pieChartData: PieChartType[] = [
-//   { category: "Food", value: 3000, fill: "#FF6384" },
-//   { category: "Transport", value: 2000, fill: "#36A2EB" },
-//   { category: "Entertainment", value: 1500, fill: "#FFCE56" },
-//   { category: "Utilities", value: 2500, fill: "#4BC0C0" },
-// ];
-
-// const pieChartConfig = {
-//   value: {
-//     label: "Value",
-//   },
-//   food: {
-//     label: "Food",
-//     color: "#FF6384",
-//   },
-//   transport: {
-//     label: "Transport",
-//     color: "#36A2EB",
-//   },
-//   entertainment: {
-//     label: "Entertainment",
-//     color: "#FFCE56",
-//   },
-//   utilities: {
-//     label: "Utilities",
-//     color: "#4BC0C0",
-//   },
-// } satisfies ChartConfig;
+const InvestmentsData = [
+  {
+    id: "873fd980-6663-466f-9d9d-16a5dddb7a03",
+    investment_type: "Gold",
+    user_id: "a79a39e5-d70f-41ae-b7e6-36246a99172d",
+    name: "Emas Antam",
+    amount: 9335000,
+    quantity: 5,
+    unit: "Gram",
+    investment_date: "2024-06-09T15:04:05Z",
+    description: "Emas Batang Antam",
+  },
+  {
+    id: "d8da83b3-15ee-4b0e-8289-0924b61c1a0f",
+    investment_type: "Gold",
+    user_id: "a79a39e5-d70f-41ae-b7e6-36246a99172d",
+    name: "Emas Pluang",
+    amount: 3713738,
+    quantity: 2,
+    unit: "Gram",
+    investment_date: "2024-04-13T15:04:05Z",
+    description: "Emas Digital Pluang",
+  },
+  {
+    id: "bf679652-b03e-4dc7-9dcf-1b9d43015f52",
+    investment_type: "Others",
+    user_id: "a79a39e5-d70f-41ae-b7e6-36246a99172d",
+    name: "Bitcoin Binance",
+    amount: 135336,
+    quantity: 0.00006993,
+    unit: "BTC",
+    investment_date: "2025-07-23T15:04:05Z",
+    description: "Bitcoin/USDT Binance",
+  },
+];
 
 export default function Dashboard() {
   const { data: userSummary, isLoading: userSummaryLoading } = useQuery({
@@ -230,25 +241,42 @@ export default function Dashboard() {
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <h1 className="text-3xl font-semibold md:text-4xl">Dashboard</h1>
       </div>
-      <div className="mt-4 grid grid-cols-3 gap-4">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
         {!userSummaryLoading && UserSummary && (
-          <div className="col-span-3 grid grid-cols-4 gap-4">
+          <div className="col-span-3 grid grid-cols-1 gap-4 md:grid-cols-4">
             {/* INCOME */}
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-lg">Total Income</CardTitle>
-                  <CardDescription>June 2024</CardDescription>
+                  <CardTitle className="text-sm md:text-lg">
+                    Total Income
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date())}
+                  </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
                   <PiBoxArrowDownLight />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center gap-4 text-2xl font-bold">
-                <h1>Rp {UserSummary?.income_now?.toLocaleString("id-ID")}</h1>
-                <div className="flex items-center gap-2 rounded bg-emerald-50 px-1 py-0.5 text-base font-medium text-emerald-600">
-                  <IoIosTrendingUp />
-                  <h2>{UserSummary?.user_income_growth_percentage} %</h2>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
+                <h1>
+                  Rp <NumberTicker value={UserSummary?.income_now} />
+                </h1>
+                <div
+                  className={`${UserSummary?.user_income_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                >
+                  {UserSummary?.user_income_growth_percentage >= 0 ? (
+                    <IoIosTrendingUp />
+                  ) : (
+                    <IoIosTrendingDown />
+                  )}
+                  <h2>
+                    <NumberTicker value={Math.abs(UserSummary?.user_income_growth_percentage)} decimalPlaces={2} /> %
+                  </h2>
                 </div>
               </CardContent>
             </Card>
@@ -256,20 +284,35 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-lg">Total Expense</CardTitle>
-                  <CardDescription>June 2024</CardDescription>
+                  <CardTitle className="text-sm md:text-lg">
+                    Total Expense
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date())}
+                  </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
                   <TbMoneybag />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
                 <h1>
-                  Rp {UserSummary?.expense_now?.toLocaleString("id-ID")}
+                  Rp <NumberTicker value={UserSummary?.expense_now} />
                 </h1>
-                <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
-                  <IoIosTrendingDown />
-                  <h2>{UserSummary?.user_expense_growth_percentage} %</h2>
+                <div
+                  className={`${UserSummary?.user_expense_growth_percentage <= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                >
+                  {UserSummary?.user_expense_growth_percentage >= 0 ? (
+                    <IoIosTrendingUp />
+                  ) : (
+                    <IoIosTrendingDown />
+                  )}
+                  <h2>
+                    <NumberTicker value={Math.abs(UserSummary?.user_expense_growth_percentage)} decimalPlaces={2} /> %
+                  </h2>
                 </div>
               </CardContent>
             </Card>
@@ -277,18 +320,35 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-lg">Total Profit</CardTitle>
-                  <CardDescription>June 2024</CardDescription>
+                  <CardTitle className="text-sm md:text-lg">
+                    Total Profit
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date())}
+                  </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
                   <CiMoneyCheck1 />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center gap-4 text-2xl font-bold">
-                <h1>Rp {UserSummary?.profit_now?.toLocaleString("id-ID")}</h1>
-                <div className="flex items-center gap-2 rounded bg-rose-50 px-1 py-0.5 text-base font-medium text-rose-600">
-                  <IoIosTrendingDown />
-                  <h2>{UserSummary?.user_profit_growth_percentage} %</h2>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
+                <h1>
+                  Rp <NumberTicker value={UserSummary?.profit_now} />
+                </h1>
+                <div
+                  className={`${UserSummary?.user_profit_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                >
+                  {UserSummary?.user_profit_growth_percentage >= 0 ? (
+                    <IoIosTrendingUp />
+                  ) : (
+                    <IoIosTrendingDown />
+                  )}
+                  <h2>
+                    <NumberTicker value={Math.abs(UserSummary?.user_profit_growth_percentage)} decimalPlaces={2} /> %
+                  </h2>
                 </div>
               </CardContent>
             </Card>
@@ -296,26 +356,39 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-r from-sky-200 to-sky-300">
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-lg">Total Balance</CardTitle>
-                  <CardDescription>June 2024</CardDescription>
+                  <CardTitle className="text-sm md:text-lg">
+                    Total Balance
+                  </CardTitle>
+                  <CardDescription className="text-xs md:text-sm">
+                    {new Intl.DateTimeFormat("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    }).format(new Date())}
+                  </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-xl text-sky-500">
+                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
                   <IoWalletOutline />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center gap-4 text-2xl font-bold">
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
                 <h1>
-                  Rp {UserSummary?.balance_now?.toLocaleString("id-ID")}
+                  Rp <NumberTicker value={UserSummary?.balance_now} />
                 </h1>
-                <div className="flex items-center gap-2 rounded px-1 py-0.5 text-base font-medium text-black">
-                  <IoIosTrendingDown />
-                  <h2>{UserSummary?.user_balance_growth_percentage} %</h2>
+                <div className="flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium text-black md:text-base">
+                  {UserSummary?.user_balance_growth_percentage >= 0 ? (
+                    <IoIosTrendingUp />
+                  ) : (
+                    <IoIosTrendingDown />
+                  )}
+                  <h2>
+                    <NumberTicker value={Math.abs(UserSummary?.user_balance_growth_percentage)} decimalPlaces={2} /> %
+                  </h2>
                 </div>
               </CardContent>
             </Card>
           </div>
         )}
-        <div className="col-span-3">
+        <div className="col-span-3 row-start-2">
           {!userWalletDailySummaryLoading &&
             UserWalletDailySummary.length > 0 && (
               <ChartArea
@@ -324,7 +397,7 @@ export default function Dashboard() {
               />
             )}
         </div>
-        <div className="h-full">
+        <div className="col-span-3 row-start-3 h-full w-full md:col-span-1">
           {!userMonthlySummaryLoading && UserMonthlySummary.length > 0 && (
             <ChartBar
               chartData={UserMonthlySummary}
@@ -332,7 +405,7 @@ export default function Dashboard() {
             />
           )}
         </div>
-        <div className="h-full">
+        <div className="col-span-3 row-start-4 h-full md:col-span-1 md:row-start-3">
           {!userMostExpensesLoading &&
             UserMostExpenses.length > 0 &&
             pieChartConfig &&
@@ -343,15 +416,55 @@ export default function Dashboard() {
               />
             )}
         </div>
-        <div className="h-full">
-          <Card className="h-full">
-            <CardHeader>
-              <CardTitle className="text-lg">Total Invesment</CardTitle>
-              {/* <CardDescription>June 2024</CardDescription> */}
-            </CardHeader>
-            <CardContent className=""></CardContent>
-          </Card>
-        </div>
+        <Card className="col-span-3 row-start-5 flex h-full flex-col md:col-span-1 md:row-start-3">
+          <CardHeader className="items-center pb-0">
+            <CardTitle>Total Investments</CardTitle>
+            <CardDescription>
+              Overview of your investments, including types, quantities, and
+              values.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="">
+            <table className="w-full">
+              <thead className="text-xs md:text-base">
+                <tr>
+                  <th className="py-2 text-left font-medium">
+                    Investment Type
+                  </th>
+                  <th className="py-2 text-center font-medium">Quantity</th>
+                  <th className="py-2 text-right font-medium">Unit</th>
+                </tr>
+              </thead>
+              <tbody className="text-xs md:text-base">
+                {InvestmentsData.map((investment) => (
+                  <tr key={investment.id}>
+                    <td className="flex items-center gap-2 py-1 text-left">
+                      <div
+                        className={`h-2 w-2 rounded-full ${investment.investment_type in INVESTMENT_TYPE && INVESTMENT_TYPE[investment.investment_type as keyof typeof INVESTMENT_TYPE].color}`}
+                      />
+                      {investment.investment_type}
+                    </td>
+                    <td className="py-1 text-center">{investment.quantity}</td>
+                    <td className="py-1 text-right">{investment.unit}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </CardContent>
+          <CardFooter className="mt-auto flex-col gap-2">
+            <div className="flex items-center gap-2 text-right font-medium">
+              Total investments value is{" "}
+              <span className="font-bold">
+                Rp {UserSummary?.balance_now?.toLocaleString("id-ID")}
+              </span>
+              <BsFillSafeFill className="h-4 w-4" />
+            </div>
+            <div className="text-muted-foreground -mt-2 text-center">
+              Your investments are diversified across various types, including
+              gold, cryptocurrencies, and more.
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

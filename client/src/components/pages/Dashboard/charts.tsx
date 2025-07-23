@@ -35,7 +35,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AreaChartType, BarChartType, PieChartType } from "@/types/Chart";
-import { FaRegChartBar } from "react-icons/fa6";
 import { getLast6MonthsRange } from "@/helper/Helper";
 
 export function ChartArea({
@@ -155,7 +154,7 @@ export function ChartArea({
             />
             {Object.entries(chartConfig).map(
               ([key, config]) =>
-                key !== "balance" && (
+                key !== "balance" && key !== "balance" && (
                   <Area
                     key={key}
                     dataKey={key}
@@ -216,7 +215,7 @@ export function ChartBar({
       .month_name.slice(1);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full w-full">
       <CardHeader>
         <CardTitle>Monthly Income vs Expenses</CardTitle>
         <CardDescription>
@@ -245,12 +244,12 @@ export function ChartBar({
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
+      <CardFooter className="flex-col items-center gap-2">
+        <div className="flex items-center gap-2 text-center font-medium">
           Spending peaked in {maxMonthExpense}, while income was highest in{" "}
-          {maxMonthIncome}. <FaRegChartBar className="h-4 w-4" />
+          {maxMonthIncome}.
         </div>
-        <div className="text-muted-foreground leading-none">
+        <div className="text-muted-foreground -mt-2 text-center">
           Data covers the last 6 months ({getLast6MonthsRange()})
         </div>
       </CardFooter>
@@ -303,7 +302,7 @@ export function ChartPie({
           you identify where most of your money goes.
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex-1 pb-0">
+      <CardContent className="flex-1">
         <ChartContainer
           config={chartConfig}
           className="[&_.recharts-pie-label-text]:fill-foreground mx-auto max-h-[250px] pb-0"
@@ -319,12 +318,13 @@ export function ChartPie({
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
+      <CardFooter className="flex-col gap-2">
+        <div className="flex items-center gap-2 text-center font-medium">
           Most of your spending is concentrated in a few key categories.
         </div>
-        <div className="text-muted-foreground leading-none">
-          Your top expense categories is {chartData[0].parent_category_name} with a total of {formatRupiah(chartData[0].total)}
+        <div className="text-muted-foreground -mt-2 text-center">
+          Your top expense categories is {chartData[0].parent_category_name}{" "}
+          with a total of {formatRupiah(chartData[0].total)}
         </div>
       </CardFooter>
     </Card>

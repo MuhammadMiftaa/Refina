@@ -198,7 +198,7 @@ function ChartTooltipContent({
             <div
               key={item.dataKey}
               className={cn(
-                "[&>svg]:text-muted-foreground flex w-full flex-wra items-center gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
+                "[&>svg]:text-muted-foreground flex-wra flex w-full items-center gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5",
                 indicator === "dot" && "items-center",
               )}
             >
@@ -232,7 +232,7 @@ function ChartTooltipContent({
                   )}
                   <div
                     className={cn(
-                      "flex flex-1 justify-between items-center leading-none gap-5",
+                      "flex flex-1 items-center justify-between gap-5 leading-none",
                       nestLabel ? "items-end" : "items-center",
                     )}
                   >
@@ -243,7 +243,7 @@ function ChartTooltipContent({
                       </span>
                     </div>
                     {item.value && (
-                      <span className="text-foreground font-mono font-medium tabular-nums line-clamp-1 pt-1.25">
+                      <span className="text-foreground line-clamp-1 pt-1.25 font-mono font-medium tabular-nums">
                         Rp {item.value.toLocaleString().replace(/,/g, ".")}
                       </span>
                     )}
@@ -292,9 +292,7 @@ function ChartLegendContent({
         return (
           <div
             key={item.value}
-            className={cn(
-              "[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 line-clamp-1",
-            )}
+            className="[&>svg]:text-muted-foreground line-clamp-1 flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3"
           >
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />
