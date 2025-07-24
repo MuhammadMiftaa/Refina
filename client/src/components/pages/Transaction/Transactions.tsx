@@ -469,7 +469,7 @@ export default function Transactions() {
         onClick={handleIsOpen}
       />
       <div
-        className={`fixed top-0 bottom-0 w-screen bg-white pb-24 duration-500 md:w-[30vw] ${isOpen ? "right-0 z-[98]" : "-right-[100vw] md:-right-[30vw]"}`}
+        className={`fixed top-0 bottom-0 w-screen bg-white pb-24 duration-500 md:w-[40vw] ${isOpen ? "right-0 z-[98]" : "-right-[100vw] md:-right-[40vw]"}`}
       >
         <div className="flex w-full items-center justify-between p-4">
           <h1 className="text-xl">Edit your transaction</h1>
@@ -486,7 +486,7 @@ export default function Transactions() {
             >
               {/* Transaction Category */}
               <div className="flex w-full flex-col">
-                <label className="mb-2" htmlFor="type">
+                <label className="mb-2 text-sm" htmlFor="type">
                   Type
                 </label>
                 <Autocomplete
@@ -500,6 +500,7 @@ export default function Transactions() {
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                       fontFamily: "Poppins, sans-serif",
+                      fontSize: "14px",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#4f46e5", // Warna hover indigo-600
                       },
@@ -514,9 +515,19 @@ export default function Transactions() {
                     "& .MuiInputLabel-root": {
                       fontFamily: "Poppins, sans-serif",
                       color: "#6b7280", // Warna label gray-500
+                      fontSize: "14px",
                       "&.Mui-focused": {
                         color: "#4f46e5", // Warna label saat focus
                       },
+                    },
+                    "& .MuiAutocomplete-option": {
+                      fontSize: "1px",
+                    },
+                    "& .MuiPopper-root": {
+                      fontSize: "1px",
+                    },
+                    "& .MuiAutocomplete-popper": {
+                      fontSize: "1px",
                     },
                   }}
                   onChange={(_, newValue) => {
@@ -539,10 +550,12 @@ export default function Transactions() {
                   )}
                   renderGroup={(params) => (
                     <li className="z-[100]" key={params.key}>
-                      <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600 capitalize">
+                      <h1 className="font-poppins pt-2 pl-2 text-xs font-semibold text-indigo-600 capitalize">
                         {params.group.replace(/-/g, " ")}
                       </h1>
-                      <h2 className="font-poppins">{params.children}</h2>
+                      <h2 className="font-poppins text-sm">
+                        {params.children}
+                      </h2>
                     </li>
                   )}
                 />
@@ -550,7 +563,7 @@ export default function Transactions() {
 
               {/* Transaction Wallet */}
               <div className="flex w-full flex-col">
-                <label className="mb-2" htmlFor="type">
+                <label className="mb-2 text-sm" htmlFor="type">
                   Wallets
                 </label>
                 <Autocomplete
@@ -564,6 +577,7 @@ export default function Transactions() {
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                       fontFamily: "Poppins, sans-serif",
+                      fontSize: "14px",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#4f46e5", // Warna hover indigo-600
                       },
@@ -577,6 +591,7 @@ export default function Transactions() {
                     },
                     "& .MuiInputLabel-root": {
                       fontFamily: "Poppins, sans-serif",
+                      fontSize: "14px",
                       color: "#6b7280", // Warna label gray-500
                       "&.Mui-focused": {
                         color: "#4f46e5", // Warna label saat focus
@@ -603,10 +618,12 @@ export default function Transactions() {
                   )}
                   renderGroup={(params) => (
                     <li className="z-[100]" key={params.key}>
-                      <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
+                      <h1 className="font-poppins pt-2 pl-2 text-xs font-semibold text-indigo-600">
                         {params.group}
                       </h1>
-                      <h2 className="font-poppins">{params.children}</h2>
+                      <h2 className="font-poppins text-sm">
+                        {params.children}
+                      </h2>
                     </li>
                   )}
                 />
@@ -614,7 +631,7 @@ export default function Transactions() {
 
               {/* Transaction Date */}
               <div className="flex w-full flex-col">
-                <label className="mb-2" htmlFor="date">
+                <label className="mb-2 text-sm" htmlFor="date">
                   Date
                 </label>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -632,17 +649,20 @@ export default function Transactions() {
                         className: "font-poppins shadow-md bg-transparent",
                         sx: {
                           "& .MuiFormControl-root": {
+                            fontSize: "14px",
                             backgroundColor: "transparent",
                           },
                           "& .MuiPickersTextField-root": {
                             backgroundColor: "transparent",
                           },
                           "& .MuiPickersInputBase-root": {
+                            fontSize: "14px",
                             borderRadius: "8px !important", // <== penting
                           },
                           "& .MuiOutlinedInput-root": {
                             borderRadius: "8px !important", // <== penting
                             fontFamily: "Poppins, sans-serif",
+                            fontSize: "14px",
                           },
                           "& .MuiOutlinedInput-notchedOutline": {
                             borderRadius: "8px !important", // <== ini bagian yang menampilkan border-nya
@@ -659,6 +679,7 @@ export default function Transactions() {
                             },
                           "& .MuiInputLabel-root": {
                             fontFamily: "Poppins, sans-serif",
+                            fontSize: "14px",
                             color: "#6b7280",
                             "&.Mui-focused": {
                               color: "#4f46e5",
@@ -673,7 +694,7 @@ export default function Transactions() {
 
               {/* Transaction Amount */}
               <div className="flex w-full flex-col">
-                <label className="mb-2">Amount (IDR)</label>
+                <label className="mb-2 text-sm">Amount (IDR)</label>
                 <NumericFormat
                   className="shadow-md"
                   value={userInput.amount}
@@ -692,10 +713,7 @@ export default function Transactions() {
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "8px", // Sesuai dengan rounded-lg di Tailwind
                       fontFamily: "Poppins, sans-serif",
-                      fontSize: {
-                        xs: "1.25rem", // Mobile (0px and up)
-                        md: "1.25rem", // Desktop (900px and up)
-                      },
+                      fontSize: "14px",
                       textAlign: "center",
                       "&:hover .MuiOutlinedInput-notchedOutline": {
                         borderColor: "#4f46e5", // Warna hover indigo-600
@@ -707,6 +725,7 @@ export default function Transactions() {
                     },
                     "& .MuiInputLabel-root": {
                       fontFamily: "Poppins, sans-serif",
+                      fontSize: "14px",
                       color: "#6b7280", // Warna label gray-500
                       "&.Mui-focused": {
                         color: "#4f46e5", // Warna label saat focus
@@ -718,9 +737,9 @@ export default function Transactions() {
 
               {/* Transaction Description */}
               <div className="flex w-full flex-col">
-                <label className="mb-2">Description</label>
+                <label className="mb-2 text-sm">Description</label>
                 <input
-                  className="w-full rounded-lg border border-gray-200 px-4 py-3.5 text-lg shadow-md focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-3.5 text-sm shadow-md focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
                   type="text"
                   id="name"
                   placeholder="Transaction Description"
@@ -739,7 +758,7 @@ export default function Transactions() {
                 <div className="w-full">
                   {userInput.attachments &&
                     userInput.attachments.length > 0 && (
-                      <label className="mb-2">Attachments</label>
+                      <label className="mb-2 text-sm">Attachments</label>
                     )}
                   {userInput.attachments &&
                     userInput.attachments.length > 0 &&
@@ -759,10 +778,10 @@ export default function Transactions() {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <h1>{shortenFilename(file.image)}</h1>
+                              <h1 className="text-sm">{shortenFilename(file.image)}</h1>
                               <LuArrowUpRight />
                             </a>
-                            <div className="flex items-center gap-2 text-sm text-neutral-500">
+                            <div className="flex items-center gap-2 text-xs text-neutral-500">
                               <h2>{bytesToMegabytes(file.size)}</h2>
                               <div className="h-1 w-1 rounded-full bg-neutral-500" />
                               <h3 className="rounded-md bg-gray-100 px-1 py-0.5 uppercase">
@@ -784,11 +803,11 @@ export default function Transactions() {
                 {!(
                   userInput.attachments && userInput.attachments.length > 0
                 ) && (
-                  <div className="font-poppins flex w-full flex-col items-center justify-center gap-2">
-                    <p className="relative z-20 text-center text-base font-bold text-neutral-700 dark:text-neutral-300">
+                  <div className="font-poppins flex w-full flex-col items-center justify-center">
+                    <p className="relative z-20 text-center text-sm font-bold text-neutral-700 dark:text-neutral-300">
                       Upload Receipt/Invoice (optional)
                     </p>
-                    <p className="relative z-20 text-center text-base font-normal text-neutral-400 dark:text-neutral-400">
+                    <p className="relative z-20 text-center text-sm font-normal text-neutral-400 dark:text-neutral-400">
                       Drag or drop your files here or click to upload
                     </p>
                   </div>

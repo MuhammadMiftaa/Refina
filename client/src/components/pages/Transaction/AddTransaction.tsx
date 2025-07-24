@@ -278,10 +278,12 @@ export default function AddTransaction() {
                   )}
                   renderGroup={(params) => (
                     <li key={params.key}>
-                      <h1 className="font-poppins pt-2 pl-2 text-sm font-semibold text-indigo-600">
+                      <h1 className="font-poppins pt-2 pl-2 text-xs font-semibold text-indigo-600">
                         {params.group}
                       </h1>
-                      <h2 className="font-poppins">{params.children}</h2>
+                      <h2 className="font-poppins text-sm">
+                        {params.children}
+                      </h2>
                     </li>
                   )}
                 />
