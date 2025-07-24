@@ -93,7 +93,7 @@ func MVUserSummaries(db *gorm.DB) error {
 	// Create an index on the user summaries view for better performance
 	log.Println("[INFO] Creating index for user summaries view...")
 	queryCreateUserSummariesIndex := `
-	CREATE INDEX IF NOT EXISTS idx_view_user_summaries_user_id ON view_user_summaries (id);
+	CREATE INDEX IF NOT EXISTS idx_view_user_summaries_user_id ON view_user_summaries (user_id);
 	`
 	if err := db.Exec(queryCreateUserSummariesIndex).Error; err != nil {
 		log.Printf("[ERROR] failed to create index on view_user_summaries: %v", err)
