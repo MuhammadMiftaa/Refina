@@ -248,33 +248,33 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-sm md:text-lg">
+                  <CardTitle className="text-sm md:text-base 2xl:text-lg">
                     Total Income
                   </CardTitle>
-                  <CardDescription className="text-xs md:text-sm">
+                  <CardDescription className="text-xs md:text-xs 2xl:text-sm">
                     {new Intl.DateTimeFormat("en-US", {
                       month: "long",
                       year: "numeric",
                     }).format(new Date())}
                   </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
+                <div className="rounded-full bg-sky-50 p-1.5 2xl:p-2 text-base text-sky-500 md:text-lg 2xl:text-xl">
                   <PiBoxArrowDownLight />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
-                <h1>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-lg 2xl:text-2xl">
+                <h1 className="text-nowrap">
                   Rp <NumberTicker value={UserSummary?.income_now} />
                 </h1>
                 <div
-                  className={`${UserSummary?.user_income_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                  className={`${UserSummary?.user_income_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex flex-nowrap items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-sm 2xl:text-base`}
                 >
                   {UserSummary?.user_income_growth_percentage >= 0 ? (
                     <IoIosTrendingUp />
                   ) : (
                     <IoIosTrendingDown />
                   )}
-                  <h2>
+                  <h2 className="text-nowrap">
                     <NumberTicker value={Math.abs(UserSummary?.user_income_growth_percentage)} decimalPlaces={2} /> %
                   </h2>
                 </div>
@@ -284,33 +284,33 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-sm md:text-lg">
+                  <CardTitle className="text-sm md:text-base 2xl:text-lg">
                     Total Expense
                   </CardTitle>
-                  <CardDescription className="text-xs md:text-sm">
+                  <CardDescription className="text-xs md:text-xs 2xl:text-sm">
                     {new Intl.DateTimeFormat("en-US", {
                       month: "long",
                       year: "numeric",
                     }).format(new Date())}
                   </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
+                <div className="rounded-full bg-sky-50 p-1.5 2xl:p-2 text-base text-sky-500 md:text-lg 2xl:text-xl">
                   <TbMoneybag />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
-                <h1>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-lg 2xl:text-2xl">
+                <h1 className="text-nowrap">
                   Rp <NumberTicker value={UserSummary?.expense_now} />
                 </h1>
                 <div
-                  className={`${UserSummary?.user_expense_growth_percentage <= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                  className={`${UserSummary?.user_expense_growth_percentage <= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex flex-nowrap items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-sm 2xl:text-base`}
                 >
                   {UserSummary?.user_expense_growth_percentage >= 0 ? (
                     <IoIosTrendingUp />
                   ) : (
                     <IoIosTrendingDown />
                   )}
-                  <h2>
+                  <h2 className="text-nowrap">
                     <NumberTicker value={Math.abs(UserSummary?.user_expense_growth_percentage)} decimalPlaces={2} /> %
                   </h2>
                 </div>
@@ -320,33 +320,33 @@ export default function Dashboard() {
             <Card>
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-sm md:text-lg">
+                  <CardTitle className="text-sm md:text-base 2xl:text-lg">
                     Total Profit
                   </CardTitle>
-                  <CardDescription className="text-xs md:text-sm">
+                  <CardDescription className="text-xs md:text-xs 2xl:text-sm">
                     {new Intl.DateTimeFormat("en-US", {
                       month: "long",
                       year: "numeric",
                     }).format(new Date())}
                   </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
+                <div className="rounded-full bg-sky-50 p-1.5 2xl:p-2 text-base text-sky-500 md:text-lg 2xl:text-xl">
                   <CiMoneyCheck1 />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
-                <h1>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-lg 2xl:text-2xl">
+                <h1 className="text-nowrap">
                   Rp <NumberTicker value={UserSummary?.profit_now} />
                 </h1>
                 <div
-                  className={`${UserSummary?.user_profit_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-base`}
+                  className={`${UserSummary?.user_profit_growth_percentage >= 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex flex-nowrap items-center gap-2 rounded px-1 py-0.5 text-xs font-medium md:text-sm 2xl:text-base`}
                 >
                   {UserSummary?.user_profit_growth_percentage >= 0 ? (
                     <IoIosTrendingUp />
                   ) : (
                     <IoIosTrendingDown />
                   )}
-                  <h2>
+                  <h2 className="text-nowrap">
                     <NumberTicker value={Math.abs(UserSummary?.user_profit_growth_percentage)} decimalPlaces={2} /> %
                   </h2>
                 </div>
@@ -356,31 +356,31 @@ export default function Dashboard() {
             <Card className="bg-gradient-to-r from-sky-200 to-sky-300">
               <CardHeader className="flex justify-between">
                 <div>
-                  <CardTitle className="text-sm md:text-lg">
+                  <CardTitle className="text-sm md:text-base 2xl:text-lg">
                     Total Balance
                   </CardTitle>
-                  <CardDescription className="text-xs md:text-sm">
+                  <CardDescription className="text-xs md:text-xs 2xl:text-sm">
                     {new Intl.DateTimeFormat("en-US", {
                       month: "long",
                       year: "numeric",
                     }).format(new Date())}
                   </CardDescription>
                 </div>
-                <div className="rounded-full bg-sky-50 p-2 text-base text-sky-500 md:text-xl">
+                <div className="rounded-full bg-sky-50 p-1.5 2xl:p-2 text-base text-sky-500 md:text-lg 2xl:text-xl">
                   <IoWalletOutline />
                 </div>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-2xl">
-                <h1>
+              <CardContent className="flex items-center justify-between gap-4 py-0 text-lg font-bold md:text-lg 2xl:text-2xl">
+                <h1 className="text-nowrap">
                   Rp <NumberTicker value={UserSummary?.balance_now} />
                 </h1>
-                <div className="flex items-center gap-2 rounded px-1 py-0.5 text-xs font-medium text-black md:text-base">
+                <div className="flex flex-nowrap items-center gap-2 rounded px-1 py-0.5 text-xs font-medium text-black md:text-sm 2xl:text-base">
                   {UserSummary?.user_balance_growth_percentage >= 0 ? (
                     <IoIosTrendingUp />
                   ) : (
                     <IoIosTrendingDown />
                   )}
-                  <h2>
+                  <h2 className="text-nowrap">
                     <NumberTicker value={Math.abs(UserSummary?.user_balance_growth_percentage)} decimalPlaces={2} /> %
                   </h2>
                 </div>
