@@ -17,6 +17,7 @@ import (
 
 	"server/internal/types/dto"
 	"server/internal/types/entity"
+	htmlTemplate "server/template"
 
 	"github.com/Rhymond/go-money"
 	"github.com/dgrijalva/jwt-go"
@@ -246,13 +247,6 @@ func FormatAmountCurrency(amount int) string {
 }
 
 func GetTemplate(htmlFile string) (t *template.Template, err error) {
-	exePath, err := os.Executable()
-	if err != nil {
-		return nil, err
-	}
-	dir := filepath.Dir(exePath)
-	path := filepath.Join(dir, "template")
-
 	t, err = template.New(htmlFile).Funcs(template.FuncMap{
 		"floatToString": func(data float64) string {
 			return fmt.Sprintf("%0.f", data)
@@ -263,7 +257,7 @@ func GetTemplate(htmlFile string) (t *template.Template, err error) {
 		"checkIsNotModZero": func(number int) bool {
 			return number%2 != 0
 		},
-	}).ParseFiles(filepath.Join(path, htmlFile))
+	}).Parse(htmlTemplate.OtpEmailTemplate)
 	if err != nil {
 		return nil, err
 	}

@@ -7,8 +7,6 @@ var (
 		".pdf": true,
 	}
 	ATTACHMENT_FILEPATH = "/app/storage/uploads/transaction-attachments"
-
-	HTML_TEMPLATE_FILEPATH = "/app/server/interface/http/template/html"
 )
 
 type GitHubPlan struct {
