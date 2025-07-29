@@ -4,6 +4,7 @@ go 1.22.4
 
 require (
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
+	github.com/Rhymond/go-money v1.0.15 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect

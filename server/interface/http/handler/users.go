@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -451,8 +452,8 @@ func (user_handler *usersHandler) SendOTP(c *gin.Context) {
 	}
 
 	// Kirimkan OTP ke email
-	if err := helper.SendEmail(OTP.Email, OTP.OTP); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send email"})
+	if err := helper.SendEmail([]string{OTP.Email}, OTP.OTP, "otp-email-template.html"); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("Failed to send email, error: %v", err)})
 		return
 	}
 

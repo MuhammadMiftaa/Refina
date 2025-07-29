@@ -1,8 +1,11 @@
 package helper
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
+	"log"
 	"math/rand"
 	"net/smtp"
 	"os"
@@ -15,6 +18,7 @@ import (
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 
+	"github.com/Rhymond/go-money"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -236,19 +240,80 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 	return microsoftOauthConfig, redirectURL, nil
 }
 
+func FormatAmountCurrency(amount int) string {
+	format := money.NewFormatter(0, ".", ".", "RP", "RP 1")
+	return format.Format(int64(amount))
+}
+
+func GetTemplate(htmlFile string) (t *template.Template, err error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	// mencari file path
+	wd = wd + "/template/"
+
+	t, err = template.New(htmlFile).Funcs(template.FuncMap{
+		"floatToString": func(data float64) string {
+			return fmt.Sprintf("%0.f", data)
+		},
+		"formatCurency": func(data int) string {
+			return FormatAmountCurrency(data)
+		},
+		"checkIsNotModZero": func(number int) bool {
+			return number%2 != 0
+		},
+	}).ParseFiles(wd + htmlFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
+}
+
+func ParseHTML(file string, otp string) (string, error) {
+	bufferhtml := bytes.Buffer{}
+	t, err := GetTemplate(file)
+	if err != nil {
+		log.Printf("[ERROR] Failed to get template: %s", err)
+		return "", err
+	}
+	// proses excecute data yang di masukkan dalam template html
+	err = t.Execute(&bufferhtml, struct {
+		OTP string
+	}{
+		OTP: otp,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return bufferhtml.String(), nil
+}
+
 func GenerateOTP() string {
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
 
-func SendEmail(emailTo string, otp string) error {
+func SendEmail(emailTo []string, otp string, htmlFilename string) error {
 	smtpHost := os.Getenv("SMTP_HOST")
 	smtpPort := os.Getenv("SMTP_PORT")
 	smtpUser := os.Getenv("SMTP_USER")
 	smtpPassword := os.Getenv("SMTP_PASSWORD")
 
-	msg := fmt.Sprintf("Subject: Your OTP Code\n\nYour OTP code is: %s", otp)
 	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, []string{emailTo}, []byte(msg))
+
+	if htmlFilename == "" {
+		return fmt.Errorf("html filename cannot be empty")
+	}
+	subject := "Subject: Welcome to Refina!\r\n"
+	mime := "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
+	htmlFile, err := ParseHTML(htmlFilename, otp)
+	if err != nil {
+		return fmt.Errorf("failed to parse HTML template: %w", err)
+	}
+
+	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, emailTo, []byte(subject+mime+htmlFile))
 	return err
 }
 
@@ -287,7 +352,6 @@ func ExpandPathAndCreateDir(path string) (string, error) {
 }
 
 func GenerateFileName(prefix, id string, postfix string) string {
-
 	t := time.Now()
 	timestamp := t.Format("20060102150405000000000")
 
