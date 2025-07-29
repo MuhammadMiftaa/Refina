@@ -246,12 +246,7 @@ func FormatAmountCurrency(amount int) string {
 }
 
 func GetTemplate(htmlFile string) (t *template.Template, err error) {
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	// mencari file path
-	wd = wd + "/template/"
+	absPath, _ := ExpandPathAndCreateDir("./template/")
 
 	t, err = template.New(htmlFile).Funcs(template.FuncMap{
 		"floatToString": func(data float64) string {
@@ -263,7 +258,7 @@ func GetTemplate(htmlFile string) (t *template.Template, err error) {
 		"checkIsNotModZero": func(number int) bool {
 			return number%2 != 0
 		},
-	}).ParseFiles(wd + htmlFile)
+	}).ParseFiles(filepath.Join(absPath, htmlFile))
 	if err != nil {
 		return nil, err
 	}
