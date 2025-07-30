@@ -26,7 +26,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { HandleLogout } from "@/helper/Logout";
-import { GetInitials } from "@/helper/Helper";
+import { generateAvatarFromName } from "@/helper/Helper";
+import { useEffect, useState } from "react";
 
 export function NavUser({
   user,
@@ -38,6 +39,25 @@ export function NavUser({
   };
 }) {
   const { isMobile } = useSidebar();
+  const [avatarDetails, setAvatarDetails] = useState({
+    initials: "",
+    textColor: "",
+    backgroundColor: "",
+  });
+
+  useEffect(() => {
+    console.log("User data:", user);
+    if (!user || !user.name) return;
+    const { initials, textColor, backgroundColor } = generateAvatarFromName(
+      user.name,
+    );
+    console.log("Generated Avatar:", {
+      initials,
+      textColor,
+      backgroundColor,
+    });
+    setAvatarDetails({ initials, textColor, backgroundColor });
+  }, [user.name]);
 
   return (
     <SidebarMenu>
@@ -50,8 +70,10 @@ export function NavUser({
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
-                  {GetInitials(user.name)}
+                <AvatarFallback
+                  className={`rounded-lg ${avatarDetails.textColor} ${avatarDetails.backgroundColor}`}
+                >
+                  {avatarDetails.initials}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -71,7 +93,11 @@ export function NavUser({
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback
+                    className={`rounded-lg ${avatarDetails.textColor} ${avatarDetails.backgroundColor}`}
+                  >
+                    {avatarDetails.initials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">{user.name}</span>

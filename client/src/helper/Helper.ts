@@ -22,20 +22,6 @@ export function createCookiesOpts(): Cookies.CookieAttributes {
   return options;
 }
 
-export const GetInitials = (username: string): string => {
-  if (!username) return "";
-
-  const words = username.trim().split(/\s+/); // Pisahkan berdasarkan spasi
-
-  if (words.length > 1) {
-    // Jika ada lebih dari 1 kata, ambil huruf pertama dari dua kata pertama
-    return (words[0][0] + words[1][0]).toUpperCase();
-  }
-
-  // Jika hanya ada satu kata, ambil dua huruf pertama
-  return words[0].slice(0, 2).toUpperCase();
-};
-
 export function shortenMoney(value: number): string {
   if (value >= 1_000_000_000) {
     return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + " B";
@@ -247,4 +233,30 @@ export const getLast6MonthsRange = (): string => {
   }
 
   return `${start} – ${end} ${endYear}`;
+};
+
+export const generateAvatarFromName = (
+  name: string,
+): { initials: string; textColor: string; backgroundColor: string } => {
+  const words = name.trim().split(/\s+/).slice(0, 2);
+  const initials = words.map((w) => w[0].toUpperCase()).join("");
+
+  // Generate random background color
+  const hex = Math.floor(Math.random() * 0xffffff)
+    .toString(16)
+    .padStart(6, "0");
+  const backgroundColor = `#${hex}`;
+
+  // Hitung brightness untuk menentukan warna teks
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  const textColor = yiq >= 128 ? "#000000" : "#FFFFFF";
+
+  return {
+    initials,
+    textColor: "text-[" + textColor + "]",
+    backgroundColor: "bg-[" + backgroundColor + "]",
+  };
 };
