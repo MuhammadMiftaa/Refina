@@ -15,6 +15,7 @@ import (
 	"time"
 	"unicode"
 
+	"server/env/config"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 	htmlTemplate "server/template"
@@ -28,8 +29,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"golang.org/x/oauth2/microsoft"
 )
-
-var mode = os.Getenv("MODE")
 
 func EmailValidator(str string) bool {
 	email_validator := regexp.MustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`)
@@ -168,77 +167,59 @@ func StorageIsExist(path string) error {
 }
 
 func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
-	var (
-		ClientID          = os.Getenv("GOOGLE_CLIENT_ID")
-		ClientSecret      = os.Getenv("GOOGLE_CLIENT_SECRET")
-		redirectURL       = os.Getenv("FRONTEND_URL")
-		port              = os.Getenv("PORT")
-		googleOauthConfig = &oauth2.Config{
-			ClientID:     ClientID,
-			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/google",
-			Scopes: []string{
-				"https://www.googleapis.com/auth/userinfo.email",
-				"https://www.googleapis.com/auth/userinfo.profile",
-			},
-			Endpoint: google.Endpoint,
-		}
-	)
-
-	if mode == "production" {
-		googleOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/google"
+	googleOauthConfig := &oauth2.Config{
+		ClientID:     config.Cfg.OAuth.Google.GOClientID,
+		ClientSecret: config.Cfg.OAuth.Google.GOClientSecret,
+		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/google",
+		Scopes: []string{
+			"https://www.googleapis.com/auth/userinfo.email",
+			"https://www.googleapis.com/auth/userinfo.profile",
+		},
+		Endpoint: google.Endpoint,
 	}
 
-	return googleOauthConfig, redirectURL, nil
+	if config.Cfg.Server.Mode == "production" {
+		googleOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/google"
+	}
+
+	return googleOauthConfig, config.Cfg.Client.Url, nil
 }
 
 func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
-	var (
-		ClientID          = os.Getenv("GITHUB_CLIENT_ID")
-		ClientSecret      = os.Getenv("GITHUB_CLIENT_SECRET")
-		redirectURL       = os.Getenv("FRONTEND_URL")
-		port              = os.Getenv("PORT")
-		githubOauthConfig = &oauth2.Config{
-			ClientID:     ClientID,
-			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/github",
-			Scopes: []string{
-				"read:user",
-				"user:email",
-			},
-			Endpoint: github.Endpoint,
-		}
-	)
-
-	if mode == "production" {
-		githubOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/github"
+	githubOauthConfig := &oauth2.Config{
+		ClientID:     config.Cfg.OAuth.Github.GHClientID,
+		ClientSecret: config.Cfg.OAuth.Github.GHClientSecret,
+		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/github",
+		Scopes: []string{
+			"read:user",
+			"user:email",
+		},
+		Endpoint: github.Endpoint,
 	}
 
-	return githubOauthConfig, redirectURL, nil
+	if config.Cfg.Server.Mode == "production" {
+		githubOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/github"
+	}
+
+	return githubOauthConfig, config.Cfg.Client.Url, nil
 }
 
 func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
-	var (
-		ClientID             = os.Getenv("MICROSOFT_CLIENT_ID")
-		ClientSecret         = os.Getenv("MICROSOFT_CLIENT_SECRET")
-		redirectURL          = os.Getenv("FRONTEND_URL")
-		port                 = os.Getenv("PORT")
-		microsoftOauthConfig = &oauth2.Config{
-			ClientID:     ClientID,
-			ClientSecret: ClientSecret,
-			RedirectURL:  "http://localhost:" + port + "/v1/auth/callback/microsoft",
-			Scopes: []string{
-				"User.Read",
-			},
-			Endpoint: microsoft.AzureADEndpoint("common"),
-		}
-	)
-
-	if mode == "production" {
-		microsoftOauthConfig.RedirectURL = os.Getenv("PUBLIC_URL") + "/v1/auth/callback/microsoft"
+	microsoftOauthConfig := &oauth2.Config{
+		ClientID:     config.Cfg.OAuth.Microsoft.MSClientID,
+		ClientSecret: config.Cfg.OAuth.Microsoft.MSClientSecret,
+		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/microsoft",
+		Scopes: []string{
+			"User.Read",
+		},
+		Endpoint: microsoft.AzureADEndpoint("common"),
 	}
 
-	return microsoftOauthConfig, redirectURL, nil
+	if config.Cfg.Server.Mode == "production" {
+		microsoftOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/microsoft"
+	}
+
+	return microsoftOauthConfig, config.Cfg.Client.Url, nil
 }
 
 func FormatAmountCurrency(amount int) string {
@@ -290,12 +271,7 @@ func GenerateOTP() string {
 }
 
 func SendEmail(emailTo []string, otp string, htmlFilename string) error {
-	smtpHost := os.Getenv("SMTP_HOST")
-	smtpPort := os.Getenv("SMTP_PORT")
-	smtpUser := os.Getenv("SMTP_USER")
-	smtpPassword := os.Getenv("SMTP_PASSWORD")
-
-	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
+	auth := smtp.PlainAuth("", config.Cfg.SMTP.SUser, config.Cfg.SMTP.SPassword, config.Cfg.SMTP.SHost)
 
 	if htmlFilename == "" {
 		return fmt.Errorf("html filename cannot be empty")
@@ -307,7 +283,7 @@ func SendEmail(emailTo []string, otp string, htmlFilename string) error {
 		return fmt.Errorf("failed to parse HTML template: %w", err)
 	}
 
-	err = smtp.SendMail(smtpHost+":"+smtpPort, auth, smtpUser, emailTo, []byte(subject+mime+htmlFile))
+	err = smtp.SendMail(config.Cfg.SMTP.SHost+":"+config.Cfg.SMTP.SPort, auth, config.Cfg.SMTP.SUser, emailTo, []byte(subject+mime+htmlFile))
 	return err
 }
 

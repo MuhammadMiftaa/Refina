@@ -1,36 +1,22 @@
 package main
 
 import (
-	"log"
-	"os"
-
-	"server/db/config"
+	dc "server/db/config"
+	ec "server/env/config"
+	qc "server/queue/config"
 	"server/interface/http/router"
-
-	"github.com/joho/godotenv"
 )
 
+func init() {
+	ec.Load() // Load environment variables and configuration
+	dc.SetupDatabase() // Initialize the database connection and run migrations
+	dc.SetupRedisDatabase() // Initialize the Redis connection
+	qc.SetupRabbitMQ() // Initialize RabbitMQ connection
+}
+
 func main() {
-	if _, err := os.Stat(".env"); err == nil {
-		if err := godotenv.Load(); err != nil {
-			log.Println("Error loading .env file")
-		}
-	}
-	
-	port := os.Getenv("PORT")
-	log.Println("Starting server on port:", port)
-	if port == "" {
-		log.Println("No PORT environment variable set, using default port 8080")
-		port = "8080" // Default port if not set
-	}
+	defer qc.Close() // Close RabbitMQ connection when the application exits
 
-	db, err := config.SetupDatabase()
-	if err != nil {
-		panic(err)
-	}
-
-	redis := config.SetupRedisDatabase()
-
-	r := router.SetupRouter(db, redis)
-	r.Run(":" + port)
+	r := router.SetupRouter() // Set up the HTTP router
+	r.Run(":" + ec.Cfg.Server.Port)
 }

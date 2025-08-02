@@ -6,19 +6,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 
 	"golang.org/x/oauth2"
 
+	"server/env/config"
 	"server/helper"
 	"server/internal/service"
 	"server/internal/types/dto"
 
 	"github.com/gin-gonic/gin"
 )
-
-var mode = os.Getenv("MODE")
 
 type usersHandler struct {
 	usersService service.UsersService
@@ -124,7 +122,7 @@ func (user_handler *usersHandler) OAuthHandler(state string) gin.HandlerFunc {
 
 func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 	// Ambil konfigurasi OAuth Google
-	config, redirect_url, err := helper.GetGoogleOAuthConfig()
+	googleConfig, redirect_url, err := helper.GetGoogleOAuthConfig()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -142,14 +140,14 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 	}
 
 	// Tukar authorization code dengan access token
-	token, err := config.Exchange(context.Background(), code)
+	token, err := googleConfig.Exchange(context.Background(), code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
 		return
 	}
 
 	// Gunakan access token untuk mengambil informasi pengguna
-	client := config.Client(context.Background(), token)
+	client := googleConfig.Client(context.Background(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user info"})
@@ -174,7 +172,7 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 		return
 	}
 
-	if mode == "production" {
+	if config.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -184,7 +182,7 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 
 func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 	// Ambil konfigurasi OAuth Google
-	config, redirect_url, err := helper.GetGithubOAuthConfig()
+	githubConfig, redirect_url, err := helper.GetGithubOAuthConfig()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -202,14 +200,14 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 	}
 
 	// Tukar authorization code dengan access token
-	token, err := config.Exchange(context.Background(), code)
+	token, err := githubConfig.Exchange(context.Background(), code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
 		return
 	}
 
 	// Gunakan access token untuk mengambil informasi pengguna
-	client := config.Client(context.Background(), token)
+	client := githubConfig.Client(context.Background(), token)
 	// Ambil data pengguna
 	resp, err := client.Get("https://api.github.com/user")
 	if err != nil {
@@ -267,7 +265,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		return
 	}
 
-	if mode == "production" {
+	if config.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -277,7 +275,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 
 func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 	// Ambil konfigurasi OAuth Google
-	config, redirect_url, err := helper.GetMicrosoftOAuthConfig()
+	microsoftConfig, redirect_url, err := helper.GetMicrosoftOAuthConfig()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"statusCode": 500,
@@ -295,14 +293,14 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 	}
 
 	// Tukar authorization code dengan access token
-	token, err := config.Exchange(context.Background(), code)
+	token, err := microsoftConfig.Exchange(context.Background(), code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to exchange token"})
 		return
 	}
 
 	// Gunakan access token untuk mengambil informasi pengguna
-	client := config.Client(context.Background(), token)
+	client := microsoftConfig.Client(context.Background(), token)
 	// Ambil data pengguna
 	resp, err := client.Get("https://graph.microsoft.com/v1.0/me")
 	if err != nil {
@@ -328,7 +326,7 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 		return
 	}
 
-	if mode == "production" {
+	if config.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)

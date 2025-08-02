@@ -4,13 +4,12 @@ import (
 	"server/helper"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
+	dc "server/db/config"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-redis/redis/v8"
-	"gorm.io/gorm"
 )
 
-func SetupRouter(db *gorm.DB, redis *redis.Client) *gin.Engine {
+func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.Use(middleware.CORSMiddleware())
@@ -22,12 +21,13 @@ func SetupRouter(db *gorm.DB, redis *redis.Client) *gin.Engine {
 	})
 
 	v1 := router.Group("/v1")
-	routes.UserRoutes(v1, db, redis)
-	routes.TransactionRoutes(v1, db)
-	routes.WalletRoutes(v1, db)
-	routes.InvestmentRoute(v1, db)
-	routes.WalletTypesRoutes(v1, db)
-	routes.CategoryRoutes(v1, db)
+	routes.UserRoutes(v1, dc.DB, dc.RDB)
+	routes.TransactionRoutes(v1, dc.DB)
+	routes.WalletRoutes(v1, dc.DB)
+	routes.InvestmentRoute(v1, dc.DB)
+	routes.WalletTypesRoutes(v1, dc.DB)
+	routes.CategoryRoutes(v1, dc.DB)
+	routes.ReportRoutes(v1, dc.DB)
 
 	router.Static("/uploads/transactions-attachments", helper.ATTACHMENT_FILEPATH)
 
