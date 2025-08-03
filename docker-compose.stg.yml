@@ -82,8 +82,56 @@ services:
       - refina_staging_network
     restart: always
 
+  ref-staging-rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:management
+    ports:
+      - "${RABBITMQ_HOST}:5672"
+      - "${RABBITMQ_HOST_WEB}:15672"
+    networks:
+      - refina_network
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - staging_rabbitmq_data:/var/lib/rabbitmq
+    restart: always
+
+  ref-staging-worker:
+    container_name: ref-staging-worker
+    image: ${APP_IMAGE_PROD_WORKER}:${APP_IMAGE_PROD_WORKER_TAG}
+    environment:
+      MODE: ${MODE}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: 6379
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: 5672
+      RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
+    depends_on:
+      ref-staging-postgres:
+        condition: service_healthy
+      ref-staging-redis:
+        condition: service_started
+      ref-staging-rabbitmq:
+        condition: service_started
+    networks:
+      - refina_network
+    restart: always
+
 volumes:
   staging_postgres_data:
+  staging_rabbitmq_data:
 
 networks:
   refina_staging_network:
