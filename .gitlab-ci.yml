@@ -19,7 +19,7 @@ build_server:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo "Building server application..."
-    - docker build -t "$CI_REGISTRY_IMAGE/server:latest" -t "$CI_REGISTRY_IMAGE/server:$TAG_IMAGE" ./server -f Dockerfile.api
+    - docker build -f Dockerfile.api -t "$CI_REGISTRY_IMAGE/server:latest" -t "$CI_REGISTRY_IMAGE/server:$TAG_IMAGE" ./server
     - docker push "$CI_REGISTRY_IMAGE/server" --all-tags
     - echo "$CI_JOB_ID" > server_build_job_id.txt
   artifacts:
@@ -37,7 +37,7 @@ build_worker:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo "Building worker application..."
-    - docker build -t "$CI_REGISTRY_IMAGE/worker:latest" -t "$CI_REGISTRY_IMAGE/worker:$TAG_IMAGE" ./server -f Dockerfile.worker
+    - docker build -f Dockerfile.worker -t "$CI_REGISTRY_IMAGE/worker:latest" -t "$CI_REGISTRY_IMAGE/worker:$TAG_IMAGE" ./server
     - docker push "$CI_REGISTRY_IMAGE/worker" --all-tags
     - echo "$CI_JOB_ID" > worker_build_job_id.txt
   artifacts:
