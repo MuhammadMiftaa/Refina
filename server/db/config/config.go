@@ -28,6 +28,13 @@ func SetupDatabase() {
 		log.Fatalf("Gagal terhubung ke database: %v", err)
 		panic(err)
 	}
+	
+	DB = db
+	
+	if err := SetupProperty(); err != nil {
+		log.Fatalf("Error saat setup property: %v", err)
+		panic(err)
+	}
 
 	if err := db.AutoMigrate(
 		&entity.Users{},
@@ -44,12 +51,6 @@ func SetupDatabase() {
 		panic(err)
 	}
 
-	DB = db
-
-	if err := SetupProperty(); err != nil {
-		log.Fatalf("Error saat setup property: %v", err)
-		panic(err)
-	}
 	PrePopulate()
 	if err := CreateView(); err != nil {
 		log.Fatalf("Error saat membuat view: %v", err)
@@ -72,6 +73,7 @@ func SetupRedisDatabase() {
 }
 
 func SetupProperty() error {
+	log.Println("[SETUP] Start to setup database properties...")
 	if err := setup.CreateReportStatusEnum(DB); err != nil {
 		return fmt.Errorf("failed to create report status enum: %w", err)
 	}
@@ -80,12 +82,14 @@ func SetupProperty() error {
 }
 
 func PrePopulate() {
+	log.Println("[SETUP] Start to prepopulate data...")
 	prepopulate.WalletTypesSeeder(DB)
 	prepopulate.CategoryTypeSeeder(DB)
 	prepopulate.InvestmentTypesSeeder(DB)
 }
 
 func CreateView() error {
+	log.Println("[SETUP] Start to create views...")
 	errors := []error{}
 
 	if err := views.ViewUserWallets(DB); err != nil {

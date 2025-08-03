@@ -1,6 +1,7 @@
 package prepopulate
 
 import (
+	"log"
 	"sync"
 
 	"gorm.io/gorm"
@@ -9,6 +10,8 @@ import (
 )
 
 func WalletTypesSeeder(db *gorm.DB) {
+	log.Println("[SETUP] seeding wallet types")
+
 	const (
 		Bank         entity.WalletType = "bank"
 		EWallet      entity.WalletType = "e-wallet"

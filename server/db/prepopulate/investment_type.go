@@ -1,6 +1,7 @@
 package prepopulate
 
 import (
+	"log"
 	"sync"
 
 	"server/internal/types/entity"
@@ -10,6 +11,8 @@ import (
 )
 
 func InvestmentTypesSeeder(db *gorm.DB) {
+	log.Println("[SETUP] seeding investment types")
+
 	// Data investasi dan satuannya
 	investmentData := []struct {
 		Name string

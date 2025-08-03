@@ -2,6 +2,7 @@ package setup
 
 import (
 	"fmt"
+	"log"
 
 	"server/helper"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func CreateReportStatusEnum(db *gorm.DB) error {
+	log.Println("[SETUP] Create report status enum.")
+
 	var exists bool
 	err := db.Raw(`
 	SELECT EXISTS (
