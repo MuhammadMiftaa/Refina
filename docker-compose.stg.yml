@@ -83,13 +83,13 @@ services:
     restart: always
 
   ref-staging-rabbitmq:
-    container_name: rabbitmq
+    container_name: ref-staging-rabbitmq
     image: rabbitmq:management
     ports:
       - "${RABBITMQ_HOST}:5672"
       - "${RABBITMQ_HOST_WEB}:15672"
     networks:
-      - refina_network
+      - refina_staging_network
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -126,7 +126,7 @@ services:
       ref-staging-rabbitmq:
         condition: service_started
     networks:
-      - refina_network
+      - refina_staging_network
     restart: always
 
 volumes:

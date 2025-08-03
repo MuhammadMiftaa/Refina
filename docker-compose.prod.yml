@@ -83,7 +83,7 @@ services:
     restart: always
 
   ref-production-rabbitmq:
-    container_name: rabbitmq
+    container_name: ref-production-rabbitmq
     image: rabbitmq:management
     ports:
       - "${RABBITMQ_HOST}:5672"
