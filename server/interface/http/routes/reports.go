@@ -11,10 +11,11 @@ import (
 
 func ReportRoutes(version *gin.RouterGroup, db *gorm.DB) {
 	userRepo := repository.NewUsersRepository(db)
-	UserService := service.NewUsersService(userRepo)
-	reportHandler := handler.NewReportHandler(UserService)
+	reportsRepo := repository.NewReportsRepository(db)
+	reportsService := service.NewReportsService(reportsRepo, userRepo)
+	reportHandler := handler.NewReportHandler(reportsService)
 
 	reportGroup := version.Group("/reports")
 
-	reportGroup.GET("request", reportHandler.RequestReports)
+	reportGroup.POST("request", reportHandler.RequestReports)
 }

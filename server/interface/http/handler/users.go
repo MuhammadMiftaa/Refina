@@ -450,7 +450,7 @@ func (user_handler *usersHandler) SendOTP(c *gin.Context) {
 	}
 
 	// Kirimkan OTP ke email
-	if err := helper.SendEmail([]string{OTP.Email}, OTP.OTP, "otp-email-template.html"); err != nil {
+	if err := helper.SendEmail([]string{OTP.Email}, "otp-email-template.html", OTP); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("Failed to send email, error: %v", err)})
 		return
 	}

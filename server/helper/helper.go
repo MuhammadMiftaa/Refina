@@ -111,8 +111,6 @@ func ConvertToResponseType(data interface{}) interface{} {
 	}
 }
 
-var secretKey = "pojq09720ef1ko0f1h9iego2010j20240"
-
 func GenerateToken(ID string, username string, email string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
@@ -124,7 +122,7 @@ func GenerateToken(ID string, username string, email string) (string, error) {
 
 	parseToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := parseToken.SignedString([]byte(secretKey))
+	signedToken, err := parseToken.SignedString([]byte(config.Cfg.Server.JWTSecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -137,7 +135,7 @@ func VerifyToken(jwtToken string) (dto.UserData, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("parsing token error occured")
 		}
-		return []byte(secretKey), nil
+		return []byte(config.Cfg.Server.JWTSecretKey), nil
 	})
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -229,16 +227,19 @@ func FormatAmountCurrency(amount int) string {
 
 func GetTemplate(htmlFile string) (t *template.Template, err error) {
 	t, err = template.New(htmlFile).Funcs(template.FuncMap{
-		"floatToString": func(data float64) string {
-			return fmt.Sprintf("%0.f", data)
+		"formatDateMY": func(data time.Time) string {
+			return data.Format("January 2006")
 		},
-		"formatCurency": func(data int) string {
-			return FormatAmountCurrency(data)
+		"formatDateMDY": func(data time.Time) string {
+			return data.Format("January 02, 2006")
 		},
-		"checkIsNotModZero": func(number int) bool {
-			return number%2 != 0
+		"formatDateMDYT": func(data time.Time) string {
+			return data.Format("January 02, 2006 at 03:04 PM")
 		},
-	}).Parse(htmlTemplate.OtpEmailTemplate)
+		"convertBToMB": func(size int64) string {
+			return fmt.Sprintf("%.2f", float64(size)/1024/1024)
+		},
+	}).Parse(htmlTemplate.Template[htmlFile])
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +247,7 @@ func GetTemplate(htmlFile string) (t *template.Template, err error) {
 	return t, nil
 }
 
-func ParseHTML(file string, otp string) (string, error) {
+func ParseHTML[T any](file string, data T) (string, error) {
 	bufferhtml := bytes.Buffer{}
 	t, err := GetTemplate(file)
 	if err != nil {
@@ -254,11 +255,7 @@ func ParseHTML(file string, otp string) (string, error) {
 		return "", err
 	}
 	// proses excecute data yang di masukkan dalam template html
-	err = t.Execute(&bufferhtml, struct {
-		OTP string
-	}{
-		OTP: otp,
-	})
+	err = t.Execute(&bufferhtml, data)
 	if err != nil {
 		return "", err
 	}
@@ -270,15 +267,16 @@ func GenerateOTP() string {
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
 }
 
-func SendEmail(emailTo []string, otp string, htmlFilename string) error {
+func SendEmail[T any](emailTo []string, htmlFilename string, data T) error {
 	auth := smtp.PlainAuth("", config.Cfg.SMTP.SUser, config.Cfg.SMTP.SPassword, config.Cfg.SMTP.SHost)
 
 	if htmlFilename == "" {
 		return fmt.Errorf("html filename cannot be empty")
 	}
+
 	subject := "Subject: Welcome to Refina!\r\n"
 	mime := "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
-	htmlFile, err := ParseHTML(htmlFilename, otp)
+	htmlFile, err := ParseHTML(htmlFilename, data)
 	if err != nil {
 		return fmt.Errorf("failed to parse HTML template: %w", err)
 	}

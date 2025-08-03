@@ -9,8 +9,9 @@ import (
 
 type (
 	Server struct {
-		Mode string `env:"MODE"`
-		Port string `env:"PORT"`
+		Mode         string `env:"MODE"`
+		Port         string `env:"PORT"`
+		JWTSecretKey string `env:"JWT_SECRET_KEY"`
 	}
 
 	Client struct {
@@ -97,6 +98,9 @@ func Load() {
 	}
 	if Cfg.Server.Port, ok = os.LookupEnv("PORT"); !ok {
 		log.Println("PORT env is not set")
+	}
+	if Cfg.Server.JWTSecretKey, ok = os.LookupEnv("JWT_SECRET_KEY"); !ok {
+		log.Println("JWT_SECRET_KEY env is not set")
 	}
 	// ! ______________________________________________________
 

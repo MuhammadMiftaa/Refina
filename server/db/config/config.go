@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"server/db/prepopulate"
+	"server/db/setup"
 	"server/db/views"
 	"server/env/config"
 	"server/internal/types/entity"
@@ -28,13 +29,27 @@ func SetupDatabase() {
 		panic(err)
 	}
 
-	if err := db.AutoMigrate(&entity.Users{}, &entity.WalletTypes{}, &entity.Wallets{}, &entity.Categories{}, &entity.Transactions{}, &entity.Attachments{}, &entity.InvestmentTypes{}, &entity.Investments{}); err != nil {
+	if err := db.AutoMigrate(
+		&entity.Users{},
+		&entity.WalletTypes{},
+		&entity.Wallets{},
+		&entity.Categories{},
+		&entity.Transactions{},
+		&entity.Attachments{},
+		&entity.InvestmentTypes{},
+		&entity.Investments{},
+		&entity.Reports{},
+	); err != nil {
 		log.Fatalf("Error saat melakukan migrasi: %v", err)
 		panic(err)
 	}
 
 	DB = db
 
+	if err := SetupProperty(); err != nil {
+		log.Fatalf("Error saat setup property: %v", err)
+		panic(err)
+	}
 	PrePopulate()
 	if err := CreateView(); err != nil {
 		log.Fatalf("Error saat membuat view: %v", err)
@@ -54,6 +69,14 @@ func SetupRedisDatabase() {
 	}
 
 	RDB = rdb
+}
+
+func SetupProperty() error {
+	if err := setup.CreateReportStatusEnum(DB); err != nil {
+		return fmt.Errorf("failed to create report status enum: %w", err)
+	}
+
+	return nil
 }
 
 func PrePopulate() {
@@ -99,6 +122,6 @@ func CreateView() error {
 		}
 		return fmt.Errorf("failed to create views: %v", errors)
 	}
-	
+
 	return nil
 }

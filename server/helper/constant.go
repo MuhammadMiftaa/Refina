@@ -7,6 +7,10 @@ var (
 		".pdf": true,
 	}
 	ATTACHMENT_FILEPATH = "/app/storage/uploads/transaction-attachments"
+
+	REPORT_STATUS_PROCESSING = "processing"
+	REPORT_STATUS_COMPLETED  = "completed"
+	REPORT_STATUS_FAILED     = "failed"
 )
 
 type GitHubPlan struct {
