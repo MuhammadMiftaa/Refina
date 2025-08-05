@@ -104,8 +104,10 @@ deploy-staging:
     - |
       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_STAGING} "
         export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
+        echo $CI_REGISTRY_IMAGE/client
         export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
         export APP_IMAGE_STG_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&
+        echo $CI_REGISTRY_IMAGE/server
         export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
         export APP_IMAGE_STG_WORKER=\"$CI_REGISTRY_IMAGE/worker\" &&
         echo $CI_REGISTRY_IMAGE/worker

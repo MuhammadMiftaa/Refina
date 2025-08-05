@@ -82,21 +82,6 @@ services:
       - refina_network
     restart: always
 
-  ref-production-rabbitmq:
-    container_name: ref-production-rabbitmq
-    image: rabbitmq:management
-    ports:
-      - "${RABBITMQ_HOST}:5672"
-      - "${RABBITMQ_HOST_WEB}:15672"
-    networks:
-      - refina_network
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
-    volumes:
-      - production_rabbitmq_data:/var/lib/rabbitmq
-    restart: always
-
   ref-production-worker:
     container_name: ref-production-worker
     image: ${APP_IMAGE_PROD_WORKER}:${APP_IMAGE_PROD_WORKER_TAG}
@@ -116,7 +101,7 @@ services:
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: 5672
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
       RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
     depends_on:
       ref-production-postgres:
@@ -131,7 +116,6 @@ services:
 
 volumes:
   production_postgres_data:
-  production_rabbitmq_data:
 
 networks:
   refina_network:
