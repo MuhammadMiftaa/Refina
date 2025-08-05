@@ -9,6 +9,8 @@ services:
     environment:
       MODE: ${MODE}
       PORT: ${PORT}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      CLIENT_PORT: ${CLIENT_PORT}
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
       DB_PORT: 5432
@@ -90,7 +92,7 @@ services:
 
   ref-staging-worker:
     container_name: ref-staging-worker
-    image: ${APP_IMAGE_PROD_WORKER}:${APP_IMAGE_PROD_WORKER_TAG}
+    image: ${APP_IMAGE_STG_WORKER}:${APP_IMAGE_STG_WORKER_TAG}
     environment:
       MODE: ${MODE}
       DB_HOST: ${DB_HOST}
