@@ -108,8 +108,6 @@ services:
         condition: service_healthy
       ref-production-redis:
         condition: service_started
-      rabbitmq:
-        condition: service_started
     networks:
       - refina_network
     restart: always
