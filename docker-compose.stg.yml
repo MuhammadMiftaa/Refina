@@ -108,7 +108,7 @@ services:
         condition: service_healthy
       ref-staging-redis:
         condition: service_started
-      ref-staging-rabbitmq:
+      rabbitmq:
         condition: service_started
     networks:
       - refina_staging_network
