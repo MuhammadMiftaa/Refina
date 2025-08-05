@@ -5,7 +5,7 @@ services:
     container_name: ref-production-server
     image: ${APP_IMAGE_PROD_SERVER}:${APP_IMAGE_PROD_SERVER_TAG}
     ports:
-      - "8082:${PORT}"
+      - "8082:8080"
     environment:
       MODE: ${MODE}
       PORT: ${PORT}
