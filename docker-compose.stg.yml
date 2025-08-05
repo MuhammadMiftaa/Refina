@@ -64,7 +64,7 @@ services:
     container_name: ref-staging-postgres
     image: cleisonfmelo/postgres-pg-cron
     ports:
-      - "127.0.0.1:${DB_PORT}:${DB_PORT}"
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -85,7 +85,7 @@ services:
     container_name: ref-staging-redis
     image: redis:7.2-alpine
     ports:
-      - "127.0.0.1:${REDIS_PORT}:${REDIS_PORT}"
+      - "127.0.0.1:6379:6379"
     networks:
       - refina_staging_network
     restart: always
