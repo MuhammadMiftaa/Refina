@@ -450,7 +450,8 @@ func (user_handler *usersHandler) SendOTP(c *gin.Context) {
 	}
 
 	// Kirimkan OTP ke email
-	if err := helper.SendEmail([]string{OTP.Email}, "otp-email-template.html", OTP); err != nil {
+	SMTPProvider := helper.NewZohoSMTP(config.Cfg.ZSMTP)
+	if err := helper.NewSMTPClient(SMTPProvider).SendSingleEmail(OTP.Email, "OTP Verification", "otp-email-template.html", OTP); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("Failed to send email, error: %v", err)})
 		return
 	}

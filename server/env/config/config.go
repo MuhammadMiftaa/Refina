@@ -55,11 +55,11 @@ type (
 		Microsoft MicrosoftOAuth
 	}
 
-	SMTP struct {
-		SHost     string `env:"SMTP_HOST"`
-		SPort     string `env:"SMTP_PORT"`
-		SUser     string `env:"SMTP_USER"`
-		SPassword string `env:"SMTP_PASSWORD"`
+	GSMTP struct {
+		GSHost     string `env:"GOOGLE_SMTP_HOST"`
+		GSPort     string `env:"GOOGLE_SMTP_PORT"`
+		GSUser     string `env:"GOOGLE_SMTP_USER"`
+		GSPassword string `env:"GOOGLE_SMTP_PASSWORD"`
 	}
 
 	RabbitMQ struct {
@@ -69,6 +69,15 @@ type (
 		RMQPassword    string `env:"RABBITMQ_PASSWORD"`
 		RMQVirtualHost string `env:"RABBITMQ_VIRTUAL_HOST"`
 	}
+	
+	ZSMTP struct {
+		ZSHost     string `env:"ZOHO_SMTP_HOST"`
+		ZSPort     string `env:"ZOHO_SMTP_PORT"`
+		ZSUser     string `env:"ZOHO_SMTP_USER"`
+		ZSPassword string `env:"ZOHO_SMTP_PASSWORD"`
+		ZSSecure   string `env:"ZOHO_SMTP_SECURE"`
+		ZSAuth     bool `env:"ZOHO_SMTP_AUTH"`
+	}
 
 	Config struct {
 		Server   Server
@@ -76,7 +85,8 @@ type (
 		Database Database
 		Redis    Redis
 		OAuth    OAuth
-		SMTP     SMTP
+		GSMTP    GSMTP
+		ZSMTP    ZSMTP
 		RabbitMQ RabbitMQ
 	}
 )
@@ -173,18 +183,18 @@ func Load() {
 	}
 	// ! ______________________________________________________
 
-	// ! Load SMTP configuration ______________________________
-	if Cfg.SMTP.SHost, ok = os.LookupEnv("SMTP_HOST"); !ok {
-		log.Println("SMTP_HOST env is not set")
+	// ! Load Gmail SMTP configuration ______________________________
+	if Cfg.GSMTP.GSHost, ok = os.LookupEnv("GOOGLE_SMTP_HOST"); !ok {
+		log.Println("GOOGLE_SMTP_HOST env is not set")
 	}
-	if Cfg.SMTP.SPort, ok = os.LookupEnv("SMTP_PORT"); !ok {
-		log.Println("SMTP_PORT env is not set")
+	if Cfg.GSMTP.GSPort, ok = os.LookupEnv("GOOGLE_SMTP_PORT"); !ok {
+		log.Println("GOOGLE_SMTP_PORT env is not set")
 	}
-	if Cfg.SMTP.SUser, ok = os.LookupEnv("SMTP_USER"); !ok {
-		log.Println("SMTP_USER env is not set")
+	if Cfg.GSMTP.GSUser, ok = os.LookupEnv("GOOGLE_SMTP_USER"); !ok {
+		log.Println("GOOGLE_SMTP_USER env is not set")
 	}
-	if Cfg.SMTP.SPassword, ok = os.LookupEnv("SMTP_PASSWORD"); !ok {
-		log.Println("SMTP_PASSWORD env is not set")
+	if Cfg.GSMTP.GSPassword, ok = os.LookupEnv("GOOGLE_SMTP_PASSWORD"); !ok {
+		log.Println("GOOGLE_SMTP_PASSWORD env is not set")
 	}
 	// ! ______________________________________________________
 
@@ -203,6 +213,29 @@ func Load() {
 	}
 	if Cfg.RabbitMQ.RMQVirtualHost, ok = os.LookupEnv("RABBITMQ_VIRTUAL_HOST"); !ok {
 		log.Println("RABBITMQ_VIRTUAL_HOST env is not set")
+	}
+	// ! ______________________________________________________
+
+	// ! Load Zoho SMTP configuration __________________________
+	if Cfg.ZSMTP.ZSHost, ok = os.LookupEnv("ZOHO_SMTP_HOST"); !ok {
+		log.Println("ZOHO_SMTP_HOST env is not set")
+	}
+	if Cfg.ZSMTP.ZSPort, ok = os.LookupEnv("ZOHO_SMTP_PORT"); !ok {
+		log.Println("ZOHO_SMTP_PORT env is not set")
+	}
+	if Cfg.ZSMTP.ZSUser, ok = os.LookupEnv("ZOHO_SMTP_USER"); !ok {
+		log.Println("ZOHO_SMTP_USER env is not set")
+	}
+	if Cfg.ZSMTP.ZSPassword, ok = os.LookupEnv("ZOHO_SMTP_PASSWORD"); !ok {
+		log.Println("ZOHO_SMTP_PASSWORD env is not set")
+	}
+	if Cfg.ZSMTP.ZSSecure, ok = os.LookupEnv("ZOHO_SMTP_SECURE"); !ok {
+		log.Println("ZOHO_SMTP_SECURE env is not set")
+	}
+	if zohoAuth, ok := os.LookupEnv("ZOHO_SMTP_AUTH"); !ok {
+		log.Println("ZOHO_SMTP_AUTH env is not set")
+	} else {
+		Cfg.ZSMTP.ZSAuth = zohoAuth == "true"
 	}
 	// ! ______________________________________________________
 }

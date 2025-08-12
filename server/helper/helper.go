@@ -1,13 +1,9 @@
 package helper
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"html/template"
-	"log"
 	"math/rand"
-	"net/smtp"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -18,9 +14,7 @@ import (
 	"server/env/config"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
-	htmlTemplate "server/template"
 
-	"github.com/Rhymond/go-money"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -220,69 +214,8 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 	return microsoftOauthConfig, config.Cfg.Client.Url, nil
 }
 
-func FormatAmountCurrency(amount int) string {
-	format := money.NewFormatter(0, ".", ".", "RP", "RP 1")
-	return format.Format(int64(amount))
-}
-
-func GetTemplate(htmlFile string) (t *template.Template, err error) {
-	t, err = template.New(htmlFile).Funcs(template.FuncMap{
-		"formatDateMY": func(data time.Time) string {
-			return data.Format("January 2006")
-		},
-		"formatDateMDY": func(data time.Time) string {
-			return data.Format("January 02, 2006")
-		},
-		"formatDateMDYT": func(data time.Time) string {
-			return data.Format("January 02, 2006 at 03:04 PM")
-		},
-		"convertBToMB": func(size int64) string {
-			return fmt.Sprintf("%.2f", float64(size)/1024/1024)
-		},
-	}).Parse(htmlTemplate.Template[htmlFile])
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
-}
-
-func ParseHTML[T any](file string, data T) (string, error) {
-	bufferhtml := bytes.Buffer{}
-	t, err := GetTemplate(file)
-	if err != nil {
-		log.Printf("[ERROR] Failed to get template: %s", err)
-		return "", err
-	}
-	// proses excecute data yang di masukkan dalam template html
-	err = t.Execute(&bufferhtml, data)
-	if err != nil {
-		return "", err
-	}
-
-	return bufferhtml.String(), nil
-}
-
 func GenerateOTP() string {
 	return fmt.Sprintf("%06d", rand.Intn(1000000))
-}
-
-func SendEmail[T any](emailTo []string, htmlFilename string, data T) error {
-	auth := smtp.PlainAuth("", config.Cfg.SMTP.SUser, config.Cfg.SMTP.SPassword, config.Cfg.SMTP.SHost)
-
-	if htmlFilename == "" {
-		return fmt.Errorf("html filename cannot be empty")
-	}
-
-	subject := "Subject: Welcome to Refina!\r\n"
-	mime := "MIME-version: 1.0;\r\nContent-Type: text/html; charset=\"UTF-8\";\r\n\r\n"
-	htmlFile, err := ParseHTML(htmlFilename, data)
-	if err != nil {
-		return fmt.Errorf("failed to parse HTML template: %w", err)
-	}
-
-	err = smtp.SendMail(config.Cfg.SMTP.SHost+":"+config.Cfg.SMTP.SPort, auth, config.Cfg.SMTP.SUser, emailTo, []byte(subject+mime+htmlFile))
-	return err
 }
 
 func ParseUUID(id string) (uuid.UUID, error) {

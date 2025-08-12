@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	ec "server/env/config"
 	"server/helper"
 	"server/internal/repository"
 	"server/internal/types/dto"
@@ -136,7 +137,10 @@ func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 		userReport.GeneratedAt = time.Now()
 		userReport.FileURL = fmt.Sprintf("https://example.com/reports/%s_report.pdf", user.ID.String())
 		userReport.FileSize = 250000
-		if err := helper.SendEmail([]string{user.Email}, "financial-report-template.html", userReport); err != nil {
+		
+		SMTPProvider := helper.NewZohoSMTP(ec.Cfg.ZSMTP)
+		if err := helper.NewSMTPClient(SMTPProvider).SendSingleEmail(user.Email, "Report Generated", "financial-report-template.html", userReport); err != nil {
+			// Handle error
 			existingReport.Status = helper.REPORT_STATUS_FAILED
 			if _, updateErr := s.reportsRepo.UpdateReport(ctx, nil, existingReport); updateErr != nil {
 				return fmt.Errorf("failed to update report status to FAILED after email error: %w", updateErr)
