@@ -5,45 +5,7 @@ services:
     container_name: ref-production-server
     image: ${APP_IMAGE_PROD_SERVER}:${APP_IMAGE_PROD_SERVER_TAG}
     ports:
-      - "${SERVER_PORT}:8080"
-    environment:
-      MODE: ${MODE}
-      PORT: ${PORT}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      CLIENT_PORT: ${CLIENT_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: 6379
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
-      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
-      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
-      MICROSOFT_CLIENT_SECRET_ID: ${MICROSOFT_CLIENT_SECRET_ID}
-      PUBLIC_URL: ${PUBLIC_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      GOOGLE_SMTP_HOST: ${GOOGLE_SMTP_HOST}
-      GOOGLE_SMTP_PORT: ${GOOGLE_SMTP_PORT}
-      GOOGLE_SMTP_USER: ${GOOGLE_SMTP_USER}
-      GOOGLE_SMTP_PASSWORD: ${GOOGLE_SMTP_PASSWORD}
-      VITE_API_URL: ${VITE_API_URL}
-      RABBITMQ_USER: ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-      RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
-      ZOHO_SMTP_HOST: ${ZOHO_SMTP_HOST}
-      ZOHO_SMTP_PORT: ${ZOHO_SMTP_PORT}
-      ZOHO_SMTP_USER: ${ZOHO_SMTP_USER}
-      ZOHO_SMTP_PASSWORD: ${ZOHO_SMTP_PASSWORD}
-      ZOHO_SMTP_SECURE: ${ZOHO_SMTP_SECURE}
-      ZOHO_SMTP_AUTH: ${ZOHO_SMTP_AUTH}
+      - "8082:8080"
     depends_on:
       ref-production-postgres:
         condition: service_healthy
@@ -59,7 +21,7 @@ services:
     container_name: ref-production-client
     image: ${APP_IMAGE_PROD_CLIENT}:${APP_IMAGE_PROD_CLIENT_TAG}
     ports:
-      - "${CLIENT_PORT}:80"
+      - "3002:80"
     depends_on:
       - ref-production-server
     networks:
@@ -99,20 +61,6 @@ services:
   ref-production-worker:
     container_name: ref-production-worker
     image: ${APP_IMAGE_PROD_WORKER}:${APP_IMAGE_PROD_WORKER_TAG}
-    environment:
-      MODE: ${MODE}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: 6379
-      RABBITMQ_USER: ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-      RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
     depends_on:
       ref-production-postgres:
         condition: service_healthy

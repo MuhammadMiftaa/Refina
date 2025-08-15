@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	ec.Load() // Load environment variables and configuration
+	ec.LoadByViper() // Load environment variables and configuration
 	dc.SetupDatabase() // Initialize the database connection and run migrations
 	dc.SetupRedisDatabase() // Initialize the Redis connection
 	qc.SetupRabbitMQ() // Initialize RabbitMQ connection
