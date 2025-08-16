@@ -243,7 +243,7 @@ func LoadNative() {
 
 func LoadByViper() {
 	config := viper.New()
-	config.SetConfigFile("config.json")
+	config.SetConfigFile("app/config.json")
 
 	if err := config.ReadInConfig(); err != nil {
 		panic(err)
