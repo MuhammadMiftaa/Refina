@@ -3,15 +3,15 @@ include .env.local
 $(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' .env))
 
 api:
-	APP_ENV_FILE=.env.local go run ./cmd/api/main.go
+	go run ./cmd/api/main.go
 
 worker:
-	APP_ENV_FILE=.env.local go run ./cmd/worker/main.go
+	go run ./cmd/worker/main.go
 
 go:
 	@trap 'kill 0' INT TERM EXIT; \
-	APP_ENV_FILE=.env.local go run ./cmd/api/main.go & \
-	APP_ENV_FILE=.env.local go run ./cmd/worker/main.go & \
+	go run ./cmd/api/main.go & \
+	go run ./cmd/worker/main.go & \
 	wait
 
 migrate:

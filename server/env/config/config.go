@@ -97,13 +97,10 @@ var Cfg Config
 func LoadNative() {
 	var ok bool
 
-	envFile := os.Getenv("APP_ENV_FILE")
-	if envFile == "" {
-		envFile = ".env"
-	}
-
-	if err := godotenv.Load(envFile); err != nil {
-		log.Printf("[ERROR] No %s file found\n", envFile)
+	if _, err := os.Stat(".env"); err == nil {
+		if err := godotenv.Load(); err != nil {
+			log.Println("Error loading .env file")
+		}
 	}
 
 	// ! Load Server configuration ____________________________

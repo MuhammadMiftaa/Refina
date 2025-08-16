@@ -51,6 +51,8 @@ services:
         condition: service_started
     volumes:
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
+      - ./config.json:/app/config.json:ro
+      - ./.env.staging:/app/.env:ro
     networks:
       - refina_staging_network
     restart: always
@@ -118,6 +120,9 @@ services:
         condition: service_healthy
       ref-staging-redis:
         condition: service_started
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./.env.staging:/app/.env:ro
     networks:
       - refina_staging_network
     restart: always
