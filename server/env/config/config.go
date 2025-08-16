@@ -97,7 +97,7 @@ var Cfg Config
 func LoadNative() {
 	var ok bool
 
-	if _, err := os.Stat(".env"); err == nil {
+	if _, err := os.Stat("/app/.env"); err == nil {
 		if err := godotenv.Load(); err != nil {
 			log.Println("Error loading .env file")
 		}
@@ -243,7 +243,7 @@ func LoadNative() {
 
 func LoadByViper() error {
 	config := viper.New()
-	config.SetConfigFile("app/config.json")
+	config.SetConfigFile("/app/config.json")
 
 	if err := config.ReadInConfig(); err != nil {
 		return err
