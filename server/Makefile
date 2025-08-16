@@ -1,4 +1,4 @@
-include .env.local
+include .env
 
 $(eval export $(shell sed -ne 's/ *#.*$$//; /./ s/=.*$$// p' .env))
 

@@ -368,7 +368,7 @@ func (transaction_serv *transactionsService) UpdateTransaction(ctx context.Conte
 		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
 	}
 
-	// ! Defer rollback if there is an error or panic
+	// ! Defer rollback if there is an error
 	defer func() {
 		// Rollback otomatis jika transaksi belum di-commit
 		if r := recover(); r != nil || err != nil {
