@@ -4,3 +4,4 @@ json.json
 /json.json
 **/.env*
 config.json
+Makefile

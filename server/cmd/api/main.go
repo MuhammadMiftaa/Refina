@@ -1,17 +1,23 @@
 package main
 
 import (
+	"log"
+
 	dc "server/db/config"
 	ec "server/env/config"
-	qc "server/queue/config"
 	"server/interface/http/router"
+	qc "server/queue/config"
 )
 
 func init() {
-	ec.LoadByViper() // Load environment variables and configuration
-	dc.SetupDatabase() // Initialize the database connection and run migrations
+	// Load environment variables and configuration
+	if err := ec.LoadByViper(); err != nil {
+		log.Println("[ERROR] Failed to read JSON config file:", err, "\n[INFO] Loading environment variables from .env file")
+		ec.LoadNative()
+	}
+	dc.SetupDatabase()      // Initialize the database connection and run migrations
 	dc.SetupRedisDatabase() // Initialize the Redis connection
-	qc.SetupRabbitMQ() // Initialize RabbitMQ connection
+	qc.SetupRabbitMQ()      // Initialize RabbitMQ connection
 }
 
 func main() {

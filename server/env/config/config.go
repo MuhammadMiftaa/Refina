@@ -97,10 +97,13 @@ var Cfg Config
 func LoadNative() {
 	var ok bool
 
-	if _, err := os.Stat(".env"); err == nil {
-		if err := godotenv.Load(); err != nil {
-			log.Println("Error loading .env file")
-		}
+	envFile := os.Getenv("APP_ENV_FILE")
+	if envFile == "" {
+		envFile = ".env"
+	}
+
+	if err := godotenv.Load(envFile); err != nil {
+		log.Printf("[ERROR] No %s file found\n", envFile)
 	}
 
 	// ! Load Server configuration ____________________________
@@ -241,12 +244,12 @@ func LoadNative() {
 	// ! ______________________________________________________
 }
 
-func LoadByViper() {
+func LoadByViper() error {
 	config := viper.New()
 	config.SetConfigFile("app/config.json")
 
 	if err := config.ReadInConfig(); err != nil {
-		panic(err)
+		return err
 	}
 
 	// ! Load Server configuration ____________________________
@@ -383,4 +386,6 @@ func LoadByViper() {
 		log.Println("SMTP.ZOHO.AUTH env is not set")
 	}
 	// ! ______________________________________________________
+
+	return nil
 }
