@@ -3,8 +3,10 @@ package main
 import (
 	"log"
 
+	dc "server/db/config"
 	ec "server/env/config"
 	"server/interface/http/router"
+	qc "server/queue/config"
 )
 
 func init() {
@@ -14,9 +16,9 @@ func init() {
 		log.Println("[INFO] Loading environment variables from .env file")
 		ec.LoadNative()
 	}
-	// dc.SetupDatabase()      // Initialize the database connection and run migrations
-	// dc.SetupRedisDatabase() // Initialize the Redis connection
-	// qc.SetupRabbitMQ()      // Initialize RabbitMQ connection
+	dc.SetupDatabase()      // Initialize the database connection and run migrations
+	dc.SetupRedisDatabase() // Initialize the Redis connection
+	qc.SetupRabbitMQ()      // Initialize RabbitMQ connection
 }
 
 func main() {
