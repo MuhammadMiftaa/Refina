@@ -35,10 +35,10 @@ migration-status:
 	@goose status
 
 seeder:
-	@goose -dir ./internal/seeder/sql create $(name) sql
+	@goose -dir ./db/seeder create $(name) sql
 
 seed:
-	@goose -dir ./internal/seeder/sql -no-versioning up
+	@goose -dir ./db/seeder -no-versioning up
 
 seed-reset:
-	@goose -dir ./internal/seeder/sql -no-versioning reset
+	@goose -dir ./db/seeder -no-versioning reset

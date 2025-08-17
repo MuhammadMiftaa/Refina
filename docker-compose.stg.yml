@@ -75,6 +75,21 @@ services:
       - refina_staging_network
     restart: always
 
+  ref-staging-migrate:
+    container_name: ref-staging-migrate
+    image: ${APP_IMAGE_STG_MIGRATE}:${APP_IMAGE_STG_MIGRATE_TAG}
+    environment:
+      - MODE=staging
+      - DB_HOST=ref-staging-postgres
+      - DB_PORT=5432
+    depends_on:
+      ref-staging-postgres:
+        condition: service_healthy
+    networks:
+      - refina_staging_network
+    profiles:
+      - migrate 
+
 volumes:
   staging_postgres_data:
 

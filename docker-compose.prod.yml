@@ -75,6 +75,21 @@ services:
       - refina_network
     restart: always
 
+  ref-production-migrate:
+    container_name: ref-production-migrate
+    image: ${APP_IMAGE_PROD_MIGRATE}:${APP_IMAGE_PROD_MIGRATE_TAG}
+    environment:
+      - MODE=production
+      - DB_HOST=ref-production-postgres
+      - DB_PORT=5432
+    depends_on:
+      ref-production-postgres:
+        condition: service_healthy
+    networks:
+      - refina_network
+    profiles:
+      - migrate
+
 volumes:
   production_postgres_data:
 
