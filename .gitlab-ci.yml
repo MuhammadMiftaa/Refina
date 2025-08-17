@@ -274,4 +274,4 @@ migrate-production:
         
         echo 'Migration completed for production environment'
       "
-  when: manual
+   when: manual
