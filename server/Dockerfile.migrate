@@ -8,7 +8,7 @@ RUN apk add --no-cache postgresql-client
 
 WORKDIR /app
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
-COPY migrations/ ./migrations/
+COPY db/migrations/ ./migrations/
 
 COPY migrate.sh ./migrate.sh
 RUN chmod +x migrate.sh
