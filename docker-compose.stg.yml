@@ -5,45 +5,7 @@ services:
     container_name: ref-staging-server
     image: ${APP_IMAGE_STG_SERVER}:${APP_IMAGE_STG_SERVER_TAG}
     ports:
-      - "${SERVER_PORT}:8080"
-    environment:
-      MODE: ${MODE}
-      PORT: ${PORT}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
-      CLIENT_PORT: ${CLIENT_PORT}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: 6379
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
-      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
-      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET}
-      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
-      MICROSOFT_CLIENT_SECRET_ID: ${MICROSOFT_CLIENT_SECRET_ID}
-      PUBLIC_URL: ${PUBLIC_URL}
-      FRONTEND_URL: ${FRONTEND_URL}
-      GOOGLE_SMTP_HOST: ${GOOGLE_SMTP_HOST}
-      GOOGLE_SMTP_PORT: ${GOOGLE_SMTP_PORT}
-      GOOGLE_SMTP_USER: ${GOOGLE_SMTP_USER}
-      GOOGLE_SMTP_PASSWORD: ${GOOGLE_SMTP_PASSWORD}
-      VITE_API_URL: ${VITE_API_URL}
-      RABBITMQ_USER: ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-      RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
-      ZOHO_SMTP_HOST: ${ZOHO_SMTP_HOST}
-      ZOHO_SMTP_PORT: ${ZOHO_SMTP_PORT}
-      ZOHO_SMTP_USER: ${ZOHO_SMTP_USER}
-      ZOHO_SMTP_PASSWORD: ${ZOHO_SMTP_PASSWORD}
-      ZOHO_SMTP_SECURE: ${ZOHO_SMTP_SECURE}
-      ZOHO_SMTP_AUTH: ${ZOHO_SMTP_AUTH}
+      - "8081:8080"
     depends_on:
       ref-staging-postgres:
         condition: service_healthy
@@ -51,7 +13,7 @@ services:
         condition: service_started
     volumes:
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
-      - ./config.json:/app/config.json:ro
+      - ./config.staging.json:/app/config.json:ro
       - ./.env.staging:/app/.env:ro
     networks:
       - refina_staging_network
@@ -61,7 +23,7 @@ services:
     container_name: ref-staging-client
     image: ${APP_IMAGE_STG_CLIENT}:${APP_IMAGE_STG_CLIENT_TAG}
     ports:
-      - "${CLIENT_PORT}:80"
+      - "3001:80"
     depends_on:
       - ref-staging-server
     networks:
@@ -74,9 +36,9 @@ services:
     ports:
       - "127.0.0.1:5433:5432"
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: refina
     volumes:
       - staging_postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -101,27 +63,13 @@ services:
   ref-staging-worker:
     container_name: ref-staging-worker
     image: ${APP_IMAGE_STG_WORKER}:${APP_IMAGE_STG_WORKER_TAG}
-    environment:
-      MODE: ${MODE}
-      DB_HOST: ${DB_HOST}
-      DB_NAME: ${DB_NAME}
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: 6379
-      RABBITMQ_USER: ${RABBITMQ_USER}
-      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
-      RABBITMQ_HOST: ${RABBITMQ_HOST}
-      RABBITMQ_PORT: ${RABBITMQ_PORT}
-      RABBITMQ_VIRTUAL_HOST: ${RABBITMQ_VIRTUAL_HOST}
     depends_on:
       ref-staging-postgres:
         condition: service_healthy
       ref-staging-redis:
         condition: service_started
     volumes:
-      - ./config.json:/app/config.json:ro
+      - ./config.staging.json:/app/config.json:ro
       - ./.env.staging:/app/.env:ro
     networks:
       - refina_staging_network

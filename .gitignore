@@ -3,5 +3,5 @@ node_modules
 json.json
 /json.json
 **/.env*
-config.json
+config*.json
 Makefile

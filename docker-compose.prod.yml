@@ -13,7 +13,7 @@ services:
         condition: service_started
     volumes:
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
-      - ./config.json:/app/config.json:ro
+      - ./config.production.json:/app/config.json:ro
       - ./.env.production:/app/.env:ro
     networks:
       - refina_network
@@ -69,7 +69,7 @@ services:
       ref-production-redis:
         condition: service_started
     volumes:
-      - ./config.json:/app/config.json:ro
+      - ./config.production.json:/app/config.json:ro
       - ./.env.production:/app/.env:ro
     networks:
       - refina_network
