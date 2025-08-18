@@ -13,7 +13,6 @@ import (
 
 func init() {
 	log.SetupLogger() // Initialize the logger configuration
-	log.Info("Starting Refina worker...")
 
 	var err error
 	var missing []string
@@ -45,6 +44,8 @@ func init() {
 	log.Info("Setup RabbitMQ Connection Start")
 	queue.SetupRabbitMQ() // Initialize RabbitMQ connection
 	log.Info("Setup RabbitMQ Connection Success")
+
+	log.Info("Starting Refina worker...")
 }
 
 func main() {
