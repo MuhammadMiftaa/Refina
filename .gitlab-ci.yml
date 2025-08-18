@@ -214,15 +214,15 @@ migrate-staging:
   script:
     - |
       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} "
-	export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
-        export APP_IMAGE_STG_CLIENT_TAG=$TAG_IMAGE &&
+        export APP_IMAGE_STG_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
+        export APP_IMAGE_STG_CLIENT_TAG=$CI_COMMIT_TAG &&
         export APP_IMAGE_STG_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&
-        export APP_IMAGE_STG_SERVER_TAG=$TAG_IMAGE &&
+        export APP_IMAGE_STG_SERVER_TAG=$CI_COMMIT_TAG &&
         export APP_IMAGE_STG_WORKER=\"$CI_REGISTRY_IMAGE/worker\" &&
-        export APP_IMAGE_STG_WORKER_TAG=$TAG_IMAGE &&
+        export APP_IMAGE_STG_WORKER_TAG=$CI_COMMIT_TAG &&
         export APP_IMAGE_STG_MIGRATE=\"$CI_REGISTRY_IMAGE/migrate\" &&
         export APP_IMAGE_STG_MIGRATE_TAG=$TAG_IMAGE &&
-
+        
         cd ~/web/staging/Refina
         
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
@@ -255,7 +255,7 @@ migrate-production:
   script:
     - |
       ssh -p $SSH_PORT -o StrictHostKeyChecking=no ${SSH_USER}@${SSH_HOST} "
-	export APP_IMAGE_PROD_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
+        export APP_IMAGE_PROD_CLIENT=\"$CI_REGISTRY_IMAGE/client\" &&
         export APP_IMAGE_PROD_CLIENT_TAG=$CI_COMMIT_TAG &&
         export APP_IMAGE_PROD_SERVER=\"$CI_REGISTRY_IMAGE/server\" &&
         export APP_IMAGE_PROD_SERVER_TAG=$CI_COMMIT_TAG &&
@@ -274,4 +274,4 @@ migrate-production:
         
         echo 'Migration completed for production environment'
       "
-   when: manual
+  when: manual
