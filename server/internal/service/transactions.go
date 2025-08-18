@@ -11,12 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"server/internal/helper"
-	"server/internal/helper/data"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 	"server/internal/types/view"
+	helper "server/internal/utils"
+	"server/internal/utils/data"
 
 	"github.com/google/uuid"
 )

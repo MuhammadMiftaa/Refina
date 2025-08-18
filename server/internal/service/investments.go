@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/helper"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 	"server/internal/types/view"
+	helper "server/internal/utils"
 )
 
 type InvestmentsService interface {

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"server/internal/helper"
+	"server/internal/utils"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
@@ -37,7 +37,7 @@ func (walletTypeServ *walletTypesService) GetAllWalletTypes(ctx context.Context)
 
 	var walletTypesResponse []dto.WalletTypesResponse
 	for _, walletType := range walletTypes {
-		walletTypeResponse := helper.ConvertToResponseType(walletType).(dto.WalletTypesResponse)
+		walletTypeResponse := utils.ConvertToResponseType(walletType).(dto.WalletTypesResponse)
 		walletTypesResponse = append(walletTypesResponse, walletTypeResponse)
 	}
 
@@ -50,7 +50,7 @@ func (walletTypeServ *walletTypesService) GetWalletTypeByID(ctx context.Context,
 		return dto.WalletTypesResponse{}, err
 	}
 
-	walletTypeResponse := helper.ConvertToResponseType(walletType).(dto.WalletTypesResponse)
+	walletTypeResponse := utils.ConvertToResponseType(walletType).(dto.WalletTypesResponse)
 
 	return walletTypeResponse, nil
 }
@@ -67,7 +67,7 @@ func (walletTypeServ *walletTypesService) CreateWalletType(ctx context.Context, 
 		return dto.WalletTypesResponse{}, err
 	}
 
-	walletTypeResponse := helper.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
+	walletTypeResponse := utils.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
 
 	return walletTypeResponse, nil
 }
@@ -84,7 +84,7 @@ func (walletTypeServ *walletTypesService) UpdateWalletType(ctx context.Context, 
 		return dto.WalletTypesResponse{}, err
 	}
 
-	walletTypeResponse := helper.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
+	walletTypeResponse := utils.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
 
 	return walletTypeResponse, nil
 }
@@ -100,7 +100,7 @@ func (walletTypeServ *walletTypesService) DeleteWalletType(ctx context.Context, 
 		return dto.WalletTypesResponse{}, err
 	}
 
-	walletTypeResponse := helper.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
+	walletTypeResponse := utils.ConvertToResponseType(walletTypeEntity).(dto.WalletTypesResponse)
 
 	return walletTypeResponse, nil
 }

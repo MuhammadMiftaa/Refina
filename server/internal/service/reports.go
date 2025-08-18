@@ -8,11 +8,11 @@ import (
 
 	"server/config/env"
 	"server/config/queue"
-	"server/internal/helper"
-	"server/internal/helper/data"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
+	helper "server/internal/utils"
+	"server/internal/utils/data"
 
 	"github.com/rabbitmq/amqp091-go"
 )

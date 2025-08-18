@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/helper/data"
 	"server/internal/types/entity"
+	"server/internal/utils/data"
 
 	"gorm.io/gorm"
 )

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"server/config/env"
-	"server/internal/helper/data"
+	"server/internal/utils/data"
 
 	"github.com/sirupsen/logrus"
 )

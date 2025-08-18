@@ -1,4 +1,4 @@
-package helper
+package utils
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 	"unicode"
 
 	"server/config/env"
-	"server/internal/helper/data"
+	"server/internal/utils/data"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 

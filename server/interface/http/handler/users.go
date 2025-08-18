@@ -11,10 +11,10 @@ import (
 	"golang.org/x/oauth2"
 
 	"server/config/env"
-	"server/internal/helper"
-	dataconst "server/internal/helper/data"
 	"server/internal/service"
 	"server/internal/types/dto"
+	helper "server/internal/utils"
+	dataconst "server/internal/utils/data"
 
 	"github.com/gin-gonic/gin"
 )

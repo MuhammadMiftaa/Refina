@@ -14,8 +14,8 @@ RUN apk add --no-cache postgresql-client ca-certificates
 
 WORKDIR /app
 COPY --from=builder /app/goose/goose /usr/local/bin/goose
-COPY db/migrations/ ./migrations/
-COPY db/seeder ./seeder/
+COPY config/db/migrations/ ./migrations/
+COPY config/db/seeder ./seeder/
 
 COPY migrate.sh ./migrate.sh
 RUN chmod +x migrate.sh

@@ -4,7 +4,7 @@ import (
 	"server/config/db"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
-	"server/internal/helper/data"
+	"server/internal/utils/data"
 
 	"github.com/gin-gonic/gin"
 )
