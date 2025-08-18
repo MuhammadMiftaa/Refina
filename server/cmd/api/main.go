@@ -16,12 +16,13 @@ func init() {
 	var missing []string
 	if missing, err = env.LoadByViper(); err != nil {
 		log.Error("Failed to read JSON config file:" + err.Error())
-		log.Info("Switch loading environment variables to .env file")
 		if missing, err = env.LoadNative(); err != nil {
 			log.Log.Fatalf("Failed to load environment variables: %v", err)
 		}
+		log.SetupLogger()
 		log.Info("Environment variables by .env file loaded successfully")
 	} else {
+		log.SetupLogger()
 		log.Info("Environment variables by Viper loaded successfully")
 	}
 
