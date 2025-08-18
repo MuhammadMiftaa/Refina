@@ -1,10 +1,10 @@
-package config
+package db
 
 import (
 	"fmt"
 	"log"
 
-	"server/env/config"
+	"server/config/env"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
@@ -17,7 +17,7 @@ var (
 )
 
 func SetupDatabase() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", config.Cfg.Database.DBHost, config.Cfg.Database.DBUser, config.Cfg.Database.DBPassword, config.Cfg.Database.DBName, config.Cfg.Database.DBPort)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", env.Cfg.Database.DBHost, env.Cfg.Database.DBUser, env.Cfg.Database.DBPassword, env.Cfg.Database.DBName, env.Cfg.Database.DBPort)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -30,7 +30,7 @@ func SetupDatabase() {
 
 func SetupRedisDatabase() {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", config.Cfg.Redis.RHost, config.Cfg.Redis.RPort),
+		Addr: fmt.Sprintf("%s:%s", env.Cfg.Redis.RHost, env.Cfg.Redis.RPort),
 	})
 
 	_, err := rdb.Ping(rdb.Context()).Result()

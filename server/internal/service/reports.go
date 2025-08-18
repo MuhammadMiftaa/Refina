@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	ec "server/env/config"
-	"server/helper"
+	"server/config/env"
+	"server/internal/helper"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
-	"server/queue/config"
+	"server/config/queue"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -73,7 +73,7 @@ func (s *reportsService) RequestReport(ctx context.Context, userID, fromDate, to
 		ContentType: "application/json",
 		Body:        []byte(`{"id":"` + report.ID.String() + `", "user_id":"` + userID + `"}`),
 	}
-	prodRequestReports, err := config.GetChannel()
+	prodRequestReports, err := queue.GetChannel()
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (s *reportsService) RequestReport(ctx context.Context, userID, fromDate, to
 
 func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 	// Consume messages from the RabbitMQ queue
-	consRequestReports, err := config.GetChannel()
+	consRequestReports, err := queue.GetChannel()
 	if err != nil {
 		return err
 	}
@@ -137,8 +137,8 @@ func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 		userReport.GeneratedAt = time.Now()
 		userReport.FileURL = fmt.Sprintf("https://example.com/reports/%s_report.pdf", user.ID.String())
 		userReport.FileSize = 250000
-		
-		SMTPProvider := helper.NewZohoSMTP(ec.Cfg.ZSMTP)
+
+		SMTPProvider := helper.NewZohoSMTP(env.Cfg.ZSMTP)
 		if err := helper.NewSMTPClient(SMTPProvider).SendSingleEmail(user.Email, "Report Generated", "financial-report-template.html", userReport); err != nil {
 			// Handle error
 			existingReport.Status = helper.REPORT_STATUS_FAILED

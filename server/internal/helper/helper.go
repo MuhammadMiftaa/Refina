@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"server/env/config"
+	"server/config/env"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 
@@ -116,7 +116,7 @@ func GenerateToken(ID string, username string, email string) (string, error) {
 
 	parseToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	signedToken, err := parseToken.SignedString([]byte(config.Cfg.Server.JWTSecretKey))
+	signedToken, err := parseToken.SignedString([]byte(env.Cfg.Server.JWTSecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -129,7 +129,7 @@ func VerifyToken(jwtToken string) (dto.UserData, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("parsing token error occured")
 		}
-		return []byte(config.Cfg.Server.JWTSecretKey), nil
+		return []byte(env.Cfg.Server.JWTSecretKey), nil
 	})
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -160,9 +160,9 @@ func StorageIsExist(path string) error {
 
 func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 	googleOauthConfig := &oauth2.Config{
-		ClientID:     config.Cfg.OAuth.Google.GOClientID,
-		ClientSecret: config.Cfg.OAuth.Google.GOClientSecret,
-		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/google",
+		ClientID:     env.Cfg.OAuth.Google.GOClientID,
+		ClientSecret: env.Cfg.OAuth.Google.GOClientSecret,
+		RedirectURL:  "http://localhost:" + env.Cfg.Client.Port + "/v1/auth/callback/google",
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.email",
 			"https://www.googleapis.com/auth/userinfo.profile",
@@ -170,18 +170,18 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 		Endpoint: google.Endpoint,
 	}
 
-	if config.Cfg.Server.Mode == "production" {
-		googleOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/google"
+	if env.Cfg.Server.Mode == "production" {
+		googleOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/google"
 	}
 
-	return googleOauthConfig, config.Cfg.Client.Url, nil
+	return googleOauthConfig, env.Cfg.Client.Url, nil
 }
 
 func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 	githubOauthConfig := &oauth2.Config{
-		ClientID:     config.Cfg.OAuth.Github.GHClientID,
-		ClientSecret: config.Cfg.OAuth.Github.GHClientSecret,
-		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/github",
+		ClientID:     env.Cfg.OAuth.Github.GHClientID,
+		ClientSecret: env.Cfg.OAuth.Github.GHClientSecret,
+		RedirectURL:  "http://localhost:" + env.Cfg.Client.Port + "/v1/auth/callback/github",
 		Scopes: []string{
 			"read:user",
 			"user:email",
@@ -189,29 +189,29 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 		Endpoint: github.Endpoint,
 	}
 
-	if config.Cfg.Server.Mode == "production" {
-		githubOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/github"
+	if env.Cfg.Server.Mode == "production" {
+		githubOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/github"
 	}
 
-	return githubOauthConfig, config.Cfg.Client.Url, nil
+	return githubOauthConfig, env.Cfg.Client.Url, nil
 }
 
 func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 	microsoftOauthConfig := &oauth2.Config{
-		ClientID:     config.Cfg.OAuth.Microsoft.MSClientID,
-		ClientSecret: config.Cfg.OAuth.Microsoft.MSClientSecret,
-		RedirectURL:  "http://localhost:" + config.Cfg.Client.Port + "/v1/auth/callback/microsoft",
+		ClientID:     env.Cfg.OAuth.Microsoft.MSClientID,
+		ClientSecret: env.Cfg.OAuth.Microsoft.MSClientSecret,
+		RedirectURL:  "http://localhost:" + env.Cfg.Client.Port + "/v1/auth/callback/microsoft",
 		Scopes: []string{
 			"User.Read",
 		},
 		Endpoint: microsoft.AzureADEndpoint("common"),
 	}
 
-	if config.Cfg.Server.Mode == "production" {
-		microsoftOauthConfig.RedirectURL = config.Cfg.Client.Url + "/v1/auth/callback/microsoft"
+	if env.Cfg.Server.Mode == "production" {
+		microsoftOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/microsoft"
 	}
 
-	return microsoftOauthConfig, config.Cfg.Client.Url, nil
+	return microsoftOauthConfig, env.Cfg.Client.Url, nil
 }
 
 func GenerateOTP() string {

@@ -10,8 +10,8 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"server/env/config"
-	"server/helper"
+	"server/config/env"
+	"server/internal/helper"
 	"server/internal/service"
 	"server/internal/types/dto"
 
@@ -172,7 +172,7 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 		return
 	}
 
-	if config.Cfg.Client.Url == "production" {
+	if env.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -265,7 +265,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		return
 	}
 
-	if config.Cfg.Client.Url == "production" {
+	if env.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -326,7 +326,7 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 		return
 	}
 
-	if config.Cfg.Client.Url == "production" {
+	if env.Cfg.Client.Url == "production" {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -450,7 +450,7 @@ func (user_handler *usersHandler) SendOTP(c *gin.Context) {
 	}
 
 	// Kirimkan OTP ke email
-	SMTPProvider := helper.NewZohoSMTP(config.Cfg.ZSMTP)
+	SMTPProvider := helper.NewZohoSMTP(env.Cfg.ZSMTP)
 	if err := helper.NewSMTPClient(SMTPProvider).SendSingleEmail(OTP.Email, "OTP Verification", "otp-email-template.html", OTP); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("Failed to send email, error: %v", err)})
 		return

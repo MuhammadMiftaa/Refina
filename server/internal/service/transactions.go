@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"server/helper"
+	"server/internal/helper"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"

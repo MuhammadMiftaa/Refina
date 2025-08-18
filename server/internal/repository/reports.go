@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"server/helper"
+	"server/internal/helper"
 	"server/internal/types/entity"
 
 	"gorm.io/gorm"

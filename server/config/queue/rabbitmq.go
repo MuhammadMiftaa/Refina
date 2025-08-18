@@ -1,9 +1,9 @@
-package config
+package queue
 
 import (
 	"fmt"
 
-	"server/env/config"
+	"server/config/env"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -11,7 +11,7 @@ import (
 var connection *amqp091.Connection
 
 func SetupRabbitMQ() {
-	connectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/%s", config.Cfg.RabbitMQ.RMQUser, config.Cfg.RabbitMQ.RMQPassword, config.Cfg.RabbitMQ.RMQHost, config.Cfg.RabbitMQ.RMQPort, config.Cfg.RabbitMQ.RMQVirtualHost)
+	connectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/%s", env.Cfg.RabbitMQ.RMQUser, env.Cfg.RabbitMQ.RMQPassword, env.Cfg.RabbitMQ.RMQHost, env.Cfg.RabbitMQ.RMQPort, env.Cfg.RabbitMQ.RMQVirtualHost)
 
 	conn, err := amqp091.Dial(connectionString)
 	if err != nil {

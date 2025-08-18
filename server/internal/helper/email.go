@@ -8,7 +8,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"server/env/config"
+	"server/config/env"
 	htmlTemplate "server/template"
 )
 
@@ -27,7 +27,7 @@ type gmailSMTP struct {
 	Auth     bool
 }
 
-func NewGmailSMTP(config config.GSMTP) SMTPInterface {
+func NewGmailSMTP(config env.GSMTP) SMTPInterface {
 	return &gmailSMTP{
 		Host:     config.GSHost,
 		Port:     config.GSPort,
@@ -57,7 +57,7 @@ type zohoSMTP struct {
 	Auth     bool
 }
 
-func NewZohoSMTP(config config.ZSMTP) SMTPInterface {
+func NewZohoSMTP(config env.ZSMTP) SMTPInterface {
 	return &zohoSMTP{
 		Host:     config.ZSHost,
 		Port:     config.ZSPort,

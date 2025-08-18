@@ -1,10 +1,10 @@
 package router
 
 import (
-	"server/helper"
+	"server/config/db"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
-	dc "server/db/config"
+	"server/internal/helper"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,13 +21,13 @@ func SetupRouter() *gin.Engine {
 	})
 
 	v1 := router.Group("/v1")
-	routes.UserRoutes(v1, dc.DB, dc.RDB)
-	routes.TransactionRoutes(v1, dc.DB)
-	routes.WalletRoutes(v1, dc.DB)
-	routes.InvestmentRoute(v1, dc.DB)
-	routes.WalletTypesRoutes(v1, dc.DB)
-	routes.CategoryRoutes(v1, dc.DB)
-	routes.ReportRoutes(v1, dc.DB)
+	routes.UserRoutes(v1, db.DB, db.RDB)
+	routes.TransactionRoutes(v1, db.DB)
+	routes.WalletRoutes(v1, db.DB)
+	routes.InvestmentRoute(v1, db.DB)
+	routes.WalletTypesRoutes(v1, db.DB)
+	routes.CategoryRoutes(v1, db.DB)
+	routes.ReportRoutes(v1, db.DB)
 
 	router.Static("/uploads/transactions-attachments", helper.ATTACHMENT_FILEPATH)
 
