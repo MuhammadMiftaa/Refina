@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"server/internal/helper"
+	"server/internal/helper/data"
 	"server/internal/types/entity"
 
 	"gorm.io/gorm"
@@ -85,7 +85,7 @@ func (reports_repo *reportsRepository) GetProcessedReportByUserID(ctx context.Co
 	}
 
 	var reports []entity.Reports
-	if err := db.Where("user_id = ? AND status = ?", user_id, helper.REPORT_STATUS_PROCESSING).Find(&reports).Error; err != nil {
+	if err := db.Where("user_id = ? AND status = ?", user_id, data.REPORT_STATUS_PROCESSING).Find(&reports).Error; err != nil {
 		return nil, err
 	}
 	return reports, nil

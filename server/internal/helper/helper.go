@@ -12,6 +12,7 @@ import (
 	"unicode"
 
 	"server/config/env"
+	"server/internal/helper/data"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
 
@@ -170,7 +171,7 @@ func GetGoogleOAuthConfig() (*oauth2.Config, string, error) {
 		Endpoint: google.Endpoint,
 	}
 
-	if env.Cfg.Server.Mode == "production" {
+	if env.Cfg.Server.Mode == data.STAGING_MODE || env.Cfg.Server.Mode == data.PRODUCTION_MODE {
 		googleOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/google"
 	}
 
@@ -189,7 +190,7 @@ func GetGithubOAuthConfig() (*oauth2.Config, string, error) {
 		Endpoint: github.Endpoint,
 	}
 
-	if env.Cfg.Server.Mode == "production" {
+	if env.Cfg.Server.Mode == data.STAGING_MODE || env.Cfg.Server.Mode == data.PRODUCTION_MODE {
 		githubOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/github"
 	}
 
@@ -207,7 +208,7 @@ func GetMicrosoftOAuthConfig() (*oauth2.Config, string, error) {
 		Endpoint: microsoft.AzureADEndpoint("common"),
 	}
 
-	if env.Cfg.Server.Mode == "production" {
+	if env.Cfg.Server.Mode == data.STAGING_MODE || env.Cfg.Server.Mode == data.PRODUCTION_MODE {
 		microsoftOauthConfig.RedirectURL = env.Cfg.Client.Url + "/v1/auth/callback/microsoft"
 	}
 

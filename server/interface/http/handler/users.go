@@ -12,6 +12,7 @@ import (
 
 	"server/config/env"
 	"server/internal/helper"
+	dataconst "server/internal/helper/data"
 	"server/internal/service"
 	"server/internal/types/dto"
 
@@ -172,7 +173,7 @@ func (user_handler *usersHandler) CallbackGoogle(c *gin.Context) {
 		return
 	}
 
-	if env.Cfg.Client.Url == "production" {
+	if env.Cfg.Server.Mode == dataconst.STAGING_MODE || env.Cfg.Server.Mode == dataconst.PRODUCTION_MODE {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -231,7 +232,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		return
 	}
 
-	var githubUser helper.GitHubUser
+	var githubUser dataconst.GitHubUser
 	if err := json.Unmarshal(data, &githubUser); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse user info"})
 		return
@@ -265,7 +266,7 @@ func (user_handler *usersHandler) CallbackGithub(c *gin.Context) {
 		return
 	}
 
-	if env.Cfg.Client.Url == "production" {
+	if env.Cfg.Server.Mode == dataconst.STAGING_MODE || env.Cfg.Server.Mode == dataconst.PRODUCTION_MODE {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -326,7 +327,7 @@ func (user_handler *usersHandler) CallbackMicrosoft(c *gin.Context) {
 		return
 	}
 
-	if env.Cfg.Client.Url == "production" {
+	if env.Cfg.Server.Mode == dataconst.STAGING_MODE || env.Cfg.Server.Mode == dataconst.PRODUCTION_MODE {
 		c.Redirect(http.StatusFound, redirect_url+"/login?token="+*tokenJWT)
 	}
 	c.SetCookie("token", *tokenJWT, 60*60*24, "/", "localhost", false, false)
@@ -428,7 +429,7 @@ func (user_handler *usersHandler) DeleteUser(c *gin.Context) {
 }
 
 func (user_handler *usersHandler) SendOTP(c *gin.Context) {
-	var OTP helper.OTP
+	var OTP dataconst.OTP
 	if err := c.ShouldBindBodyWithJSON(&OTP); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,
@@ -465,7 +466,7 @@ func (user_handler *usersHandler) SendOTP(c *gin.Context) {
 }
 
 func (user_handler *usersHandler) VerifyOTP(c *gin.Context) {
-	var OTP helper.OTP
+	var OTP dataconst.OTP
 	if err := c.ShouldBindBodyWithJSON(&OTP); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"statusCode": 400,

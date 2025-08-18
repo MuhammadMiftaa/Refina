@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log"
 	"net/smtp"
 	"time"
 
 	"server/config/env"
+	"server/config/log"
 	htmlTemplate "server/template"
 )
 
@@ -120,7 +120,7 @@ func parseHTML(file string, data any) (string, error) {
 	bufferhtml := bytes.Buffer{}
 	t, err := getTemplate(file)
 	if err != nil {
-		log.Printf("[ERROR] Failed to get template: %s", err)
+		log.Error("Failed to parse HTML template: " + err.Error())
 		return "", err
 	}
 	// proses excecute data yang di masukkan dalam template html

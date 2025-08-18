@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"server/internal/helper"
+	"server/internal/helper/data"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
@@ -308,11 +309,11 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 			return nil, errors.New("failed to decode base64 file")
 		}
 
-		if len(decodedFile) > helper.ATTACHMENT_MAX_SIZE {
+		if len(decodedFile) > data.ATTACHMENT_MAX_SIZE {
 			return nil, errors.New("file size exceeds 10MB")
 		}
 
-		if !helper.ATTACHMENT_EXT_ALLOWED[fmt.Sprintf(".%s", strings.Split(http.DetectContentType(decodedFile), "/")[1])] {
+		if !data.ATTACHMENT_EXT_ALLOWED[fmt.Sprintf(".%s", strings.Split(http.DetectContentType(decodedFile), "/")[1])] {
 			return nil, errors.New("invalid file type")
 		}
 
@@ -321,7 +322,7 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 		ext := strings.ToLower("." + strings.Split(mimeType, "/")[1])
 		fileName := fmt.Sprintf("%s%s", helper.GenerateFileName("TA", transactionID, strconv.Itoa(idx)), ext)
 
-		absolutePath, _ := helper.ExpandPathAndCreateDir(helper.ATTACHMENT_FILEPATH)
+		absolutePath, _ := helper.ExpandPathAndCreateDir(data.ATTACHMENT_FILEPATH)
 		if err := helper.StorageIsExist(absolutePath); err != nil {
 			return nil, errors.New("storage not found")
 		}

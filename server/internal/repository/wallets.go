@@ -96,8 +96,8 @@ func (wallet_repo *walletsRepository) GetWalletsByUserIDGroupByType(ctx context.
 	}
 
 	var rawResults []struct {
-		UserID     string
-		Type string
+		UserID  string
+		Type    string
 		Wallets []byte
 	}
 	err = db.Raw(`SELECT * FROM view_user_wallets_group_by_type WHERE user_id = $1`, id).Scan(&rawResults).Error

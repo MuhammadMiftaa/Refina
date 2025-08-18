@@ -4,7 +4,7 @@ import (
 	"server/config/db"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
-	"server/internal/helper"
+	"server/internal/helper/data"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +29,7 @@ func SetupRouter() *gin.Engine {
 	routes.CategoryRoutes(v1, db.DB)
 	routes.ReportRoutes(v1, db.DB)
 
-	router.Static("/uploads/transactions-attachments", helper.ATTACHMENT_FILEPATH)
+	router.Static("/uploads/transactions-attachments", data.ATTACHMENT_FILEPATH)
 
 	return router
 }

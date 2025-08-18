@@ -7,11 +7,12 @@ import (
 	"time"
 
 	"server/config/env"
+	"server/config/queue"
 	"server/internal/helper"
+	"server/internal/helper/data"
 	"server/internal/repository"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
-	"server/config/queue"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -63,7 +64,7 @@ func (s *reportsService) RequestReport(ctx context.Context, userID, fromDate, to
 	report.ToDate = toDateTime
 	report.RequestAt = time.Now()
 	report.NextRequestAt = time.Now().Add(24 * time.Hour)
-	report.Status = helper.REPORT_STATUS_PROCESSING
+	report.Status = data.REPORT_STATUS_PROCESSING
 	if report, err = s.reportsRepo.CreateReport(ctx, nil, report); err != nil {
 		return err
 	}
@@ -124,7 +125,7 @@ func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 		if existingReport.UserID != user.ID.String() {
 			return fmt.Errorf("report user ID %s does not match user ID %s", existingReport.UserID, user.ID.String())
 		}
-		if existingReport.Status != helper.REPORT_STATUS_PROCESSING {
+		if existingReport.Status != data.REPORT_STATUS_PROCESSING {
 			return fmt.Errorf("report status is not processing, current status: %s", existingReport.Status)
 		}
 
@@ -141,7 +142,7 @@ func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 		SMTPProvider := helper.NewZohoSMTP(env.Cfg.ZSMTP)
 		if err := helper.NewSMTPClient(SMTPProvider).SendSingleEmail(user.Email, "Report Generated", "financial-report-template.html", userReport); err != nil {
 			// Handle error
-			existingReport.Status = helper.REPORT_STATUS_FAILED
+			existingReport.Status = data.REPORT_STATUS_FAILED
 			if _, updateErr := s.reportsRepo.UpdateReport(ctx, nil, existingReport); updateErr != nil {
 				return fmt.Errorf("failed to update report status to FAILED after email error: %w", updateErr)
 			}
@@ -152,7 +153,7 @@ func (s *reportsService) UpdateUserReport(ctx context.Context) error {
 		existingReport.FileURL = &userReport.FileURL
 		existingReport.FileSize = &userReport.FileSize
 		existingReport.GeneratedAt = &userReport.GeneratedAt
-		existingReport.Status = helper.REPORT_STATUS_COMPLETED
+		existingReport.Status = data.REPORT_STATUS_COMPLETED
 		if _, err := s.reportsRepo.UpdateReport(ctx, nil, existingReport); err != nil {
 			return err
 		}

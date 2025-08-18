@@ -1,6 +1,10 @@
-package helper
+package data
 
 var (
+	DEVELOPMENT_MODE = "development"
+	STAGING_MODE     = "staging"
+	PRODUCTION_MODE  = "production"
+
 	ATTACHMENT_MAX_SIZE    = 10 * 1024 * 1024 // 10 MB
 	ATTACHMENT_EXT_ALLOWED = map[string]bool{
 		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,

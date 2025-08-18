@@ -2,9 +2,9 @@ package db
 
 import (
 	"fmt"
-	"log"
 
 	"server/config/env"
+	"server/config/log"
 
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/postgres"
@@ -21,8 +21,7 @@ func SetupDatabase() {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Gagal terhubung ke database: %v", err)
-		panic(err)
+		log.Log.Fatalf("Gagal terhubung ke database: %v", err)
 	}
 
 	DB = db
@@ -35,8 +34,7 @@ func SetupRedisDatabase() {
 
 	_, err := rdb.Ping(rdb.Context()).Result()
 	if err != nil {
-		log.Fatalf("Gagal terhubung ke Redis: %v", err)
-		panic(err)
+		log.Log.Fatalf("Gagal terhubung ke Redis: %v", err)
 	}
 
 	RDB = rdb

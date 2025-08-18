@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"server/config/env"
+	"server/config/log"
 
 	"github.com/rabbitmq/amqp091-go"
 )
@@ -15,22 +16,18 @@ func SetupRabbitMQ() {
 
 	conn, err := amqp091.Dial(connectionString)
 	if err != nil {
-		fmt.Printf("Failed to connect to RabbitMQ: %s\n", err)
-		panic(err)
+		log.Log.Fatalf("Failed to connect to RabbitMQ: %v", err)
 	}
 
 	connection = conn
-	fmt.Println("Connected to RabbitMQ successfully")
 }
 
-func Close() error {
+func Close() {
 	if connection != nil {
 		if err := connection.Close(); err != nil {
-			return fmt.Errorf("failed to close RabbitMQ connection: %w", err)
+			log.Error("Failed to close RabbitMQ connection: " + err.Error())
 		}
-		fmt.Println("RabbitMQ connection closed successfully")
 	}
-	return nil
 }
 
 func GetChannel() (*amqp091.Channel, error) {

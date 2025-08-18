@@ -5,3 +5,4 @@ json.json
 **/.env*
 config*.json
 Makefile
+.server.log
