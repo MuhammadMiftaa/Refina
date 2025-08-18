@@ -129,6 +129,7 @@ func SetupLogger() {
 			Log.Fatal("Failed to open log file:", err)
 		}
 		Log.SetOutput(file)
+		Log.Debug("Production Log")
 
 	case data.STAGING_MODE:
 		Log.SetLevel(logrus.TraceLevel)
@@ -139,6 +140,7 @@ func SetupLogger() {
 		})
 
 		Log.SetOutput(os.Stdout)
+		Log.Debug("Staging Log")
 
 	default: // Development mode
 		Log.SetLevel(logrus.TraceLevel)
@@ -149,7 +151,10 @@ func SetupLogger() {
 		})
 
 		Log.SetOutput(os.Stdout)
+		Log.Debug("Development Log")
 	}
+
+	Log.Debug(env.Cfg.Server.Mode)
 }
 
 // Helper functions untuk logging yang lebih mudah digunakan
