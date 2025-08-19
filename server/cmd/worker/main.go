@@ -7,6 +7,7 @@ import (
 	"server/config/env"
 	"server/config/log"
 	"server/config/queue"
+	"server/config/redis"
 	"server/internal/repository"
 	"server/internal/service"
 )
@@ -38,7 +39,7 @@ func init() {
 	log.Info("Setup Database Connection Success")
 
 	log.Info("Setup Redis Connection Start")
-	db.SetupRedisDatabase() // Initialize the Redis connection
+	redis.SetupRedisDatabase() // Initialize the Redis connection
 	log.Info("Setup Redis Connection Success")
 
 	log.Info("Setup RabbitMQ Connection Start")

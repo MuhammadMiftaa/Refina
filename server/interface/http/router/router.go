@@ -2,6 +2,7 @@ package router
 
 import (
 	"server/config/db"
+	"server/config/redis"
 	"server/interface/http/middleware"
 	"server/interface/http/routes"
 	"server/internal/utils/data"
@@ -21,7 +22,7 @@ func SetupRouter() *gin.Engine {
 	})
 
 	v1 := router.Group("/v1")
-	routes.UserRoutes(v1, db.DB, db.RDB)
+	routes.UserRoutes(v1, db.DB, redis.RDB)
 	routes.TransactionRoutes(v1, db.DB)
 	routes.WalletRoutes(v1, db.DB)
 	routes.InvestmentRoute(v1, db.DB)

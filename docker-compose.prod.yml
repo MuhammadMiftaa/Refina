@@ -9,8 +9,6 @@ services:
     depends_on:
       ref-production-postgres:
         condition: service_healthy
-      ref-production-redis:
-        condition: service_started
     volumes:
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
       - ./config.production.json:/app/config.json:ro
@@ -50,23 +48,12 @@ services:
       - refina_network
     restart: always
 
-  ref-production-redis:
-    container_name: ref-production-redis
-    image: redis:7.2-alpine
-    ports:
-      - "127.0.0.1:6379:6379"
-    networks:
-      - refina_network
-    restart: always
-
   ref-production-worker:
     container_name: ref-production-worker
     image: ${APP_IMAGE_PROD_WORKER}:${APP_IMAGE_PROD_WORKER_TAG}
     depends_on:
       ref-production-postgres:
         condition: service_healthy
-      ref-production-redis:
-        condition: service_started
     volumes:
       - ./config.production.json:/app/config.json:ro
       - ./.env.production:/app/.env:ro

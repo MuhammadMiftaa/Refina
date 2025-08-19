@@ -9,8 +9,6 @@ services:
     depends_on:
       ref-staging-postgres:
         condition: service_healthy
-      ref-staging-redis:
-        condition: service_started
     volumes:
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
       - ./config.staging.json:/app/config.json:ro
@@ -50,23 +48,12 @@ services:
       - refina_staging_network
     restart: always
 
-  ref-staging-redis:
-    container_name: ref-staging-redis
-    image: redis:7.2-alpine
-    ports:
-      - "127.0.0.1:6380:6379"
-    networks:
-      - refina_staging_network
-    restart: always
-
   ref-staging-worker:
     container_name: ref-staging-worker
     image: ${APP_IMAGE_STG_WORKER}:${APP_IMAGE_STG_WORKER_TAG}
     depends_on:
       ref-staging-postgres:
         condition: service_healthy
-      ref-staging-redis:
-        condition: service_started
     volumes:
       - ./config.staging.json:/app/config.json:ro
       - ./.env.staging:/app/.env:ro
