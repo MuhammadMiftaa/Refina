@@ -13,7 +13,7 @@ import (
 func SetupRouter() *gin.Engine {
 	router := gin.Default()
 
-	router.Use(middleware.CORSMiddleware())
+	router.Use(middleware.CORSMiddleware(), middleware.GinMiddleware())
 
 	router.GET("test", func(c *gin.Context) {
 		c.JSON(200, gin.H{
