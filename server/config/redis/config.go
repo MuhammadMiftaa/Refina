@@ -12,14 +12,14 @@ import (
 
 var RDB *redis.Client
 
-func SetupRedisDatabase() {
+func SetupRedisDatabase(cfg env.Redis) {
 	var db int
 	if env.Cfg.Server.Mode == data.DEVELOPMENT_MODE {
 		db = 1
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", env.Cfg.Redis.RHost, env.Cfg.Redis.RPort),
+		Addr: fmt.Sprintf("%s:%s", cfg.RHost, cfg.RPort),
 		DB:   db,
 	})
 

@@ -12,8 +12,8 @@ import (
 
 var DB *gorm.DB
 
-func SetupDatabase() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", env.Cfg.Database.DBHost, env.Cfg.Database.DBUser, env.Cfg.Database.DBPassword, env.Cfg.Database.DBName, env.Cfg.Database.DBPort)
+func SetupDatabase(cfg env.Database) {
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta", cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {

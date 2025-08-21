@@ -1,7 +1,9 @@
 package env
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
@@ -79,6 +81,15 @@ type (
 		ZSAuth     bool   `env:"ZOHO_SMTP_AUTH"`
 	}
 
+	Minio struct {
+		Host        string `env:"MINIO_HOST"`
+		Port        string `env:"MINIO_PORT"`
+		AccessKey   string `env:"MINIO_ROOT_USER"`
+		SecretKey   string `env:"MINIO_ROOT_PASSWORD"`
+		MaxOpenConn int    `env:"MINIO_MAX_OPEN_CONN"`
+		UseSSL      int    `env:"MINIO_USE_SSL"`
+	}
+
 	Config struct {
 		Server   Server
 		Client   Client
@@ -88,6 +99,7 @@ type (
 		GSMTP    GSMTP
 		ZSMTP    ZSMTP
 		RabbitMQ RabbitMQ
+		Minio    Minio
 	}
 )
 
@@ -237,6 +249,37 @@ func LoadNative() ([]string, error) {
 		missing = append(missing, "ZOHO_SMTP_AUTH env is not set")
 	} else {
 		Cfg.ZSMTP.ZSAuth = zohoAuth == "true"
+	}
+	// ! ______________________________________________________
+
+	// ! Load MinIO configuration _____________________________
+	if Cfg.Minio.Host, ok = os.LookupEnv("MINIO_HOST"); !ok {
+		missing = append(missing, "MINIO_HOST env is not set")
+	}
+	if Cfg.Minio.Port, ok = os.LookupEnv("MINIO_PORT"); !ok {
+		missing = append(missing, "MINIO_PORT env is not set")
+	}
+	if Cfg.Minio.AccessKey, ok = os.LookupEnv("MINIO_ROOT_USER"); !ok {
+		missing = append(missing, "MINIO_ROOT_USER env is not set")
+	}
+	if Cfg.Minio.SecretKey, ok = os.LookupEnv("MINIO_ROOT_PASSWORD"); !ok {
+		missing = append(missing, "MINIO_ROOT_PASSWORD env is not set")
+	}
+	if val, ok := os.LookupEnv("MINIO_MAX_OPEN_CONN"); !ok {
+		missing = append(missing, "MINIO_MAX_OPEN_CONN env is not set")
+	} else {
+		var err error
+		if Cfg.Minio.MaxOpenConn, err = strconv.Atoi(val); err != nil {
+			missing = append(missing, fmt.Sprintf("MINIO_MAX_OPEN_CONN must be int, got %s", val))
+		}
+	}
+	if val, ok := os.LookupEnv("MINIO_USE_SSL"); !ok {
+		missing = append(missing, "MINIO_USE_SSL env is not set")
+	} else {
+		var err error
+		if Cfg.Minio.UseSSL, err = strconv.Atoi(val); err != nil {
+			missing = append(missing, fmt.Sprintf("MINIO_USE_SSL must be int, got %s", val))
+		}
 	}
 	// ! ______________________________________________________
 
@@ -390,6 +433,28 @@ func LoadByViper() ([]string, error) {
 	if Cfg.ZSMTP.ZSAuth = config.GetBool("SMTP.ZOHO.AUTH"); !Cfg.ZSMTP.ZSAuth {
 		missing = append(missing, "SMTP.ZOHO.AUTH env is not set")
 	}
+	// ! ______________________________________________________
+
+	// ! Load Minio configuration __________________________
+	if Cfg.Minio.Host = config.GetString("OBJECT-STORAGE.MINIO.HOST"); Cfg.Minio.Host == "" {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.HOST env is not set")
+	}
+	if Cfg.Minio.Port = config.GetString("OBJECT-STORAGE.MINIO.PORT"); Cfg.Minio.Port == "" {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.PORT env is not set")
+	}
+	if Cfg.Minio.AccessKey = config.GetString("OBJECT-STORAGE.MINIO.USER"); Cfg.Minio.AccessKey == "" {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.USER env is not set")
+	}
+	if Cfg.Minio.SecretKey = config.GetString("OBJECT-STORAGE.MINIO.PASSWORD"); Cfg.Minio.SecretKey == "" {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.PASSWORD env is not set")
+	}
+	if Cfg.Minio.MaxOpenConn = config.GetInt("OBJECT-STORAGE.MINIO.MAX_OPEN_CONN_POOL"); Cfg.Minio.MaxOpenConn == 0 {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.MAX_OPEN_CONN_POOL env is not set")
+	}
+	if Cfg.Minio.UseSSL = config.GetInt("OBJECT-STORAGE.MINIO.USE_SSL"); Cfg.Minio.UseSSL < 0 || Cfg.Minio.UseSSL > 1 {
+		missing = append(missing, "OBJECT-STORAGE.MINIO.USE_SSL env is not valid")
+	}
+	
 	// ! ______________________________________________________
 
 	return missing, nil

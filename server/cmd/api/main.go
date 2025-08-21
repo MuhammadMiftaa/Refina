@@ -4,6 +4,7 @@ import (
 	"server/config/db"
 	"server/config/env"
 	"server/config/log"
+	"server/config/miniofs"
 	"server/config/queue"
 	"server/config/redis"
 	"server/interface/http/router"
@@ -33,16 +34,20 @@ func init() {
 	}
 
 	log.Info("Setup Database Connection Start")
-	db.SetupDatabase() // Initialize the database connection and run migrations
+	db.SetupDatabase(env.Cfg.Database) // Initialize the database connection and run migrations
 	log.Info("Setup Database Connection Success")
 
 	log.Info("Setup Redis Connection Start")
-	redis.SetupRedisDatabase() // Initialize the Redis connection
+	redis.SetupRedisDatabase(env.Cfg.Redis) // Initialize the Redis connection
 	log.Info("Setup Redis Connection Success")
 
 	log.Info("Setup RabbitMQ Connection Start")
-	queue.SetupRabbitMQ() // Initialize RabbitMQ connection
+	queue.SetupRabbitMQ(env.Cfg.RabbitMQ) // Initialize RabbitMQ connection
 	log.Info("Setup RabbitMQ Connection Success")
+
+	log.Info("Setup MinIO Connection Start")
+	miniofs.SetupMinio(env.Cfg.Minio) // Initialize MinIO connection
+	log.Info("Setup MinIO Connection Success")
 
 	log.Info("Starting Refina API...")
 }

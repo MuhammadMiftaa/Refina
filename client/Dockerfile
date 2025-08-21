@@ -8,7 +8,7 @@ ENV VITE_MODE=$VITE_MODE
 ENV VITE_API_URL=$VITE_API_URL
 
 COPY package.json ./
-COPY bun.lockb ./
+COPY bun.lock ./
 RUN bun install
 
 COPY . ./

@@ -11,8 +11,8 @@ import (
 
 var connection *amqp091.Connection
 
-func SetupRabbitMQ() {
-	connectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/%s", env.Cfg.RabbitMQ.RMQUser, env.Cfg.RabbitMQ.RMQPassword, env.Cfg.RabbitMQ.RMQHost, env.Cfg.RabbitMQ.RMQPort, env.Cfg.RabbitMQ.RMQVirtualHost)
+func SetupRabbitMQ(cfg env.RabbitMQ) {
+	connectionString := fmt.Sprintf("amqp://%s:%s@%s:%s/%s", cfg.RMQUser, cfg.RMQPassword, cfg.RMQHost, cfg.RMQPort, cfg.RMQVirtualHost)
 
 	conn, err := amqp091.Dial(connectionString)
 	if err != nil {
