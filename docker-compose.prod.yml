@@ -10,7 +10,7 @@ services:
       ref-production-postgres:
         condition: service_healthy
     volumes:
-      - server_log_data:/app/.server.log
+      - ./.server.log:/app/.server.log
       - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
       - ./config.production.json:/app/config.json:ro
       - ./.env.production:/app/.env:ro
