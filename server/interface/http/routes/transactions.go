@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"server/config/miniofs"
 	"server/interface/http/handler"
 	"server/interface/http/middleware"
 	"server/internal/repository"
@@ -10,14 +11,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB) {
+func TransactionRoutes(version *gin.RouterGroup, db *gorm.DB, minio *miniofs.MinIOManager) {
 	txManager := repository.NewTxManager(db)
 	transactionRepo := repository.NewTransactionRepository(db)
 	walletRepo := repository.NewWalletRepository(db)
 	categoryRepo := repository.NewCategoryRepository(db)
 	attachmentRepo := repository.NewAttachmentsRepository(db)
 
-	Transaction_serv := service.NewTransactionService(txManager, transactionRepo, walletRepo, categoryRepo, attachmentRepo)
+	Transaction_serv := service.NewTransactionService(txManager, transactionRepo, walletRepo, categoryRepo, attachmentRepo, minio)
 	Transaction_handler := handler.NewTransactionHandler(Transaction_serv)
 
 	transaction := version.Group("/transactions")

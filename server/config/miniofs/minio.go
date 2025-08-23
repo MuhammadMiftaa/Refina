@@ -37,6 +37,7 @@ type UploadResponse struct {
 	ObjectName string
 	Size       int64
 	URL        string
+	Ext       string
 	ETag       string
 }
 
@@ -299,6 +300,7 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 		ObjectName: objectName,
 		Size:       info.Size,
 		URL:        url,
+		Ext:        ext,
 		ETag:       info.ETag,
 	}, nil
 }
@@ -462,7 +464,7 @@ func CreateDefaultValidationConfig() *FileValidationConfig {
 
 func CreateImageValidationConfig() *FileValidationConfig {
 	return &FileValidationConfig{
-		AllowedExtensions: []string{".jpg", ".jpeg", ".png", ".gif", ".webp"},
+		AllowedExtensions: []string{".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf"},
 		MaxFileSize:       5 * 1024 * 1024, // 5MB
 		MinFileSize:       1,               // 1 byte
 	}

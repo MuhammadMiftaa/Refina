@@ -155,7 +155,8 @@ export function shortenFilename(filename: string): string {
   const ext = filename.split(".").pop() || "";
   const base = filename.slice(0, -ext.length - 1); // hapus ".ext"
 
-  return `${base.slice(0, 6)}........${base.slice(-4)}.${ext}`;
+  return `${base.slice(0, 35)}.....`;
+  // return `${base.slice(0, 30)}........${base.slice(-1)}.${ext}`;
 }
 
 export function bytesToMegabytes(bytes: number): string {

@@ -5,13 +5,6 @@ var (
 	STAGING_MODE     = "staging"
 	PRODUCTION_MODE  = "production"
 
-	ATTACHMENT_MAX_SIZE    = 10 * 1024 * 1024 // 10 MB
-	ATTACHMENT_EXT_ALLOWED = map[string]bool{
-		".jpg": true, ".jpeg": true, ".png": true, ".gif": true, ".webp": true,
-		".pdf": true,
-	}
-	ATTACHMENT_FILEPATH = "/app/storage/uploads/transaction-attachments"
-
 	REPORT_STATUS_PROCESSING = "processing"
 	REPORT_STATUS_COMPLETED  = "completed"
 	REPORT_STATUS_FAILED     = "failed"

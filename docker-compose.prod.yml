@@ -78,7 +78,6 @@ services:
       - migrate
 
 volumes:
-  server_log_data:
   production_postgres_data:
 
 networks:

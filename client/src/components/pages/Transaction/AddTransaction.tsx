@@ -23,6 +23,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { MobileDatePicker } from "@mui/x-date-pickers/MobileDatePicker";
 import GlobalLoading from "@/components/ui/global-loading";
+import { AttachmentType } from "@/types/Attachments";
 
 async function fetchCategories(type: string) {
   const backendURL = getBackendURL();
@@ -64,6 +65,11 @@ async function fetchWallets() {
   return res.json();
 }
 
+type NewFilesType = {
+  status: string;
+  files: string[];
+};
+
 export default function AddTransaction() {
   const backendURL = getBackendURL();
   const navigate = useNavigate();
@@ -94,13 +100,14 @@ export default function AddTransaction() {
     category_id: "",
     date: toLocalISOString(new Date()),
     description: "",
+    attachments: [] as AttachmentType[],
     // FUND TRANSFER
     from_wallet_id: "",
     to_wallet_id: "",
     admin_fee: 0,
   });
   const [files, setFiles] = useState<File[]>([]);
-  const [base64Files, setBase64Files] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<NewFilesType[]>([]);
   const [clearFiles, setClearFiles] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -122,10 +129,26 @@ export default function AddTransaction() {
     }
   }, [clearFiles]);
 
+  // Untuk menambahkan file baru dalam format base64
   useEffect(() => {
     if (files.length > 0) {
       convertFilesToBase64(files)
-        .then(setBase64Files)
+        .then((result) => {
+          setNewFiles((prev) => {
+            const updated = [...prev];
+            const index = updated.findIndex((item) => item.status === "create");
+
+            if (index !== -1) {
+              // Jika sudah ada, replace files-nya
+              updated[index] = { ...updated[index], files: result };
+            } else {
+              // Jika belum ada, push object baru
+              updated.push({ status: "create", files: result });
+            }
+
+            return updated;
+          });
+        })
         .catch((err) => console.error("Error converting files:", err));
     }
   }, [files]);
@@ -158,22 +181,11 @@ export default function AddTransaction() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, attachments: newFiles }),
       });
 
       if (!res.ok) {
         throw new Error("Failed to add transaction");
-      }
-
-      const resData = await res.json();
-
-      if (base64Files.length > 0) {
-        if (type === "fund_transfer") {
-          await uploadAttachment(resData.data.cash_in_transaction_id);
-          await uploadAttachment(resData.data.cash_out_transaction_id);
-        } else {
-          await uploadAttachment(resData.data.id);
-        }
       }
 
       navigate("/transactions");
@@ -181,27 +193,6 @@ export default function AddTransaction() {
       console.error("Error creating transaction:", error);
     }
     setSubmitLoading(false);
-  };
-
-  const uploadAttachment = async (ID: string) => {
-    const token = Cookies.get("token") || "";
-
-    try {
-      const res = await fetch(`${backendURL}/transactions/attachment/${ID}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          files: base64Files,
-        }),
-      });
-
-      if (!res.ok) throw new Error(`Failed to upload file`);
-    } catch (error) {
-      console.error("Error uploading attachment:", error);
-    }
   };
 
   if (categoriesLoading || walletsLoading) {

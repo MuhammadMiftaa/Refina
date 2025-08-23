@@ -418,23 +418,6 @@ export default function Transactions() {
         throw new Error("Failed to add transaction");
       }
 
-      // const resData = await res.json();
-
-      // if (type === "fund_transfer") {
-      //   await uploadAttachment(
-      //     resData.data.cash_in_transaction_id,
-      //     files,
-      //     token,
-      //   );
-      //   await uploadAttachment(
-      //     resData.data.cash_out_transaction_id,
-      //     files,
-      //     token,
-      //   );
-      // } else {
-      //   await uploadAttachment(resData.data.id, files, token);
-      // }
-
       setFiles([]);
       setUpdateFiles([]);
       setIsOpen(false);
@@ -773,12 +756,13 @@ export default function Transactions() {
                           </div>
                           <div className="flex flex-col">
                             <a
-                              href={`https://api-refina.miftech.web.id/uploads/transactions-attachments/${file.image}`}
+                              href={file.image}
                               className="flex items-center gap-1 text-sky-500 duration-300 hover:text-sky-600"
                               target="_blank"
                               rel="noopener noreferrer"
                             >
                               <h1 className="text-sm">{shortenFilename(file.image)}</h1>
+                              {/* <h1 className="text-sm truncate">{file.image}</h1> */}
                               <LuArrowUpRight />
                             </a>
                             <div className="flex items-center gap-2 text-xs text-neutral-500">
