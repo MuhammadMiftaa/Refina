@@ -69,7 +69,7 @@ var (
 func SetupMinio(cfg env.Minio) {
 	once.Do(func() {
 		cfg := MinIOConfig{
-			Host:           fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+			Host:           cfg.Host,
 			AccessKey:      cfg.AccessKey,
 			SecretKey:      cfg.SecretKey,
 			UseSSL:         cfg.UseSSL == 1,

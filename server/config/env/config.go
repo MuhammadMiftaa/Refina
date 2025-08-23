@@ -83,7 +83,6 @@ type (
 
 	Minio struct {
 		Host        string `env:"MINIO_HOST"`
-		Port        string `env:"MINIO_PORT"`
 		AccessKey   string `env:"MINIO_ROOT_USER"`
 		SecretKey   string `env:"MINIO_ROOT_PASSWORD"`
 		MaxOpenConn int    `env:"MINIO_MAX_OPEN_CONN"`
@@ -255,9 +254,6 @@ func LoadNative() ([]string, error) {
 	// ! Load MinIO configuration _____________________________
 	if Cfg.Minio.Host, ok = os.LookupEnv("MINIO_HOST"); !ok {
 		missing = append(missing, "MINIO_HOST env is not set")
-	}
-	if Cfg.Minio.Port, ok = os.LookupEnv("MINIO_PORT"); !ok {
-		missing = append(missing, "MINIO_PORT env is not set")
 	}
 	if Cfg.Minio.AccessKey, ok = os.LookupEnv("MINIO_ROOT_USER"); !ok {
 		missing = append(missing, "MINIO_ROOT_USER env is not set")
@@ -438,9 +434,6 @@ func LoadByViper() ([]string, error) {
 	// ! Load Minio configuration __________________________
 	if Cfg.Minio.Host = config.GetString("OBJECT-STORAGE.MINIO.HOST"); Cfg.Minio.Host == "" {
 		missing = append(missing, "OBJECT-STORAGE.MINIO.HOST env is not set")
-	}
-	if Cfg.Minio.Port = config.GetString("OBJECT-STORAGE.MINIO.PORT"); Cfg.Minio.Port == "" {
-		missing = append(missing, "OBJECT-STORAGE.MINIO.PORT env is not set")
 	}
 	if Cfg.Minio.AccessKey = config.GetString("OBJECT-STORAGE.MINIO.USER"); Cfg.Minio.AccessKey == "" {
 		missing = append(missing, "OBJECT-STORAGE.MINIO.USER env is not set")
