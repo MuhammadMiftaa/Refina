@@ -10,7 +10,6 @@ services:
       ref-staging-postgres:
         condition: service_healthy
     volumes:
-      - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
       - ./config.staging.json:/app/config.json:ro
       - ./.env.staging:/app/.env:ro
     networks:

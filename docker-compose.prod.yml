@@ -11,7 +11,6 @@ services:
         condition: service_healthy
     volumes:
       - ./.server.log:/app/.server.log
-      - ~/.var/app/miftech.refina/storage/uploads/transaction-attachments:/app/storage/uploads/transaction-attachments
       - ./config.production.json:/app/config.json:ro
       - ./.env.production:/app/.env:ro
     networks:
