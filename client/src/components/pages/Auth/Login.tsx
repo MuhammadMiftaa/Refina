@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, lazy, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
@@ -8,16 +8,21 @@ import Cookies from "js-cookie";
 import { decodeJwt } from "jose";
 import { useProfile } from "@/store/useProfile";
 import { useShallow } from "zustand/shallow";
+import { createCookiesOpts } from "@/helper/Helper";
+
+// React Icons
 import { SlLock } from "react-icons/sl";
 import { LuEye, LuEyeOff } from "react-icons/lu";
 import { IoMailOutline } from "react-icons/io5";
-import { createCookiesOpts } from "@/helper/Helper";
+
+// Lazy-loaded components
+const HeroSection = lazy(() => import("./HeroSection"));
+const Spinner = lazy(() => import("./Spinner"));
 
 const postFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
-
 type PostFormSchema = z.infer<typeof postFormSchema>;
 
 export default function LoginOptimized(props: {
@@ -26,17 +31,20 @@ export default function LoginOptimized(props: {
 }) {
   const backendURL = getBackendURL();
   const { setProfile } = useProfile(
-    useShallow((state) => ({ setProfile: state.setProfile })),
+    useShallow((state) => ({ setProfile: state.setProfile }))
   );
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const { register, handleSubmit, formState } = useForm<PostFormSchema>({
     resolver: zodResolver(postFormSchema),
   });
 
-  // 🧠 Optimized Fetch with try/catch
+  // Submit handler
   const onSubmit = handleSubmit(async (data) => {
     try {
       setLoading(true);
@@ -63,8 +71,8 @@ export default function LoginOptimized(props: {
     }
   });
 
-  // OAuth handler
-  const handleOAuth = async (server: string) => {
+  // OAuth handlers
+  const handleOAuth = useCallback(async (server: string) => {
     try {
       const res = await fetch(`${backendURL}/auth/${server}/oauth`, {
         method: "GET",
@@ -76,10 +84,12 @@ export default function LoginOptimized(props: {
     } catch (err) {
       console.error("Error during OAuth:", err);
     }
-  };
+  }, [backendURL]);
+
+  const handleGoogleOAuth = useCallback(() => handleOAuth("google"), [handleOAuth]);
+  const handleFacebookOAuth = useCallback(() => handleOAuth("facebook"), [handleOAuth]);
 
   // Handle token from redirect
-  const [searchParams] = useSearchParams();
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
@@ -92,7 +102,7 @@ export default function LoginOptimized(props: {
       props.handleLogin();
       navigate("/");
     }
-  }, []);
+  }, [searchParams, setProfile, props, navigate]);
 
   if (props.isAuthenticated) return <Navigate to={"/"} />;
 
@@ -106,25 +116,11 @@ export default function LoginOptimized(props: {
         backgroundRepeat: "no-repeat",
       }}
     >
-      <div className=" flex w-[clamp(300px,90vw,800px)] flex-col rounded-[22px] bg-white p-5 shadow-[0_50px_100px_rgba(0,0,0,0.08)] sm:flex-row sm:p-2">
-        {/* 🖼️ Optimized Hero Section */}
-        <div className="relative w-full overflow-hidden rounded-xl sm:w-1/2 font-[Space_Grotesk]">
-          <img
-            src="/hero.svg"
-            alt="Hero Illustration"
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <div className="relative flex h-full min-h-[170px] flex-col justify-center bg-gradient-to-b from-[rgba(95,69,168,0)] to-[rgba(95,69,168,0.7)] px-10 py-10 sm:items-start sm:justify-center sm:px-9">
-            <h2 className="text-[22px] leading-tight font-medium text-white">
-              Manage your finances easily and securely with Refina
-            </h2>
-            <h3 className="mt-3 hidden text-[18px] text-[#c7c2d6] sm:block">
-              Track spending, manage budgets, and set your financial goals.
-            </h3>
-          </div>
-        </div>
+      <div className="flex w-[clamp(300px,90vw,800px)] flex-col rounded-[22px] bg-white p-5 shadow-[0_50px_100px_rgba(0,0,0,0.08)] sm:flex-row sm:p-2">
+        {/* 🖼️ Hero Section Lazy */}
+        <Suspense fallback={<div className="w-full sm:w-1/2 h-[170px] bg-gray-200 animate-pulse" />}>
+          <HeroSection />
+        </Suspense>
 
         {/* 🧾 Form Section */}
         <form
@@ -144,9 +140,9 @@ export default function LoginOptimized(props: {
               type="button"
               aria-label="Login with Google"
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
-              onClick={() => handleOAuth("google")}
+              onClick={handleGoogleOAuth}
             >
-              <img src="/google.svg" alt="Google" className="h-5" loading="lazy" />
+              <img src="/google.svg" alt="Google" className="h-5" loading="lazy" decoding="async" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Google
               </p>
@@ -155,9 +151,9 @@ export default function LoginOptimized(props: {
               type="button"
               aria-label="Login with Facebook"
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
-              onClick={() => handleOAuth("facebook")}
+              onClick={handleFacebookOAuth}
             >
-              <img src="/facebook.svg" alt="Facebook" className="h-6" loading="lazy" />
+              <img src="/facebook.svg" alt="Facebook" className="h-6" loading="lazy" decoding="async" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Facebook
               </p>
@@ -227,27 +223,9 @@ export default function LoginOptimized(props: {
             disabled={loading}
             className="h-11 cursor-pointer rounded-md bg-[#8864f0] text-[17px] text-white transition-colors duration-200 hover:bg-[#7a5dcf] disabled:cursor-not-allowed disabled:bg-[#8864f0]/50 disabled:text-gray-300"
           >
-            {loading ? (
-              <div role="status">
-                <svg
-                  aria-hidden="true"
-                  className="inline h-6 w-6 animate-spin fill-purple-600 text-gray-200"
-                  viewBox="0 0 100 101"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539..."
-                    fill="currentFill"
-                  />
-                </svg>
-              </div>
-            ) : (
-              "Login"
-            )}
+            <Suspense fallback={<div>Loading...</div>}>
+              {loading ? <Spinner /> : "Login"}
+            </Suspense>
           </button>
 
           <p className="mt-4 text-center text-sm">
