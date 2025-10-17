@@ -2,7 +2,7 @@
 
 stages:
   - build
-  - release
+  # - release
   - deploy
   - migrate
 
@@ -73,29 +73,29 @@ build_migrate:
     paths:
       - migrate_build_job_id.txt
 
-release:
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  needs:
-    - job: build_server
-      artifacts: true
-    - job: build_client
-      artifacts: true
-    - job: build_worker
-      artifacts: true
-    - job: build_migrate
-      artifacts: true
-  variables:
-    RELEASE_TITLE: "Release ${CI_COMMIT_TAG}"
-    RELEASE_DESC: "Tagged after commit ${CI_COMMIT_SHORT_SHA}, message ${CI_COMMIT_TAG_MESSAGE}"
-  script:
-    - export SERVER_BUILD_JOB_ID="$(cat server_build_job_id.txt)"
-    - export CLIENT_BUILD_JOB_ID="$(cat client_build_job_id.txt)"
-    - export WORKER_BUILD_JOB_ID="$(cat worker_build_job_id.txt)"
-    - export MIGRATE_BUILD_JOB_ID="$(cat migrate_build_job_id.txt)"
-    - echo "create release ${CI_COMMIT_TAG} from jobs $SERVER_BUILD_JOB_ID and $CLIENT_BUILD_JOB_ID"
-    - echo "create release ${CI_COMMIT_TAG} from jobs $WORKER_BUILD_JOB_ID and $MIGRATE_BUILD_JOB_ID"
-    - release-cli create --name "${RELEASE_TITLE}" --description "${RELEASE_DESC}" --tag-name "${CI_COMMIT_TAG}"
+# release:
+#   stage: release
+#   image: registry.gitlab.com/gitlab-org/release-cli:latest
+#   needs:
+#     - job: build_server
+#       artifacts: true
+#     - job: build_client
+#       artifacts: true
+#     - job: build_worker
+#       artifacts: true
+#     - job: build_migrate
+#       artifacts: true
+#   variables:
+#     RELEASE_TITLE: "Release ${CI_COMMIT_TAG}"
+#     RELEASE_DESC: "Tagged after commit ${CI_COMMIT_SHORT_SHA}, message ${CI_COMMIT_TAG_MESSAGE}"
+#   script:
+#     - export SERVER_BUILD_JOB_ID="$(cat server_build_job_id.txt)"
+#     - export CLIENT_BUILD_JOB_ID="$(cat client_build_job_id.txt)"
+#     - export WORKER_BUILD_JOB_ID="$(cat worker_build_job_id.txt)"
+#     - export MIGRATE_BUILD_JOB_ID="$(cat migrate_build_job_id.txt)"
+#     - echo "create release ${CI_COMMIT_TAG} from jobs $SERVER_BUILD_JOB_ID and $CLIENT_BUILD_JOB_ID"
+#     - echo "create release ${CI_COMMIT_TAG} from jobs $WORKER_BUILD_JOB_ID and $MIGRATE_BUILD_JOB_ID"
+#     - release-cli create --name "${RELEASE_TITLE}" --description "${RELEASE_DESC}" --tag-name "${CI_COMMIT_TAG}"
 
 deploy-staging:
   stage: deploy
