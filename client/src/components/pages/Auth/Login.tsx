@@ -110,7 +110,7 @@ export default function LoginOptimized(props: {
     <div
       className="grid min-h-screen w-full place-items-center text-[#645e74]"
       style={{
-        backgroundImage: "url('/background.jpeg')",
+        backgroundImage: "url('https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_5/background_rf57cf.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",

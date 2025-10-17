@@ -93,7 +93,7 @@ export default function Register(props: {
     <div
       className="grid min-h-screen w-full place-items-center text-[#645e74]"
       style={{
-        backgroundImage: "url('/background.jpeg')",
+        backgroundImage: "url('https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_5/background_rf57cf.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -240,7 +240,7 @@ export default function Register(props: {
           </p>
         </form>
 
-        <div className="w-full overflow-hidden rounded-xl bg-[url('/hero.svg')] bg-cover bg-no-repeat font-[Space_Grotesk] sm:w-1/2">
+        <div className="w-full overflow-hidden rounded-xl bg-[url('https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_200/hero_uc1obl.svg')] bg-cover bg-no-repeat font-[Space_Grotesk] sm:w-1/2">
           <div className="rounded-inherit flex h-full min-h-[170px] flex-col justify-center bg-gradient-to-b from-[rgba(95,69,168,0)] to-[rgba(95,69,168,0.7)] px-10 py-10 sm:items-start sm:justify-center sm:px-9">
             <h2 className="text-[22px] leading-tight font-medium text-white">
               Join Refina and take control of your financial journey
@@ -325,7 +325,7 @@ export function RegisterOTP(props: { isAuthenticated: boolean }) {
     <div
       className="grid min-h-screen w-full place-items-center text-[#645e74]"
       style={{
-        backgroundImage: "url('/background.jpeg')",
+        backgroundImage: "url('https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_5/background_rf57cf.jpg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -443,7 +443,7 @@ export function RegisterOTP(props: { isAuthenticated: boolean }) {
           </button>
         </form>
 
-        <div className="w-full overflow-hidden rounded-xl bg-[url('/hero.svg')] bg-cover bg-no-repeat font-[Space_Grotesk] sm:w-1/2">
+        <div className="w-full overflow-hidden rounded-xl bg-[url('https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_200/hero_uc1obl.svg')] bg-cover bg-no-repeat font-[Space_Grotesk] sm:w-1/2">
           <div className="rounded-inherit flex h-full min-h-[170px] flex-col justify-center bg-gradient-to-b from-[rgba(95,69,168,0)] to-[rgba(95,69,168,0.7)] px-10 py-10 sm:items-start sm:justify-center sm:px-9">
             <h2 className="text-[22px] leading-tight font-medium text-white">
               Join Refina and take control of your financial journey
