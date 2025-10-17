@@ -4,33 +4,7 @@
     <meta charset="UTF-8" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Rekapan Finansialmu dengan Refina" />
-    <meta name="theme-color" content="#E6E6FA" />
-
-    <!-- ✅ Preload critical assets (hero image + background) -->
-    <link rel="preload" as="image" href="/background.jpeg" />
-    <link rel="preload" as="image" href="/hero.svg" />
-
-    <!-- ✅ Preconnect ke backend dan font provider -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- ✅ Preload font (jika kamu pakai di Tailwind / CSS) -->
-    <link
-      rel="preload"
-      as="font"
-      type="font/woff2"
-      href="/fonts/Inter-VariableFont.woff2"
-      crossorigin
-    />
-
-    <!-- ✅ Load font non-blocking -->
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
-      rel="stylesheet"
-    />
-
-    <!-- ✅ Favicon & PWA Icons -->
+    <meta name="description" content="Rekapan Finansialmu" />
     <link rel="icon" type="image/png" href="/pwa-192x192.png" />
     <link
       rel="apple-touch-icon"
@@ -38,31 +12,11 @@
       sizes="180x180"
     />
     <link rel="mask-icon" href="/maskable-icon-512x512.svg" color="#E6E6FA" />
-
-    <title>Refina — Manage Your Finances Easily</title>
-
-    <!-- ✅ Prevent layout shift by reserving space -->
-    <style>
-      body {
-        margin: 0;
-        font-family: "Inter", system-ui, sans-serif;
-        background-color: #e8dfff;
-      }
-      /* Reserve height for hero area to avoid CLS */
-      .hero-placeholder {
-        height: 520px;
-        width: 100%;
-      }
-    </style>
+    <meta name="theme-color" content="#E6E6FA" />
+    <title>Refina</title>
   </head>
-
   <body>
-    <div id="root">
-      <!-- Optional: Placeholder for early paint -->
-      <div class="hero-placeholder"></div>
-    </div>
-
-    <!-- ✅ Defer JS loading -->
-    <script type="module" src="/src/main.tsx" defer></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

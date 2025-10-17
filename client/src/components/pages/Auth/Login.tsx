@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
@@ -17,23 +17,22 @@ const postFormSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
+
 type PostFormSchema = z.infer<typeof postFormSchema>;
 
-export default function Login({
-  handleLogin,
-  isAuthenticated,
-}: {
+export default function Login(props: {
   handleLogin: () => void;
   isAuthenticated: boolean;
 }) {
   const backendURL = getBackendURL();
+
   const { setProfile } = useProfile(
     useShallow((state) => ({ setProfile: state.setProfile })),
   );
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,51 +40,48 @@ export default function Login({
     resolver: zodResolver(postFormSchema),
   });
 
-  // 🚀 gunakan useCallback untuk mencegah re-render berulang
-  const onSubmit = useCallback(
-    handleSubmit(async (data) => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${backendURL}/auth/login`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }).then((r) => r.json());
+  const onSubmit = handleSubmit(async (data) => {
+    setLoading(true);
 
-        if (res.status) {
-          Cookies.set("token", res.data, createCookiesOpts());
-          handleLogin();
-          navigate("/");
-        } else {
-          setError(res.message);
-        }
-      } catch (err) {
-        setError("Failed to connect to server.");
-      } finally {
-        setLoading(false);
+    const res = await fetch(`${backendURL}/auth/login`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }).then((res) => res.json());
+
+    if (res.status) {
+      Cookies.set("token", res.data, createCookiesOpts());
+      props.handleLogin();
+      navigate("/");
+    } else {
+      setError(res.message);
+    }
+
+    setLoading(false);
+  });
+
+  const handleOAuth = async (server: string) => {
+    try {
+      const res = await fetch(`${backendURL}/auth/${server}/oauth`, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.href = data.url;
+      } else {
+        console.error(data.message || "Login failed");
       }
-    }),
-    [backendURL, handleLogin, navigate],
-  );
+    } catch (err) {
+      console.error("Error during OAuth:", err);
+    }
+  };
 
-  const handleOAuth = useCallback(
-    async (server: string) => {
-      try {
-        const res = await fetch(`${backendURL}/auth/${server}/oauth`, {
-          credentials: "include",
-        });
-        const data = await res.json();
-        if (res.ok) window.location.href = data.url;
-        else console.error(data.message || "Login failed");
-      } catch (err) {
-        console.error("Error during OAuth:", err);
-      }
-    },
-    [backendURL],
-  );
-
-  // 🧠 Gunakan efek hanya 1x
+  const [searchParams] = useSearchParams();
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
@@ -95,50 +91,27 @@ export default function Login({
         username: decoded.username as string,
         email: decoded.email as string,
       });
-      handleLogin();
+      props.handleLogin();
       navigate("/");
     }
-  }, [searchParams, setProfile, handleLogin, navigate]);
+  });
 
-  // 🧩 Lazy-load background agar tidak menghambat render awal
-  const [bgLoaded, setBgLoaded] = useState(false);
-  useEffect(() => {
-    const img = new Image();
-    img.src = "/background.jpeg";
-    img.onload = () => setBgLoaded(true);
-  }, []);
-
-  return isAuthenticated ? (
-    <Navigate to="/" />
+  return props.isAuthenticated ? (
+    <Navigate to={"/"} />
   ) : (
     <div
-      className={`grid min-h-screen w-full place-items-center text-[#645e74] transition-opacity duration-300 ${
-        bgLoaded ? "opacity-100" : "opacity-0"
-      }`}
-      style={
-        bgLoaded
-          ? {
-              backgroundImage: "url('/background.jpeg')",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-            }
-          : {}
-      }
+      className="grid min-h-screen w-full place-items-center bg-[#e8dfff] text-[#645e74]"
+      style={{
+        backgroundImage: "url('/background.jpeg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
     >
       <div className="flex w-[clamp(300px,90vw,800px)] flex-col rounded-[22px] bg-white p-5 shadow-[0_50px_100px_rgba(0,0,0,0.08)] sm:flex-row sm:p-2">
-        {/* 🖼️ gunakan <img> dengan lazy loading agar hero.svg tidak block render */}
-        <div className="w-full overflow-hidden rounded-xl sm:w-1/2">
-          <img
-            src="/hero.svg"
-            alt="Refina Hero"
-            width={400}
-            height={400}
-            loading="lazy"
-            className="object-cover h-full w-full"
-          />
-          <div className="absolute bottom-0 left-0 right-0 flex flex-col justify-end bg-gradient-to-b from-transparent to-[rgba(95,69,168,0.7)] px-6 py-6">
-            <h2 className="text-[22px] font-medium text-white">
+        <div className="w-full overflow-hidden rounded-xl bg-[url('/hero.svg')] bg-cover bg-no-repeat font-[Space_Grotesk] sm:w-1/2">
+          <div className="rounded-inherit flex h-full min-h-[170px] flex-col justify-center bg-gradient-to-b from-[rgba(95,69,168,0)] to-[rgba(95,69,168,0.7)] px-10 py-10 sm:items-start sm:justify-center sm:px-9">
+            <h2 className="text-[22px] leading-tight font-medium text-white">
               Manage your finances easily and securely with Refina
             </h2>
             <h3 className="mt-3 hidden text-[18px] text-[#c7c2d6] sm:block">
@@ -164,33 +137,17 @@ export default function Login({
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
               onClick={() => handleOAuth("google")}
             >
-              {/* ✅ gunakan lazy load icon */}
-              <img
-                src="/google.svg"
-                alt="Google"
-                className="h-5"
-                width={20}
-                height={20}
-                loading="lazy"
-              />
+              <img src="/google.svg" alt="Google" className="h-5" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Google
               </p>
             </button>
-
             <button
               type="button"
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
               onClick={() => handleOAuth("facebook")}
             >
-              <img
-                src="/facebook.svg"
-                alt="Facebook"
-                className="h-6"
-                width={20}
-                height={20}
-                loading="lazy"
-              />
+              <img src="/facebook.svg" alt="Facebook" className="h-6" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Facebook
               </p>
@@ -204,14 +161,15 @@ export default function Login({
             </span>
           </span>
 
-          {/* Input email */}
           <div className="flex h-11 items-center gap-4 rounded-md border border-[#d0d0d6] px-4 text-[16px] outline-[#8864f0]">
-            <IoMailOutline className="text-lg text-neutral-500" />
+            <div>
+              <IoMailOutline className="text-lg text-neutral-500" />
+            </div>
             <input
               type="email"
               placeholder="Email"
               {...register("email")}
-              className="flex-1 focus:outline-none"
+              className="focus:outline-none"
             />
           </div>
           {formState.errors.email && (
@@ -220,21 +178,26 @@ export default function Login({
             </p>
           )}
 
-          {/* Input password */}
           <div className="relative flex h-11 items-center gap-4 rounded-md border border-[#d0d0d6] px-4 text-[16px] outline-[#8864f0]">
-            <SlLock className="text-lg text-neutral-500" />
+            <div>
+              <SlLock className="text-lg text-neutral-500" />
+            </div>
             <input
               type={showPassword ? "text" : "password"}
               placeholder="Password"
               {...register("password")}
-              className="flex-1 focus:outline-none"
+              className="focus:outline-none"
             />
             <button
+              className="absolute right-5 flex cursor-pointer"
+              onClick={() => setShowPassword(!showPassword)}
               type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              className="absolute right-4"
             >
-              {showPassword ? <LuEye /> : <LuEyeOff />}
+              {showPassword ? (
+                <LuEye className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              ) : (
+                <LuEyeOff className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+              )}
             </button>
           </div>
           {formState.errors.password && (
@@ -254,7 +217,29 @@ export default function Login({
             disabled={loading}
             className="h-11 cursor-pointer rounded-md bg-[#8864f0] text-[17px] text-white transition-colors duration-200 hover:bg-[#7a5dcf] disabled:cursor-not-allowed disabled:bg-[#8864f0]/50 disabled:text-gray-300"
           >
-            {loading ? "Loading..." : "Login"}
+            {loading ? (
+              <div role="status">
+                <svg
+                  aria-hidden="true"
+                  className="inline h-6 w-6 animate-spin fill-purple-600 text-gray-200"
+                  viewBox="0 0 100 101"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                    fill="currentColor"
+                  />
+                  <path
+                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                    fill="currentFill"
+                  />
+                </svg>
+                <span className="sr-only">Loading...</span>
+              </div>
+            ) : (
+              "Login"
+            )}
           </button>
 
           <p className="mt-4 text-center text-sm">

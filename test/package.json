@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "@types/k6": "^1.2.0",
+    "k6": "^0.0.0"
+  },
+  "name": "test",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
