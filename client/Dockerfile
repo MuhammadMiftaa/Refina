@@ -20,7 +20,7 @@ RUN apk add --no-cache brotli && \
     -exec brotli -q 11 -f {} \;
 
 # Stage 2: Serve dengan nginx + brotli
-FROM ghcr.io/fholzer/nginx-brotli:latest
+FROM fholzer/nginx-brotli:latest
 
 # Buat direktori cache
 RUN mkdir -p /var/cache/nginx/fastcgi /var/cache/nginx/proxy && \
