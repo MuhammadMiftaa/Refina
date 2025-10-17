@@ -396,7 +396,7 @@ export default function AddTransaction() {
                   >
                     <img
                       className="absolute top-5 right-5 w-14"
-                      src="/mandiri.svg"
+                      src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_100/mandiri_hk29eh.svg"
                       alt=""
                     />
                     <div className="flex flex-col gap-2">
@@ -528,7 +528,7 @@ export default function AddTransaction() {
                   >
                     <img
                       className="absolute top-5 right-5 w-14"
-                      src="/mandiri.svg"
+                      src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_100/mandiri_hk29eh.svg"
                       alt=""
                     />
                     <div className="flex flex-col gap-2">
@@ -729,7 +729,7 @@ export default function AddTransaction() {
                   >
                     <img
                       className="absolute top-5 right-5 w-14"
-                      src="/mandiri.svg"
+                      src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_100/mandiri_hk29eh.svg"
                       alt=""
                     />
                     <div className="flex flex-col gap-2">
