@@ -149,7 +149,7 @@ deploy-staging:
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
         docker compose -f docker-compose.stg.yml down &&
         docker compose -f docker-compose.stg.yml pull &&
-        docker compose -f docker-compose.stg.yml --env-file .env.staging up -d --build
+        docker compose -f docker-compose.stg.yml up -d --build
       "
 
 deploy-production:
