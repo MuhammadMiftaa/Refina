@@ -5,7 +5,6 @@ import (
 	"server/config/env"
 	"server/config/log"
 	"server/config/miniofs"
-	"server/config/queue"
 	"server/config/redis"
 	"server/interface/http/router"
 )
@@ -41,9 +40,9 @@ func init() {
 	redis.SetupRedisDatabase(env.Cfg.Redis) // Initialize the Redis connection
 	log.Info("Setup Redis Connection Success")
 
-	log.Info("Setup RabbitMQ Connection Start")
-	queue.SetupRabbitMQ(env.Cfg.RabbitMQ) // Initialize RabbitMQ connection
-	log.Info("Setup RabbitMQ Connection Success")
+	// log.Info("Setup RabbitMQ Connection Start")
+	// queue.SetupRabbitMQ(env.Cfg.RabbitMQ) // Initialize RabbitMQ connection
+	// log.Info("Setup RabbitMQ Connection Success")
 
 	log.Info("Setup MinIO Connection Start")
 	miniofs.SetupMinio(env.Cfg.Minio) // Initialize MinIO connection
@@ -54,7 +53,7 @@ func init() {
 
 func main() {
 	defer log.Info("Refina API stopped")
-	defer queue.Close() // Close RabbitMQ connection when the application exits
+	// defer queue.Close() // Close RabbitMQ connection when the application exits
 
 	r := router.SetupRouter() // Set up the HTTP router
 	r.Run(":" + env.Cfg.Server.Port)
