@@ -372,7 +372,7 @@ function Skeleton() {
 function NotFound() {
   return (
     <div className="flex h-[80vh] w-full flex-col items-center justify-center">
-      <img className="h-50" src="/assets/notfound.svg" alt="wallet not found" />
+      <img className="h-50" src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_200/notfound_jebyhf.svg" alt="wallet not found" />
       <h1 className="-mt-5 text-lg font-light md:mt-0 md:text-2xl">
         No matching wallets found.
       </h1>
