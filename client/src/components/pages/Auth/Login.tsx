@@ -106,9 +106,6 @@ export default function LoginOptimized(props: {
         backgroundRepeat: "no-repeat",
       }}
     >
-      {/* 🔥 Preload background untuk LCP */}
-      <link rel="preload" as="image" href="/background.jpeg" />
-
       <div className="flex w-[clamp(300px,90vw,800px)] flex-col rounded-[22px] bg-white p-5 shadow-[0_50px_100px_rgba(0,0,0,0.08)] sm:flex-row sm:p-2">
         {/* 🖼️ Optimized Hero Section */}
         <div className="relative w-full overflow-hidden rounded-xl sm:w-1/2 font-[Space_Grotesk]">
