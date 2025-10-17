@@ -7,7 +7,7 @@ stages:
   - migrate
 
 variables:
-  TAG_IMAGE: $CI_COMMIT_TAG
+  TAG_IMAGE: "${CI_COMMIT_TAG:-$CI_COMMIT_SHORT_SHA}"
 
 build_server:
   stage: build
