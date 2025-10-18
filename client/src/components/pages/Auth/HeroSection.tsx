@@ -1,11 +1,11 @@
 // HeroSection.tsx
 export default function HeroSection() {
   return (
-    <div className="relative w-full overflow-hidden rounded-xl sm:w-1/2 font-[Space_Grotesk]">
+    <div className="relative w-full overflow-hidden rounded-xl font-[Space_Grotesk] sm:w-1/2">
       <img
         src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_200/hero_uc1obl.svg"
         alt="Hero Illustration"
-        loading="lazy"
+        fetchPriority="high"
         decoding="async"
         className="absolute inset-0 h-full w-full object-cover"
       />
