@@ -142,7 +142,7 @@ export default function LoginOptimized(props: {
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
               onClick={handleGoogleOAuth}
             >
-              <img src="/google.svg" alt="Google" className="h-5" loading="lazy" decoding="async" />
+              <img src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_50/google_vmuizr.svg" alt="Google" className="h-5" loading="lazy" decoding="async" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Google
               </p>
@@ -153,7 +153,7 @@ export default function LoginOptimized(props: {
               className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-transparent bg-[#f2f3f6] text-[15px]"
               onClick={handleFacebookOAuth}
             >
-              <img src="/facebook.svg" alt="Facebook" className="h-6" loading="lazy" decoding="async" />
+              <img src="https://res.cloudinary.com/dblibr1t2/image/upload/f_avif,q_1,w_50/facebook_sy4wgt.svg" alt="Facebook" className="h-6" loading="lazy" decoding="async" />
               <p className="text-[#7e7c83]">
                 <span className="hidden sm:inline">Login with</span> Facebook
               </p>
