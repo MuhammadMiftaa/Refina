@@ -31,8 +31,6 @@ services:
   ref-production-postgres:
     container_name: ref-production-postgres
     image: cleisonfmelo/postgres-pg-cron
-    ports:
-      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
@@ -75,6 +73,20 @@ services:
       - refina_network
     profiles:
       - migrate
+
+  ref-production-pgexporter:
+    container_name: ref-production-pgexporter
+    image: bitnami/postgres-exporter:0.15.0
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres:123@ref-production-postgres:5432/postgres?sslmode=disable
+    ports:
+      - "9188:9187"
+    depends_on:
+      ref-production-postgres:
+        condition: service_healthy
+    networks:
+      - refina_network
 
 volumes:
   production_postgres_data:

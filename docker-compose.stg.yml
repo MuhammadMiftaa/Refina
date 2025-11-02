@@ -30,8 +30,6 @@ services:
   ref-staging-postgres:
     container_name: ref-staging-postgres
     image: cleisonfmelo/postgres-pg-cron
-    ports:
-      - "127.0.0.1:5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
@@ -74,6 +72,20 @@ services:
       - refina_staging_network
     profiles:
       - migrate 
+
+  ref-staging-pgexporter:
+    container_name: ref-staging-pgexporter
+    image: bitnami/postgres-exporter:0.15.0
+    restart: always
+    environment:
+      DATA_SOURCE_NAME: postgresql://postgres:123@ref-staging-postgres:5432/postgres?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      ref-staging-postgres:
+        condition: service_healthy
+    networks:
+      - refina_staging_network
 
 volumes:
   staging_postgres_data:
