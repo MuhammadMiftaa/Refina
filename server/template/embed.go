@@ -11,4 +11,4 @@ var financialReportTemplate string
 var Template = map[string]string{
 	"otp-email-template.html":        otpEmailTemplate,
 	"financial-report-template.html": financialReportTemplate,
-}
+} 
