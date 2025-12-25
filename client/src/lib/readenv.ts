@@ -28,3 +28,4 @@ export const getViteAPIBaseURL = (): string =>
   typeof window !== "undefined" && window.__ENV__?.VITE_API_BASE_URL
     ? window.__ENV__.VITE_API_BASE_URL
     : "http://localhost:5173";
+ 
