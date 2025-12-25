@@ -2,6 +2,7 @@ import { BackgroundSyncPlugin } from "workbox-background-sync";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { NavigationRoute, Route, registerRoute } from "workbox-routing";
 import { CacheFirst, NetworkFirst, NetworkOnly } from "workbox-strategies";
+import { getViteAPIBaseURL } from "./lib/readenv";
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -36,7 +37,7 @@ registerRoute(fontRoute);
 // cache api calls
 const fetchTasksRoute = new Route(
   ({ request }) => {
-    return request.url === import.meta.env.VITE_API_BASE_URL + "/tasks";
+    return request.url === getViteAPIBaseURL() + "/tasks";
   },
   new NetworkFirst({
     cacheName: "api/fetch-tasks",
@@ -60,7 +61,7 @@ const bgSyncPlugin = new BackgroundSyncPlugin("backgroundSyncQueue", {
 
 const taskSubmitRoute = new Route(
   ({ request }) => {
-    return request.url === import.meta.env.VITE_API_BASE_URL + "/task/create";
+    return request.url === getViteAPIBaseURL() + "/task/create";
   },
   new NetworkOnly({
     plugins: [bgSyncPlugin],
@@ -71,7 +72,7 @@ registerRoute(taskSubmitRoute);
 
 const editTaskRoute = new Route(
   ({ request }) => {
-    return request.url.includes(import.meta.env.VITE_API_BASE_URL + "/task");
+    return request.url.includes(getViteAPIBaseURL() + "/task");
   },
   new NetworkOnly({
     plugins: [bgSyncPlugin],

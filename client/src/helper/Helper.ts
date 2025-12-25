@@ -1,10 +1,18 @@
+import { getMode } from "@/lib/readenv";
 import { PieChartType } from "@/types/Chart";
 
 export function createCookiesOpts(): Cookies.CookieAttributes {
-  const mode = import.meta.env.VITE_MODE;
   let options: Cookies.CookieAttributes = { expires: 7 };
-  switch (mode) {
+  switch (getMode()) {
     case "production":
+      options = {
+        expires: 7,
+        secure: true,
+        sameSite: "None",
+        domain: ".miftech.web.id",
+      };
+      break;
+    case "staging":
       options = {
         expires: 7,
         secure: true,

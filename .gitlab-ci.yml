@@ -16,8 +16,6 @@ build_server:
     - docker:dind
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-    # - changes:
-    #     - server/**/*
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
@@ -54,13 +52,11 @@ build_client:
     - docker:dind
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-    # - changes:
-    #     - client/**/*
   before_script:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   script:
     - echo "Building client application..."
-    - docker build --build-arg VITE_API_URL=https://api-refina.miftech.web.id/v1 --build-arg VITE_MODE=production -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
+    - docker build -t "$CI_REGISTRY_IMAGE/client:latest" -t "$CI_REGISTRY_IMAGE/client:$TAG_IMAGE" ./client
     - docker push "$CI_REGISTRY_IMAGE/client" --all-tags
     - echo "$CI_JOB_ID" > client_build_job_id.txt
   artifacts:
@@ -99,10 +95,6 @@ release:
       artifacts: true
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9]{4}\.[0-9]{1,3}$/
-    # - changes:
-    #     - server/**/*
-    # - changes:
-    #     - client/**/*
   variables:
     RELEASE_TITLE: "Release ${CI_COMMIT_TAG}"
     RELEASE_DESC: "Tagged after commit ${CI_COMMIT_SHORT_SHA}, message ${CI_COMMIT_TAG_MESSAGE}"
@@ -138,13 +130,7 @@ deploy-staging:
         export APP_IMAGE_STG_WORKER=\"$CI_REGISTRY_IMAGE/worker\" &&
         export APP_IMAGE_STG_WORKER_TAG=$CI_COMMIT_TAG &&
 
-        cd ~/web/staging
-        if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/staging/Refina/.git ]; then
-          git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/staging/Refina
-          cd ~/web/staging/Refina
-        else
-          cd ~/web/staging/Refina && git pull
-        fi
+        cd ~/web/staging/refina
 
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
         docker compose -f docker-compose.stg.yml down &&
@@ -175,13 +161,7 @@ deploy-production:
         export APP_IMAGE_PROD_WORKER=\"$CI_REGISTRY_IMAGE/worker\" &&
         export APP_IMAGE_PROD_WORKER_TAG=$CI_COMMIT_TAG &&
 
-        cd ~/web/production
-        if [ ! -d ~/web/staging/Refina ] || [ ! -d ~/web/production/Refina/.git ]; then
-          git clone git@gitlab.com:muhammadmifta-personal-project/Refina.git ~/web/production/Refina
-          cd ~/web/production/Refina
-        else
-          cd ~/web/production/Refina && git pull
-        fi
+        cd ~/web/production/refina
 
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
         docker compose -f docker-compose.prod.yml down &&
@@ -213,8 +193,8 @@ migrate-staging:
         export APP_IMAGE_STG_MIGRATE=\"$CI_REGISTRY_IMAGE/migrate\" &&
         export APP_IMAGE_STG_MIGRATE_TAG=$TAG_IMAGE &&
 
-        cd ~/web/staging/Refina
-        
+        cd ~/web/staging/refina
+
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
         docker pull $CI_REGISTRY_IMAGE/migrate:$TAG_IMAGE &&
         
@@ -248,7 +228,7 @@ migrate-production:
         export APP_IMAGE_PROD_MIGRATE=\"$CI_REGISTRY_IMAGE/migrate\" &&
         export APP_IMAGE_PROD_MIGRATE_TAG=$TAG_IMAGE &&
 
-        cd ~/web/production/Refina
+        cd ~/web/production/refina
         
         docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY &&
         docker pull $CI_REGISTRY_IMAGE/migrate:$TAG_IMAGE &&
