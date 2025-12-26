@@ -46,7 +46,7 @@ func init() {
 	log.Info("Setup RabbitMQ Connection Success")
 
 	log.Info("Setup MinIO Connection Start")
-	miniofs.SetupMinio(env.Cfg.Minio) // Initialize MinIO connection
+	miniofs.SetupMinioWithStrategy(env.Cfg.Minio, miniofs.StrategyPrewarm) // Initialize MinIO connection
 	log.Info("Setup MinIO Connection Success")
 
 	log.Info("Starting Refina API...")

@@ -1,19 +1,18 @@
 package miniofs
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
 	"net/url"
-	"server/config/env"
-	"server/config/log"
 	"strings"
 	"sync"
 	"time"
 
+	"server/config/env"
+	"server/config/log"
+
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 // FileValidationConfig holds validation rules
@@ -37,132 +36,62 @@ type UploadResponse struct {
 	ObjectName string
 	Size       int64
 	URL        string
-	Ext       string
+	Ext        string
 	ETag       string
 }
 
-type MinIOConfig struct {
-	Host           string
-	AccessKey      string
-	SecretKey      string
-	UseSSL         bool
-	MaxConnections int
-	ConnectTimeout time.Duration
-	RequestTimeout time.Duration
-}
-
-// Global MinIO manager - singleton pattern seperti database/redis
-type MinIOManager struct {
-	client      *minio.Client
-	config      MinIOConfig
-	mu          sync.RWMutex
-	isReady     bool
-	bucketCache map[string]bool // cache untuk bucket existence check
-}
-
+// Global variables untuk compatibility dengan kode existing
 var (
-	MinioClient *MinIOManager
-	once        sync.Once
+	MinioClient     *MinIOManager
+	MinioClientOnce sync.Once
 )
 
-// Init initializes global MinIO manager - dipanggil sekali di main.go
+// SetupMinioWithStrategy initializes MinIO with specified strategy
+// Replacement untuk SetupMinio() yang existing
+func SetupMinioWithStrategy(cfg env.Minio, strategy PoolStrategy) error {
+	var initErr error
+
+	MinioClientOnce.Do(func() {
+		config := MinIOConfig{
+			Host:                  cfg.Host,
+			AccessKey:             cfg.AccessKey,
+			SecretKey:             cfg.SecretKey,
+			UseSSL:                cfg.UseSSL == 1,
+			Strategy:              strategy,
+			EnableMetricsTracking: true,
+			EnableHealthCheck:     false,
+		}
+
+		// Set prewarm specific configs if using prewarm
+		if strategy == StrategyPrewarm {
+			config.PrewarmConnections = 16 // Default
+			config.PrewarmOperation = "list_buckets"
+			config.PrewarmTimeout = 30 * time.Second
+		}
+
+		MinioClient, initErr = NewMinIOManager(config)
+		if initErr != nil {
+			panic(fmt.Sprintf("Failed to initialize MinIO: %v", initErr))
+		}
+
+		fmt.Printf("✅ MinIO initialized with %s strategy\n", strategy)
+	})
+
+	return initErr
+}
+
+// SetupMinio keeps backward compatibility - uses lazy by default
 func SetupMinio(cfg env.Minio) {
-	once.Do(func() {
-		cfg := MinIOConfig{
-			Host:           cfg.Host,
-			AccessKey:      cfg.AccessKey,
-			SecretKey:      cfg.SecretKey,
-			UseSSL:         cfg.UseSSL == 1,
-			ConnectTimeout: 30 * time.Second,
-			RequestTimeout: 60 * time.Second,
-		}
-
-		var err error
-		MinioClient, err = newMinIOManager(cfg)
-		if err != nil {
-			panic(fmt.Sprintf("Failed to initialize MinIO: %v", err))
-		}
-
-		log.Info("MinIO client initialized successfully")
-	})
+	if err := SetupMinioWithStrategy(cfg, StrategyLazy); err != nil {
+		panic(fmt.Sprintf("Failed to initialize MinIO: %v", err))
+	}
 }
 
-// newMinIOManager creates new MinIO manager
-func newMinIOManager(cfg MinIOConfig) (*MinIOManager, error) {
-	client, err := minio.New(cfg.Host, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
-		Secure: cfg.UseSSL,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to create minio client: %v", err)
+// SetupMinioPrewarm convenience function for prewarm strategy
+func SetupMinioPrewarm(cfg env.Minio) {
+	if err := SetupMinioWithStrategy(cfg, StrategyPrewarm); err != nil {
+		panic(fmt.Sprintf("Failed to initialize MinIO: %v", err))
 	}
-
-	// Test connection
-	ctx, cancel := context.WithTimeout(context.Background(), cfg.ConnectTimeout)
-	defer cancel()
-
-	// Simple health check by listing buckets
-	_, err = client.ListBuckets(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to MinIO: %v", err)
-	}
-
-	return &MinIOManager{
-		client:      client,
-		config:      cfg,
-		isReady:     true,
-		bucketCache: make(map[string]bool),
-	}, nil
-}
-
-// Health check method
-func (m *MinIOManager) IsReady() bool {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-	return m.isReady
-}
-
-// validateBucket checks if bucket exists with caching
-func (m *MinIOManager) validateBucket(ctx context.Context, bucketName string) error {
-	if bucketName == "" {
-		return fmt.Errorf("bucket name cannot be empty")
-	}
-
-	// Basic validation
-	if len(bucketName) < 3 || len(bucketName) > 63 {
-		return fmt.Errorf("bucket name must be between 3 and 63 characters")
-	}
-	if strings.Contains(bucketName, " ") || strings.Contains(bucketName, "_") {
-		return fmt.Errorf("bucket name cannot contain spaces or underscores")
-	}
-
-	// Check cache first
-	m.mu.RLock()
-	if exists, found := m.bucketCache[bucketName]; found {
-		m.mu.RUnlock()
-		if !exists {
-			return fmt.Errorf("bucket '%s' not found", bucketName)
-		}
-		return nil
-	}
-	m.mu.RUnlock()
-
-	// Check bucket existence
-	exists, err := m.client.BucketExists(ctx, bucketName)
-	if err != nil {
-		return fmt.Errorf("failed to check bucket existence: %v", err)
-	}
-
-	// Update cache
-	m.mu.Lock()
-	m.bucketCache[bucketName] = exists
-	m.mu.Unlock()
-
-	if !exists {
-		return fmt.Errorf("bucket '%s' not found", bucketName)
-	}
-
-	return nil
 }
 
 // DecodeFile decodes base64 string to byte array and extracts content type
@@ -238,81 +167,10 @@ func (m *MinIOManager) Validate(data []byte, contentType string, config *FileVal
 	return nil
 }
 
-// UploadFile uploads file to MinIO - main method yang digunakan
-func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*UploadResponse, error) {
-	if !m.IsReady() {
-		return nil, fmt.Errorf("MinIO client not ready")
-	}
-
-	// Validate bucket
-	if err := m.validateBucket(ctx, request.BucketName); err != nil {
-		return nil, err
-	}
-
-	// Decode and validate file
-	data, contentType, err := m.DecodeFile(request.Base64Data)
-	if err != nil {
-		return nil, fmt.Errorf("decode error: %v", err)
-	}
-
-	if request.Validation == nil {
-		request.Validation = CreateDefaultValidationConfig()
-	}
-
-	if err := m.Validate(data, contentType, request.Validation); err != nil {
-		return nil, fmt.Errorf("validation error: %v", err)
-	}
-
-	// Generate object name
-	ext := getExtensionFromContentType(contentType)
-	if ext == "" {
-		ext = ".bin"
-	}
-
-	prefix := request.Prefix
-	if prefix == "" {
-		prefix = "file"
-	}
-
-	timestamp := time.Now().Unix()
-	objectName := fmt.Sprintf("%s_%d%s", prefix, timestamp, ext)
-
-	// Upload file
-	reader := bytes.NewReader(data)
-	options := minio.PutObjectOptions{
-		ContentType: contentType,
-	}
-
-	info, err := m.client.PutObject(ctx, request.BucketName, objectName, reader, int64(len(data)), options)
-	if err != nil {
-		return nil, fmt.Errorf("upload failed: %v", err)
-	}
-
-	// Generate URL
-	url := fmt.Sprintf("%s://%s/%s/%s",
-		getProtocol(m.config.UseSSL),
-		m.config.Host,
-		request.BucketName,
-		objectName)
-		
-	return &UploadResponse{
-		BucketName: request.BucketName,
-		ObjectName: objectName,
-		Size:       info.Size,
-		URL:        url,
-		Ext:        ext,
-		ETag:       info.ETag,
-	}, nil
-}
-
 // GetFile retrieves file from MinIO
 func (m *MinIOManager) GetFile(ctx context.Context, bucketName, objectName string) (*minio.Object, error) {
 	if !m.IsReady() {
 		return nil, fmt.Errorf("MinIO client not ready")
-	}
-
-	if err := m.validateBucket(ctx, bucketName); err != nil {
-		return nil, err
 	}
 
 	return m.client.GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
@@ -324,10 +182,6 @@ func (m *MinIOManager) DeleteFile(ctx context.Context, bucketName, objectName st
 		return fmt.Errorf("MinIO client not ready")
 	}
 
-	if err := m.validateBucket(ctx, bucketName); err != nil {
-		return err
-	}
-
 	return m.client.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{})
 }
 
@@ -335,10 +189,6 @@ func (m *MinIOManager) DeleteFile(ctx context.Context, bucketName, objectName st
 func (m *MinIOManager) GetPresignedURL(ctx context.Context, bucketName, objectName string, expires time.Duration) (string, error) {
 	if !m.IsReady() {
 		return "", fmt.Errorf("MinIO client not ready")
-	}
-
-	if err := m.validateBucket(ctx, bucketName); err != nil {
-		return "", err
 	}
 
 	url, err := m.client.PresignedGetObject(ctx, bucketName, objectName, expires, nil)
@@ -353,10 +203,6 @@ func (m *MinIOManager) GetPresignedURL(ctx context.Context, bucketName, objectNa
 func (m *MinIOManager) ListObjects(ctx context.Context, bucketName, prefix string) ([]minio.ObjectInfo, error) {
 	if !m.IsReady() {
 		return nil, fmt.Errorf("MinIO client not ready")
-	}
-
-	if err := m.validateBucket(ctx, bucketName); err != nil {
-		return nil, err
 	}
 
 	var objects []minio.ObjectInfo
@@ -445,13 +291,6 @@ func getProtocol(useSSL bool) string {
 		return "https"
 	}
 	return "http"
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 func CreateDefaultValidationConfig() *FileValidationConfig {
