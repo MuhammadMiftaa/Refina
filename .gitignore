@@ -6,3 +6,6 @@ json.json
 config*.json
 Makefile
 .server.log
+./test/assets
+./test
+**/test/assets

@@ -17,15 +17,15 @@ export {};
 export const getMode = (): string =>
   typeof window !== "undefined" && window.__ENV__?.MODE
     ? window.__ENV__.MODE
-    : "development";
+    : import.meta.env.VITE_MODE || "development";
 
 export const getBackendURL = (): string =>
   typeof window !== "undefined" && window.__ENV__?.API_URL
     ? window.__ENV__.API_URL
-    : "http://localhost:8080/v1";
+    : import.meta.env.VITE_API_URL || "http://localhost:8080/v1";
 
 export const getViteAPIBaseURL = (): string =>
   typeof window !== "undefined" && window.__ENV__?.VITE_API_BASE_URL
     ? window.__ENV__.VITE_API_BASE_URL
-    : "http://localhost:5173";
+    : import.meta.env.VITE_API_BASE_URL || "http://localhost:5173";
  
