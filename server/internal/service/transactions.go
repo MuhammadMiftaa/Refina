@@ -12,8 +12,6 @@ import (
 	"server/internal/types/entity"
 	"server/internal/types/view"
 	helper "server/internal/utils"
-
-	"github.com/google/uuid"
 )
 
 type TransactionsService interface {
@@ -106,67 +104,67 @@ func (transaction_serv *transactionsService) GetTransactionsByUserID(ctx context
 }
 
 func (transaction_serv *transactionsService) CreateTransaction(ctx context.Context, transaction dto.TransactionsRequest) (dto.TransactionsResponse, error) {
-	tx, err := transaction_serv.txManager.Begin(ctx)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
-	}
+	// tx, err := transaction_serv.txManager.Begin(ctx)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("failed to create transaction")
+	// }
 
-	defer func() {
-		// Rollback otomatis jika transaksi belum di-commit
-		if r := recover(); r != nil || err != nil {
-			tx.Rollback()
-		}
-	}()
+	// defer func() {
+	// 	// Rollback otomatis jika transaksi belum di-commit
+	// 	if r := recover(); r != nil || err != nil {
+	// 		tx.Rollback()
+	// 	}
+	// }()
 
-	// Check if wallet and category exist
-	wallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("wallet not found")
-	}
+	// // Check if wallet and category exist
+	// wallet, err := transaction_serv.walletRepo.GetWalletByID(ctx, tx, transaction.WalletID)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("wallet not found")
+	// }
 
-	category, err := transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("category not found")
-	}
+	// category, err := transaction_serv.categoryRepo.GetCategoryByID(ctx, tx, transaction.CategoryID)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("category not found")
+	// }
 
-	// Check if transaction type is valid and update wallet balance
-	switch category.Type {
-	case "expense":
-		wallet.Balance -= transaction.Amount
-	case "income":
-		wallet.Balance += transaction.Amount
-	default:
-		return dto.TransactionsResponse{}, errors.New("invalid transaction type")
-	}
+	// // Check if transaction type is valid and update wallet balance
+	// switch category.Type {
+	// case "expense":
+	// 	wallet.Balance -= transaction.Amount
+	// case "income":
+	// 	wallet.Balance += transaction.Amount
+	// default:
+	// 	return dto.TransactionsResponse{}, errors.New("invalid transaction type")
+	// }
 
-	// Parse ID from JSON to valid UUID
-	CategoryID, err := helper.ParseUUID(transaction.CategoryID)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("invalid category id")
-	}
+	// // Parse ID from JSON to valid UUID
+	// CategoryID, err := helper.ParseUUID(transaction.CategoryID)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("invalid category id")
+	// }
 
-	WalletID, err := helper.ParseUUID(transaction.WalletID)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("invalid wallet id")
-	}
+	// WalletID, err := helper.ParseUUID(transaction.WalletID)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("invalid wallet id")
+	// }
 
-	// Update wallet balance
-	_, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, wallet)
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("failed to update wallet")
-	}
+	// // Update wallet balance
+	// _, err = transaction_serv.walletRepo.UpdateWallet(ctx, tx, wallet)
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("failed to update wallet")
+	// }
 
-	// Create transaction
-	transactionNew, err := transaction_serv.transactionRepo.CreateTransaction(ctx, tx, entity.Transactions{
-		WalletID:        WalletID,
-		CategoryID:      CategoryID,
-		Amount:          transaction.Amount,
-		TransactionDate: transaction.Date,
-		Description:     transaction.Description,
-	})
-	if err != nil {
-		return dto.TransactionsResponse{}, errors.New("failed to create transaction")
-	}
+	// // Create transaction
+	// transactionNew, err := transaction_serv.transactionRepo.CreateTransaction(ctx, tx, entity.Transactions{
+	// 	WalletID:        WalletID,
+	// 	CategoryID:      CategoryID,
+	// 	Amount:          transaction.Amount,
+	// 	TransactionDate: transaction.Date,
+	// 	Description:     transaction.Description,
+	// })
+	// if err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("failed to create transaction")
+	// }
 
 	// ? If attachments exist, upload attachments
 	if len(transaction.Attachments) > 0 {
@@ -176,20 +174,20 @@ func (transaction_serv *transactionsService) CreateTransaction(ctx context.Conte
 				return dto.TransactionsResponse{}, errors.New("no files to upload")
 			}
 
-			if _, err := transaction_serv.UploadAttachment(ctx, transactionNew.ID.String(), attachment.Files); err != nil {
+			if _, err := transaction_serv.UploadAttachment(ctx, helper.RandomString(12), attachment.Files); err != nil {
 				return dto.TransactionsResponse{}, fmt.Errorf("failed to upload attachment: %w", err)
 			}
 		}
 	}
 
-	// Commit transaksi jika semua sukses
-	if err := tx.Commit(); err != nil {
-		return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
-	}
+	// // Commit transaksi jika semua sukses
+	// if err := tx.Commit(); err != nil {
+	// 	return dto.TransactionsResponse{}, errors.New("failed to commit transaction")
+	// }
 
-	transactionResponse := helper.ConvertToResponseType(transactionNew).(dto.TransactionsResponse)
+	// transactionResponse := helper.ConvertToResponseType(transactionNew).(dto.TransactionsResponse)
 
-	return transactionResponse, nil
+	return dto.TransactionsResponse{}, nil
 }
 
 func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, transaction dto.FundTransferRequest) (dto.FundTransferResponse, error) {
@@ -293,7 +291,7 @@ func (transaction_serv *transactionsService) FundTransfer(ctx context.Context, t
 }
 
 func (transaction_serv *transactionsService) UploadAttachment(ctx context.Context, transactionID string, files []string) ([]dto.AttachmentsResponse, error) {
-	var attachmentResponses []dto.AttachmentsResponse
+	attachmentResponses := make([]dto.AttachmentsResponse, 0, len(files))
 
 	if transactionID == "" {
 		log.Error("transaction ID is required")
@@ -317,38 +315,38 @@ func (transaction_serv *transactionsService) UploadAttachment(ctx context.Contex
 			BucketName: miniofs.TRANSACTION_ATTACHMENT_BUCKET,
 			Validation: miniofs.CreateImageValidationConfig(),
 		}
-		res, err := transaction_serv.minio.UploadFile(ctx, fileReq)
+		_, err := transaction_serv.minio.UploadFile(ctx, fileReq)
 		if err != nil {
 			log.Error(fmt.Sprintf("failed to upload file %d: %v", idx+1, err))
 			return nil, errors.New("failed to upload file")
 		}
 
 		// Save attachment to database
-		TransactionUUID, err := uuid.Parse(transactionID)
-		if err != nil {
-			log.Error(fmt.Sprintf("invalid transaction ID %s: %v", transactionID, err))
-			return nil, errors.New("invalid transaction id")
-		}
+		// TransactionUUID, err := uuid.Parse(transactionID)
+		// if err != nil {
+		// 	log.Error(fmt.Sprintf("invalid transaction ID %s: %v", transactionID, err))
+		// 	return nil, errors.New("invalid transaction id")
+		// }
 
-		attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
-			Image:         res.URL,
-			TransactionID: TransactionUUID,
-			Size:          res.Size,
-			Format:        res.Ext,
-		})
-		if err != nil {
-			log.Error(fmt.Sprintf("failed to create attachment for transaction %s: %v", transactionID, err))
-			return nil, errors.New("failed to create attachment")
-		}
+		// attachment, err := transaction_serv.attachmentRepo.CreateAttachment(ctx, nil, entity.Attachments{
+		// 	Image:         res.URL,
+		// 	TransactionID: TransactionUUID,
+		// 	Size:          res.Size,
+		// 	Format:        res.Ext,
+		// })
+		// if err != nil {
+		// 	log.Error(fmt.Sprintf("failed to create attachment for transaction %s: %v", transactionID, err))
+		// 	return nil, errors.New("failed to create attachment")
+		// }
 
-		attachmentResponse := dto.AttachmentsResponse{
-			ID:            attachment.ID.String(),
-			Image:         attachment.Image,
-			TransactionID: attachment.TransactionID.String(),
-			CreatedAt:     attachment.CreatedAt.String(),
-		}
+		// attachmentResponse := dto.AttachmentsResponse{
+		// 	ID:            attachment.ID.String(),
+		// 	Image:         attachment.Image,
+		// 	TransactionID: attachment.TransactionID.String(),
+		// 	CreatedAt:     attachment.CreatedAt.String(),
+		// }
 
-		attachmentResponses = append(attachmentResponses, attachmentResponse)
+		// attachmentResponses = append(attachmentResponses, attachmentResponse)
 	}
 
 	return attachmentResponses, nil

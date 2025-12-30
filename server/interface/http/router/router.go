@@ -2,12 +2,12 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"server/config/db"
 	"server/config/env"
+	"server/config/log"
 	"server/config/miniofs"
 	"server/config/redis"
 	"server/interface/http/middleware"
@@ -50,6 +50,85 @@ func SetupRouter() *gin.Engine {
 		})
 	})
 
+	router.GET("/minio/pool-status", func(c *gin.Context) {
+		if miniofs.MinioClient == nil {
+			c.JSON(500, gin.H{
+				"error": "MinIO client not initialized",
+			})
+			return
+		}
+		log.Log.Infoln("Fetching MinIO connection pool status...")
+		// Get current metrics
+		metrics := miniofs.MinioClient.GetMetrics()
+
+		// Calculate connection pool status
+		poolStatus := gin.H{
+			"strategy":  metrics.Strategy,
+			"timestamp": time.Now().Format(time.RFC3339),
+
+			// Connection statistics
+			"connections": gin.H{
+				"created":            metrics.TotalConnectionsCreated,
+				"reused":             metrics.TotalConnectionsReused,
+				"reuse_rate_percent": metrics.ConnectionReuseRate,
+				"current_active":     metrics.CurrentActiveConnections,
+				"peak_active":        metrics.PeakActiveConnections,
+			},
+
+			// Pool configuration
+			"pool_config": gin.H{
+				"max_idle_conns":          metrics.ConfigMaxIdleConns,
+				"max_idle_conns_per_host": metrics.ConfigMaxIdleConnsPerHost,
+			},
+
+			// Performance metrics
+			"performance": gin.H{
+				"total_requests":          metrics.TotalRequests,
+				"failed_requests":         metrics.FailedRequests,
+				"avg_request_duration_ms": metrics.AvgRequestDuration.Milliseconds(),
+				"latency_p50_ms":          metrics.LatencyP50.Milliseconds(),
+				"latency_p95_ms":          metrics.LatencyP95.Milliseconds(),
+				"latency_p99_ms":          metrics.LatencyP99.Milliseconds(),
+			},
+
+			// Resource usage
+			"resources": gin.H{
+				"memory_mb":  metrics.MemoryUsageMB,
+				"goroutines": metrics.GoroutineCount,
+			},
+		}
+
+		// Add prewarm specific info
+		if metrics.Strategy == "prewarm" {
+			poolStatus["prewarm"] = gin.H{
+				"duration_ms":               metrics.PrewarmDuration.Milliseconds(),
+				"success":                   metrics.PrewarmSuccess,
+				"connections_prewarmed":     metrics.PrewarmConnections,
+				"failures":                  metrics.PrewarmFailures,
+				"avg_connection_latency_ms": metrics.AvgNewConnectionLatency.Milliseconds(),
+			}
+		}
+
+		c.JSON(200, poolStatus)
+	})
+
+	// Endpoint untuk metrics detail (format Prometheus-like)
+	router.GET("/minio/metrics", func(c *gin.Context) {
+		if miniofs.MinioClient == nil {
+			c.JSON(500, gin.H{
+				"error": "MinIO client not initialized",
+			})
+			return
+		}
+		log.Log.Infoln("Fetching MinIO metrics...")
+		metrics := miniofs.MinioClient.GetMetrics()
+
+		c.JSON(200, gin.H{
+			"metrics":   metrics,
+			"timestamp": time.Now().Format(time.RFC3339),
+		})
+	})
+
 	v1 := router.Group("/v1")
 	routes.UserRoutes(v1, db.DB, redis.RDB)
 	routes.TransactionRoutes(v1, db.DB, miniofs.MinioClient)
@@ -85,7 +164,7 @@ func exampleSingleStrategyTest() {
 	// Initialize manager
 	manager, err := miniofs.NewMinIOManager(config)
 	if err != nil {
-		log.Fatal("Failed to initialize MinIO manager:", err)
+		log.Log.Fatal("Failed to initialize MinIO manager:", err)
 	}
 
 	// Create test scenario
@@ -103,7 +182,7 @@ func exampleSingleStrategyTest() {
 	executor := miniofs.NewTestExecutor(manager, "test-bucket")
 	result, err := executor.RunScenario(scenario)
 	if err != nil {
-		log.Fatal("Test failed:", err)
+		log.Log.Fatal("Test failed:", err)
 	}
 
 	// Print detailed metrics
@@ -155,13 +234,13 @@ func exampleCompareStrategies() {
 	fmt.Println("\n[1/2] Initializing LAZY manager...")
 	lazyManager, err := miniofs.NewMinIOManager(lazyConfig)
 	if err != nil {
-		log.Fatal("Failed to initialize lazy manager:", err)
+		log.Log.Fatal("Failed to initialize lazy manager:", err)
 	}
 
 	fmt.Println("[2/2] Initializing PREWARM manager...")
 	prewarmManager, err := miniofs.NewMinIOManager(prewarmConfig)
 	if err != nil {
-		log.Fatal("Failed to initialize prewarm manager:", err)
+		log.Log.Fatal("Failed to initialize prewarm manager:", err)
 	}
 
 	// Get test scenarios - focus on cold start scenarios for maximum difference
@@ -190,7 +269,7 @@ func exampleCompareStrategies() {
 	fmt.Println("\n🚀 Starting comparison tests...")
 	reports, err := miniofs.CompareStrategies(lazyManager, prewarmManager, scenarios, bucketName)
 	if err != nil {
-		log.Fatal("Comparison failed:", err)
+		log.Log.Fatal("Comparison failed:", err)
 	}
 
 	// Export results
@@ -198,14 +277,14 @@ func exampleCompareStrategies() {
 
 	jsonFile := "comparison_results.json"
 	if err := miniofs.ExportResultsToJSON(reports, jsonFile); err != nil {
-		log.Printf("❌ Failed to export JSON: %v", err)
+		log.Log.Printf("❌ Failed to export JSON: %v", err)
 	} else {
 		fmt.Printf("✅ JSON exported: %s\n", jsonFile)
 	}
 
 	csvFile := "comparison_results.csv"
 	if err := miniofs.ExportResultsToCSV(reports, csvFile); err != nil {
-		log.Printf("❌ Failed to export CSV: %v", err)
+		log.Log.Printf("❌ Failed to export CSV: %v", err)
 	} else {
 		fmt.Printf("✅ CSV exported: %s\n", csvFile)
 	}
@@ -244,12 +323,12 @@ func exampleComprehensiveResearch() {
 	// Initialize managers
 	lazyManager, err := miniofs.NewMinIOManager(lazyConfig)
 	if err != nil {
-		log.Fatal("Failed to initialize lazy manager:", err)
+		log.Log.Fatal("Failed to initialize lazy manager:", err)
 	}
 
 	prewarmManager, err := miniofs.NewMinIOManager(prewarmConfig)
 	if err != nil {
-		log.Fatal("Failed to initialize prewarm manager:", err)
+		log.Log.Fatal("Failed to initialize prewarm manager:", err)
 	}
 
 	// Get all default scenarios
@@ -261,7 +340,7 @@ func exampleComprehensiveResearch() {
 	// Run all scenarios
 	reports, err := miniofs.CompareStrategies(lazyManager, prewarmManager, scenarios, "test-bucket")
 	if err != nil {
-		log.Fatal("Comprehensive test failed:", err)
+		log.Log.Fatal("Comprehensive test failed:", err)
 	}
 
 	// Generate summary report
@@ -273,11 +352,11 @@ func exampleComprehensiveResearch() {
 	csvFile := fmt.Sprintf("research_results_%s.csv", timestamp)
 
 	if err := miniofs.ExportResultsToJSON(reports, jsonFile); err != nil {
-		log.Printf("Warning: Failed to export JSON: %v", err)
+		log.Log.Printf("Warning: Failed to export JSON: %v", err)
 	}
 
 	if err := miniofs.ExportResultsToCSV(reports, csvFile); err != nil {
-		log.Printf("Warning: Failed to export CSV: %v", err)
+		log.Log.Printf("Warning: Failed to export CSV: %v", err)
 	}
 
 	fmt.Printf("\n✅ Comprehensive results exported:\n")
@@ -372,14 +451,14 @@ func exampleCustomConfiguration() {
 		fmt.Printf("Testing: %s\n", cfg.name)
 		manager, err := miniofs.NewMinIOManager(config)
 		if err != nil {
-			log.Printf("Failed: %v", err)
+			log.Log.Printf("Failed: %v", err)
 			continue
 		}
 
 		executor := miniofs.NewTestExecutor(manager, "test-bucket")
 		result, err := executor.RunScenario(scenario)
 		if err != nil {
-			log.Printf("Test failed: %v", err)
+			log.Log.Printf("Test failed: %v", err)
 			continue
 		}
 

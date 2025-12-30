@@ -1,0 +1,13 @@
+Scenario,Strategy,P99_ms,P95_ms,P50_ms,Avg_ms,Throughput_rps,Conn_Created,Conn_Reused,Reuse_Rate,Memory_MB
+Cold Start - Low Load,Lazy,106.49,75.13,9.61,19.30,39.74,4,46,92.00,0.00
+Cold Start - Low Load,Prewarm,89.50,58.90,9.34,13.75,42.31,0,55,100.00,0.00
+Cold Start - Medium Load,Lazy,524.26,285.76,73.41,99.30,103.25,18,232,92.80,0.00
+Cold Start - Medium Load,Prewarm,511.62,315.28,56.33,93.68,108.61,4,251,98.43,0.00
+Cold Start - High Load,Lazy,961.27,658.77,186.96,234.54,163.95,48,702,93.60,0.00
+Cold Start - High Load,Prewarm,1072.89,687.87,174.45,234.63,163.30,27,728,96.42,0.00
+Steady State - Medium Load,Lazy,510.86,298.33,62.32,96.97,123.65,48,1802,97.41,0.00
+Steady State - Medium Load,Prewarm,469.35,331.23,76.40,108.71,119.56,27,1828,98.54,0.00
+Spike Test,Lazy,1410.61,1191.38,327.40,435.57,173.07,119,2231,94.94,0.00
+Spike Test,Prewarm,1472.38,1114.53,340.42,418.58,175.14,106,2249,95.50,0.00
+Large File Upload,Lazy,150.44,92.30,10.35,20.28,43.55,119,2331,95.14,0.00
+Large File Upload,Prewarm,254.13,90.24,14.67,30.38,40.38,106,2349,95.68,0.00

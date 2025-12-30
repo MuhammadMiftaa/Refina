@@ -12,9 +12,9 @@ import (
 	"unicode"
 
 	"server/config/env"
-	"server/internal/utils/data"
 	"server/internal/types/dto"
 	"server/internal/types/entity"
+	"server/internal/utils/data"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"

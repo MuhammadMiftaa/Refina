@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"time"
+
 	"server/config/db"
 	"server/config/env"
 	"server/config/log"
@@ -10,8 +13,11 @@ import (
 	"server/interface/http/router"
 )
 
+var startTime time.Time
+
 func init() {
-	log.SetupLogger() // Initialize the logger configuration
+	startTime = time.Now() // Record application start time
+	log.SetupLogger()      // Initialize the logger configuration
 
 	var err error
 	var missing []string
@@ -46,8 +52,11 @@ func init() {
 	log.Info("Setup RabbitMQ Connection Success")
 
 	log.Info("Setup MinIO Connection Start")
-	miniofs.SetupMinioWithStrategy(env.Cfg.Minio, miniofs.StrategyLazy) // Initialize MinIO connection
+	miniofs.SetupMinioWithStrategy(env.Cfg.Minio, miniofs.StrategyPrewarm) // Initialize MinIO connection
 	log.Info("Setup MinIO Connection Success")
+
+	initDuration := time.Since(startTime)
+	log.Info(fmt.Sprintf("Initialization completed in %v", initDuration))
 
 	log.Info("Starting Refina API...")
 }
@@ -57,6 +66,9 @@ func main() {
 	defer queue.Close() // Close RabbitMQ connection when the application exits
 
 	r := router.SetupRouter() // Set up the HTTP router
+
+	totalStartupDuration := time.Since(startTime)
+	log.Info(fmt.Sprintf("Refina API is ready and listening on port %s (Total startup time: %v)", env.Cfg.Server.Port, totalStartupDuration))
+
 	r.Run(":" + env.Cfg.Server.Port)
-	log.Info("Starting HTTP server on port " + env.Cfg.Server.Port)
 }

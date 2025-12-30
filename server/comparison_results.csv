@@ -1,0 +1,5 @@
+Scenario,Strategy,P99_ms,P95_ms,P50_ms,Avg_ms,Throughput_rps,Conn_Created,Conn_Reused,Reuse_Rate,Memory_MB
+Cold Start - Low Load,Lazy,112.95,68.26,11.15,19.64,40.06,4,46,92.00,0.00
+Cold Start - Low Load,Prewarm,76.92,48.09,10.87,15.92,41.24,0,55,100.00,0.00
+Cold Start - High Load,Lazy,854.34,655.47,183.58,241.32,146.96,42,258,86.00,0.00
+Cold Start - High Load,Prewarm,812.28,562.32,163.07,204.57,177.75,32,273,89.51,0.00

@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptrace"
-	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -122,38 +121,38 @@ type MinIOManager struct {
 // NewMinIOManager creates new MinIO manager with specified strategy
 func NewMinIOManager(cfg MinIOConfig) (*MinIOManager, error) {
 	// Set defaults
-	if cfg.MaxIdleConns == 0 {
-		cfg.MaxIdleConns = 256 // MinIO default
-	}
-	if cfg.MaxIdleConnsPerHost == 0 {
-		cfg.MaxIdleConnsPerHost = 16 // MinIO default
-	}
-	if cfg.IdleConnTimeout == 0 {
+	if cfg.Strategy == StrategyPrewarm {
+		cfg.MaxIdleConns = 256
+
+		cfg.MaxIdleConnsPerHost = 64
+
 		cfg.IdleConnTimeout = time.Minute
-	}
-	if cfg.DialTimeout == 0 {
+
 		cfg.DialTimeout = 30 * time.Second
-	}
-	if cfg.KeepAlive == 0 {
+
+		cfg.KeepAlive = 30 * time.Second
+
+		cfg.PrewarmConnections = cfg.MaxIdleConnsPerHost
+
+		cfg.PrewarmTimeout = 30 * time.Second
+
+		if cfg.PrewarmOperation == "" {
+			cfg.PrewarmOperation = "list_buckets"
+		}
+		if cfg.HealthCheckInterval == 0 {
+			cfg.HealthCheckInterval = 30 * time.Second
+		}
+	} else {
+		cfg.MaxIdleConns = 256
+
+		cfg.MaxIdleConnsPerHost = 16
+
+		cfg.IdleConnTimeout = time.Minute
+
+		cfg.DialTimeout = 30 * time.Second
+
 		cfg.KeepAlive = 30 * time.Second
 	}
-	if cfg.PrewarmConnections == 0 {
-		cfg.PrewarmConnections = cfg.MaxIdleConnsPerHost
-	}
-	if cfg.PrewarmTimeout == 0 {
-		cfg.PrewarmTimeout = 30 * time.Second
-	}
-	if cfg.PrewarmOperation == "" {
-		cfg.PrewarmOperation = "list_buckets"
-	}
-	if cfg.HealthCheckInterval == 0 {
-		cfg.HealthCheckInterval = 30 * time.Second
-	}
-	if cfg.Strategy == "" {
-		cfg.Strategy = StrategyLazy
-	}
-
-	// Create custom transport with configured pooling
 	transport := createTransport(cfg)
 
 	// Create MinIO client
@@ -211,13 +210,13 @@ func createTransport(cfg MinIOConfig) *http.Transport {
 			Timeout:   cfg.DialTimeout,
 			KeepAlive: cfg.KeepAlive,
 		}).DialContext,
-		MaxIdleConns:          cfg.MaxIdleConns,
-		MaxIdleConnsPerHost:   cfg.MaxIdleConnsPerHost,
-		IdleConnTimeout:       cfg.IdleConnTimeout,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-		DisableCompression:    true, // Important for data integrity
-		ResponseHeaderTimeout: time.Minute,
+		MaxIdleConns:          cfg.MaxIdleConns,        //~ Total maksimal idle connections ke SEMUA hosts
+		MaxIdleConnsPerHost:   cfg.MaxIdleConnsPerHost, //~ Total maksimal idle connections per host
+		IdleConnTimeout:       cfg.IdleConnTimeout,     //~ Timeout untuk idle connections
+		TLSHandshakeTimeout:   time.Minute,             //~ Timeout untuk TLS handshake
+		ExpectContinueTimeout: time.Second,             //~ Timeout untuk expect continue
+		ResponseHeaderTimeout: time.Minute,             //~ Timeout untuk response header
+		DisableCompression:    true,                    //~ Penting untuk integritas data
 	}
 }
 
@@ -487,22 +486,20 @@ func (m *MinIOManager) updateCalculatedMetrics() {
 }
 
 // CollectResourceMetrics collects system resource metrics
-func (m *MinIOManager) CollectResourceMetrics() {
-	var memStats runtime.MemStats
-	runtime.ReadMemStats(&memStats)
+// func (m *MinIOManager) CollectResourceMetrics() {
+// 	var memStats runtime.MemStats
+// 	runtime.ReadMemStats(&memStats)
 
-	m.metrics.mu.Lock()
-	m.metrics.MemoryUsageBytes = memStats.Alloc
-	m.metrics.GoroutineCount = runtime.NumGoroutine()
-	m.metrics.mu.Unlock()
-}
+// 	m.metrics.mu.Lock()
+// 	m.metrics.MemoryUsageBytes = memStats.Alloc
+// 	m.metrics.GoroutineCount = runtime.NumGoroutine()
+// 	m.metrics.mu.Unlock()
+// }
 
 // GetMetrics returns current metrics snapshot
 func (m *MinIOManager) GetMetrics() MetricsSnapshot {
 	m.metrics.mu.RLock()
 	defer m.metrics.mu.RUnlock()
-
-	m.CollectResourceMetrics()
 
 	snapshot := MetricsSnapshot{
 		Strategy:                  string(m.config.Strategy),
@@ -699,7 +696,7 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 		Size:       info.Size,
 		URL:        url,
 		Ext:        ext,
-		ETag: info.ETag,
+		ETag:       info.ETag,
 	}, nil
 }
 
