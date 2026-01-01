@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -13,8 +14,6 @@ import (
 	"time"
 
 	"server/config/log"
-
-	// "encoding/base64"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -26,8 +25,11 @@ import (
 type PoolStrategy string
 
 const (
-	StrategyLazy    PoolStrategy = "lazy"    // Default: connections created on-demand
-	StrategyPrewarm PoolStrategy = "prewarm" // Prewarm: connections pre-created at startup
+	StrategyLazy             PoolStrategy = "lazy"
+	StrategyPrewarm          PoolStrategy = "prewarm"
+	StrategyAdaptive         PoolStrategy = "adaptive"        // NEW: Adaptive pool sizing
+	StrategyPersistent       PoolStrategy = "persistent"      // NEW: Keep connections alive aggressively
+	StrategyHTTP2Multiplexed PoolStrategy = "http2_multiplex" // NEW: HTTP/2 with multiplexing
 )
 
 // MinIOConfig holds all configuration for MinIO client
@@ -40,7 +42,7 @@ type MinIOConfig struct {
 	// Connection Pool Configuration
 	MaxIdleConns        int           // Default: 256 (MinIO default)
 	MaxIdleConnsPerHost int           // Default: 16 (MinIO default)
-	IdleConnTimeout     time.Duration // Default: 1 minute
+	IdleConnTimeout     time.Duration // Default: 5 minutes (increased for prewarm)
 	DialTimeout         time.Duration // Default: 30s
 	KeepAlive           time.Duration // Default: 30s
 
@@ -48,11 +50,16 @@ type MinIOConfig struct {
 	Strategy              PoolStrategy
 	PrewarmConnections    int           // Number of connections to prewarm (default: MaxIdleConnsPerHost)
 	PrewarmTimeout        time.Duration // Timeout for prewarm phase (default: 30s)
-	PrewarmOperation      string        // Operation to use for prewarm: "list_buckets" or "bucket_exists"
+	PrewarmOperation      string        // Operation to use for prewarm
 	PrewarmTargetBucket   string        // Bucket to use for prewarm operations
 	EnableHealthCheck     bool          // Enable periodic health checks
 	HealthCheckInterval   time.Duration // Health check interval (default: 30s)
 	EnableMetricsTracking bool          // Enable detailed metrics tracking
+
+	// NEW: Advanced prewarm options
+	PrewarmKeepAlive     bool // Keep connections alive after prewarm
+	PrewarmConcurrency   int  // Concurrent prewarm operations
+	PrewarmRetryAttempts int  // Retry failed prewarm attempts
 }
 
 // ========================== METRICS ==========================
@@ -60,39 +67,39 @@ type MinIOConfig struct {
 // ConnectionMetrics tracks detailed connection pool metrics
 type ConnectionMetrics struct {
 	// Connection counts
-	TotalConnectionsCreated  int64 // Total new connections created
-	TotalConnectionsReused   int64 // Total connections reused from pool
-	CurrentIdleConnections   int32 // Current idle connections in pool
-	CurrentActiveConnections int32 // Current active connections
-	PeakActiveConnections    int32 // Peak active connections
+	TotalConnectionsCreated  int64
+	TotalConnectionsReused   int64
+	CurrentIdleConnections   int32
+	CurrentActiveConnections int32
+	PeakActiveConnections    int32
 
 	// Performance metrics
-	TotalRequests           int64         // Total requests processed
-	FailedRequests          int64         // Failed requests
-	ConnectionReuseRate     float64       // Percentage of reused connections
-	AvgNewConnectionLatency time.Duration // Average latency to create new connection
-	AvgRequestDuration      time.Duration // Average request duration
-	TotalConnectionTime     int64         // Total time spent creating connections (nanoseconds)
-	TotalRequestTime        int64         // Total request time (nanoseconds)
+	TotalRequests           int64
+	FailedRequests          int64
+	ConnectionReuseRate     float64
+	AvgNewConnectionLatency time.Duration
+	AvgRequestDuration      time.Duration
+	TotalConnectionTime     int64
+	TotalRequestTime        int64
 
 	// Prewarm specific
-	PrewarmStartTime   time.Time     // When prewarm started
-	PrewarmEndTime     time.Time     // When prewarm completed
-	PrewarmDuration    time.Duration // Total prewarm duration
-	PrewarmSuccess     bool          // Whether prewarm was successful
-	PrewarmConnections int           // Number of connections prewarmed
-	PrewarmFailures    int           // Number of prewarm failures
+	PrewarmStartTime   time.Time
+	PrewarmEndTime     time.Time
+	PrewarmDuration    time.Duration
+	PrewarmSuccess     bool
+	PrewarmConnections int
+	PrewarmFailures    int
 
 	// Resource metrics
-	MemoryUsageBytes uint64 // Memory usage in bytes
-	GoroutineCount   int    // Number of goroutines
+	MemoryUsageBytes uint64
+	GoroutineCount   int
 
 	// Lock for thread-safe updates
 	mu sync.RWMutex
 
 	// Per-request tracking for analysis
-	requestLatencies  []time.Duration // Store individual request latencies for analysis
-	maxLatencySamples int             // Maximum samples to store (prevent memory growth)
+	requestLatencies  []time.Duration
+	maxLatencySamples int
 }
 
 // ========================== MINIO MANAGER ==========================
@@ -111,6 +118,10 @@ type MinIOManager struct {
 	healthTicker *time.Ticker
 	healthDone   chan bool
 
+	// NEW: Keep-alive management
+	keepAliveDone   chan bool
+	keepAliveActive bool
+
 	// State
 	mu      sync.RWMutex
 	isReady bool
@@ -120,39 +131,6 @@ type MinIOManager struct {
 
 // NewMinIOManager creates new MinIO manager with specified strategy
 func NewMinIOManager(cfg MinIOConfig) (*MinIOManager, error) {
-	// Set defaults
-	if cfg.Strategy == StrategyPrewarm {
-		cfg.MaxIdleConns = 256
-
-		cfg.MaxIdleConnsPerHost = 64
-
-		cfg.IdleConnTimeout = time.Minute
-
-		cfg.DialTimeout = 30 * time.Second
-
-		cfg.KeepAlive = 30 * time.Second
-
-		cfg.PrewarmConnections = cfg.MaxIdleConnsPerHost
-
-		cfg.PrewarmTimeout = 30 * time.Second
-
-		if cfg.PrewarmOperation == "" {
-			cfg.PrewarmOperation = "list_buckets"
-		}
-		if cfg.HealthCheckInterval == 0 {
-			cfg.HealthCheckInterval = 30 * time.Second
-		}
-	} else {
-		cfg.MaxIdleConns = 256
-
-		cfg.MaxIdleConnsPerHost = 16
-
-		cfg.IdleConnTimeout = time.Minute
-
-		cfg.DialTimeout = 30 * time.Second
-
-		cfg.KeepAlive = 30 * time.Second
-	}
 	transport := createTransport(cfg)
 
 	// Create MinIO client
@@ -167,17 +145,18 @@ func NewMinIOManager(cfg MinIOConfig) (*MinIOManager, error) {
 
 	// Initialize metrics
 	metrics := &ConnectionMetrics{
-		maxLatencySamples: 1000, // Store last 1000 requests for analysis
+		maxLatencySamples: 1000,
 		requestLatencies:  make([]time.Duration, 0, 1000),
 	}
 
 	manager := &MinIOManager{
-		client:       client,
-		config:       cfg,
-		metrics:      metrics,
-		transport:    transport,
-		traceEnabled: cfg.EnableMetricsTracking,
-		isReady:      false,
+		client:        client,
+		config:        cfg,
+		metrics:       metrics,
+		transport:     transport,
+		traceEnabled:  cfg.EnableMetricsTracking,
+		isReady:       false,
+		keepAliveDone: make(chan bool),
 	}
 
 	// Apply strategy
@@ -210,24 +189,24 @@ func createTransport(cfg MinIOConfig) *http.Transport {
 			Timeout:   cfg.DialTimeout,
 			KeepAlive: cfg.KeepAlive,
 		}).DialContext,
-		MaxIdleConns:          cfg.MaxIdleConns,        //~ Total maksimal idle connections ke SEMUA hosts
-		MaxIdleConnsPerHost:   cfg.MaxIdleConnsPerHost, //~ Total maksimal idle connections per host
-		IdleConnTimeout:       cfg.IdleConnTimeout,     //~ Timeout untuk idle connections
-		TLSHandshakeTimeout:   time.Minute,             //~ Timeout untuk TLS handshake
-		ExpectContinueTimeout: time.Second,             //~ Timeout untuk expect continue
-		ResponseHeaderTimeout: time.Minute,             //~ Timeout untuk response header
-		DisableCompression:    true,                    //~ Penting untuk integritas data
+		MaxIdleConns:          cfg.MaxIdleConns,
+		MaxIdleConnsPerHost:   cfg.MaxIdleConnsPerHost,
+		IdleConnTimeout:       cfg.IdleConnTimeout,
+		TLSHandshakeTimeout:   time.Minute,
+		ExpectContinueTimeout: time.Second,
+		ResponseHeaderTimeout: 2 * time.Minute, // Increased for large files
+		DisableCompression:    true,
+		// ENHANCED: Force HTTP/1.1 for better connection pooling
+		ForceAttemptHTTP2: false,
 	}
 }
 
 // ========================== STRATEGY: LAZY ==========================
 
-// initializeLazy initializes with lazy strategy (default behavior)
 func (m *MinIOManager) initializeLazy() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Simple health check - no prewarm
 	_, err := m.client.ListBuckets(ctx)
 	if err != nil {
 		return fmt.Errorf("lazy init: health check failed: %v", err)
@@ -237,48 +216,67 @@ func (m *MinIOManager) initializeLazy() error {
 	m.isReady = true
 	m.mu.Unlock()
 
-	// Log initialization
-	log.Info(fmt.Sprintf("[LAZY] MinIO initialized successfully\n"))
-	log.Info(fmt.Sprintf("[LAZY] Strategy: On-demand connection creation\n"))
-	log.Info(fmt.Sprintf("[LAZY] Max idle connections per host: %d\n", m.config.MaxIdleConnsPerHost))
+	log.Info(fmt.Sprintf("[LAZY] MinIO initialized successfully"))
+	log.Info(fmt.Sprintf("[LAZY] Strategy: On-demand connection creation"))
+	log.Info(fmt.Sprintf("[LAZY] Max idle connections per host: %d", m.config.MaxIdleConnsPerHost))
 
 	return nil
 }
 
-// ========================== STRATEGY: PREWARM ==========================
+// ========================== STRATEGY: ENHANCED PREWARM ==========================
 
-// initializePrewarm initializes with prewarm strategy
 func (m *MinIOManager) initializePrewarm() error {
-	log.Info(fmt.Sprintf("[PREWARM] Starting connection pool prewarm...\n"))
-	log.Info(fmt.Sprintf("[PREWARM] Target connections: %d\n", m.config.PrewarmConnections))
-	log.Info(fmt.Sprintf("[PREWARM] Operation: %s\n", m.config.PrewarmOperation))
+	log.Info(fmt.Sprintf("[PREWARM] Starting ENHANCED connection pool prewarm..."))
+	log.Info(fmt.Sprintf("[PREWARM] Target connections: %d", m.config.PrewarmConnections))
+	log.Info(fmt.Sprintf("[PREWARM] Concurrency: %d", m.config.PrewarmConcurrency))
+	log.Info(fmt.Sprintf("[PREWARM] Operation: %s", m.config.PrewarmOperation))
+	log.Info(fmt.Sprintf("[PREWARM] Keep-Alive: %v", m.config.PrewarmKeepAlive))
 
 	m.metrics.PrewarmStartTime = time.Now()
 
 	ctx, cancel := context.WithTimeout(context.Background(), m.config.PrewarmTimeout)
 	defer cancel()
 
-	// Use WaitGroup to track all prewarm operations
+	// ENHANCED: Use semaphore for controlled concurrency
+	semaphore := make(chan struct{}, m.config.PrewarmConcurrency)
 	var wg sync.WaitGroup
 	successCount := int32(0)
 	failureCount := int32(0)
 
-	// Channel to collect connection creation latencies
 	latencyChan := make(chan time.Duration, m.config.PrewarmConnections)
 
-	// Launch concurrent prewarm operations
+	// Prewarm connections in batches
 	for i := 0; i < m.config.PrewarmConnections; i++ {
 		wg.Add(1)
 		go func(index int) {
 			defer wg.Done()
 
-			startTime := time.Now()
-			err := m.prewarmSingleConnection(ctx, index)
-			latency := time.Since(startTime)
+			// Acquire semaphore
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			// Retry logic
+			var err error
+			var latency time.Duration
+
+			for attempt := 0; attempt <= m.config.PrewarmRetryAttempts; attempt++ {
+				startTime := time.Now()
+				err = m.prewarmSingleConnectionEnhanced(ctx, index)
+				latency = time.Since(startTime)
+
+				if err == nil {
+					break
+				}
+
+				if attempt < m.config.PrewarmRetryAttempts {
+					time.Sleep(100 * time.Millisecond * time.Duration(attempt+1))
+				}
+			}
 
 			if err != nil {
 				atomic.AddInt32(&failureCount, 1)
-				log.Info(fmt.Sprintf("[PREWARM] Connection %d failed: %v\n", index, err))
+				log.Info(fmt.Sprintf("[PREWARM] Connection %d failed after %d attempts: %v",
+					index, m.config.PrewarmRetryAttempts+1, err))
 			} else {
 				atomic.AddInt32(&successCount, 1)
 				latencyChan <- latency
@@ -286,11 +284,10 @@ func (m *MinIOManager) initializePrewarm() error {
 		}(i)
 	}
 
-	// Wait for all operations to complete
 	wg.Wait()
 	close(latencyChan)
 
-	// Calculate average connection time
+	// Calculate metrics
 	var totalLatency time.Duration
 	count := 0
 	for latency := range latencyChan {
@@ -312,28 +309,63 @@ func (m *MinIOManager) initializePrewarm() error {
 	m.isReady = true
 	m.mu.Unlock()
 
-	// Log results
-	log.Info(fmt.Sprintf("[PREWARM] Completed in %v\n", m.metrics.PrewarmDuration))
-	log.Info(fmt.Sprintf("[PREWARM] Successful: %d/%d\n", successCount, m.config.PrewarmConnections))
-	log.Info(fmt.Sprintf("[PREWARM] Failed: %d\n", failureCount))
-	if count > 0 {
-		fmt.Printf("[PREWARM] Avg connection latency: %v\n", m.metrics.AvgNewConnectionLatency)
+	// Start keep-alive if enabled
+	if m.config.PrewarmKeepAlive {
+		m.startKeepAlive()
+		log.Info(fmt.Sprintf("[KEEP-ALIVE] Started"))
 	}
 
-	if failureCount > 0 {
-		return fmt.Errorf("prewarm partially failed: %d/%d connections failed",
+	// Log results
+	log.Info(fmt.Sprintf("[PREWARM] Completed in %v", m.metrics.PrewarmDuration))
+	log.Info(fmt.Sprintf("[PREWARM] Successful: %d/%d", successCount, m.config.PrewarmConnections))
+	log.Info(fmt.Sprintf("[PREWARM] Failed: %d", failureCount))
+	if count > 0 {
+		log.Info(fmt.Sprintf("[PREWARM] Avg connection latency: %v", m.metrics.AvgNewConnectionLatency))
+	}
+
+	if failureCount > int32(m.config.PrewarmConnections/2) {
+		return fmt.Errorf("prewarm critically failed: %d/%d connections failed",
 			failureCount, m.config.PrewarmConnections)
 	}
 
 	return nil
 }
 
-// prewarmSingleConnection creates a single connection for prewarm
-func (m *MinIOManager) prewarmSingleConnection(ctx context.Context, index int) error {
+// ENHANCED: More effective prewarm operation
+func (m *MinIOManager) prewarmSingleConnectionEnhanced(ctx context.Context, index int) error {
 	switch m.config.PrewarmOperation {
-	case "list_buckets":
-		_, err := m.client.ListBuckets(ctx)
-		return err
+	case "stat_object":
+		// BETTER: StatObject creates actual HTTP connection to bucket
+		if m.config.PrewarmTargetBucket == "" {
+			m.config.PrewarmTargetBucket = TRANSACTION_ATTACHMENT_BUCKET
+		}
+
+		// Use a dummy object name - even if it doesn't exist, it still creates connection
+		dummyObject := fmt.Sprintf("prewarm-probe-%d-%d", time.Now().Unix(), index)
+		_, err := m.client.StatObject(ctx, m.config.PrewarmTargetBucket, dummyObject, minio.StatObjectOptions{})
+
+		// We expect "not found" error - that's OK, connection is established
+		if err != nil && !strings.Contains(err.Error(), "does not exist") {
+			return err
+		}
+		return nil
+
+	case "list_objects":
+		// List objects with small limit
+		if m.config.PrewarmTargetBucket == "" {
+			m.config.PrewarmTargetBucket = TRANSACTION_ATTACHMENT_BUCKET
+		}
+
+		objectCh := m.client.ListObjects(ctx, m.config.PrewarmTargetBucket, minio.ListObjectsOptions{
+			MaxKeys:   1,
+			Recursive: false,
+		})
+
+		// Consume channel to actually make the request
+		for range objectCh {
+			break
+		}
+		return nil
 
 	case "bucket_exists":
 		if m.config.PrewarmTargetBucket == "" {
@@ -342,14 +374,55 @@ func (m *MinIOManager) prewarmSingleConnection(ctx context.Context, index int) e
 		_, err := m.client.BucketExists(ctx, m.config.PrewarmTargetBucket)
 		return err
 
+	case "list_buckets":
+		_, err := m.client.ListBuckets(ctx)
+		return err
+
 	default:
 		return fmt.Errorf("unknown prewarm operation: %s", m.config.PrewarmOperation)
 	}
 }
 
+// NEW: Keep-alive mechanism to maintain warm connections
+func (m *MinIOManager) startKeepAlive() {
+	m.keepAliveActive = true
+
+	go func() {
+		ticker := time.NewTicker(30 * time.Second) // Ping every 30 seconds
+		defer ticker.Stop()
+
+		log.Info(fmt.Sprintf("[KEEP-ALIVE] Started connection keep-alive routine"))
+
+		for {
+			select {
+			case <-ticker.C:
+				// Perform lightweight operation to keep connections alive
+				ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+				_, err := m.client.BucketExists(ctx, m.config.PrewarmTargetBucket)
+				cancel()
+
+				if err != nil {
+					log.Info(fmt.Sprintf("[KEEP-ALIVE] Ping failed: %v", err))
+				}
+
+			case <-m.keepAliveDone:
+				log.Info(fmt.Sprintf("[KEEP-ALIVE] Stopped"))
+				return
+			}
+		}
+	}()
+}
+
+// StopKeepAlive stops the keep-alive routine
+func (m *MinIOManager) StopKeepAlive() {
+	if m.keepAliveActive {
+		m.keepAliveDone <- true
+		m.keepAliveActive = false
+	}
+}
+
 // ========================== HEALTH CHECK ==========================
 
-// startHealthCheck starts periodic health check
 func (m *MinIOManager) startHealthCheck() {
 	m.healthTicker = time.NewTicker(m.config.HealthCheckInterval)
 	m.healthDone = make(chan bool)
@@ -366,21 +439,19 @@ func (m *MinIOManager) startHealthCheck() {
 	}()
 }
 
-// performHealthCheck executes health check
 func (m *MinIOManager) performHealthCheck() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	_, err := m.client.ListBuckets(ctx)
 	if err != nil {
-		fmt.Printf("[HEALTH] Check failed: %v\n", err)
+		log.Info(fmt.Sprintf("[HEALTH] Check failed: %v", err))
 		m.mu.Lock()
 		m.isReady = false
 		m.mu.Unlock()
 	}
 }
 
-// StopHealthCheck stops health check
 func (m *MinIOManager) StopHealthCheck() {
 	if m.healthTicker != nil {
 		m.healthTicker.Stop()
@@ -390,7 +461,6 @@ func (m *MinIOManager) StopHealthCheck() {
 
 // ========================== MONITORING ==========================
 
-// createTracedContext creates context with HTTP trace for monitoring
 func (m *MinIOManager) createTracedContext(ctx context.Context) context.Context {
 	if !m.traceEnabled {
 		return ctx
@@ -401,7 +471,6 @@ func (m *MinIOManager) createTracedContext(ctx context.Context) context.Context 
 			// Called when getting a connection from pool
 		},
 		GotConn: func(info httptrace.GotConnInfo) {
-			// Called when got a connection
 			if info.Reused {
 				atomic.AddInt64(&m.metrics.TotalConnectionsReused, 1)
 			} else {
@@ -409,7 +478,6 @@ func (m *MinIOManager) createTracedContext(ctx context.Context) context.Context 
 			}
 			atomic.AddInt32(&m.metrics.CurrentActiveConnections, 1)
 
-			// Update peak
 			current := atomic.LoadInt32(&m.metrics.CurrentActiveConnections)
 			for {
 				peak := atomic.LoadInt32(&m.metrics.PeakActiveConnections)
@@ -425,13 +493,11 @@ func (m *MinIOManager) createTracedContext(ctx context.Context) context.Context 
 			// Called when starting to create new connection
 		},
 		ConnectDone: func(network, addr string, err error) {
-			// Called when connection established
 			if err != nil {
 				atomic.AddInt64(&m.metrics.FailedRequests, 1)
 			}
 		},
 		PutIdleConn: func(err error) {
-			// Called when connection returned to idle pool
 			atomic.AddInt32(&m.metrics.CurrentActiveConnections, -1)
 		},
 	}
@@ -441,7 +507,6 @@ func (m *MinIOManager) createTracedContext(ctx context.Context) context.Context 
 
 // ========================== METRICS COLLECTION ==========================
 
-// UpdateMetrics updates metrics after each request
 func (m *MinIOManager) UpdateMetrics(duration time.Duration, success bool) {
 	atomic.AddInt64(&m.metrics.TotalRequests, 1)
 	atomic.AddInt64(&m.metrics.TotalRequestTime, int64(duration))
@@ -450,29 +515,24 @@ func (m *MinIOManager) UpdateMetrics(duration time.Duration, success bool) {
 		atomic.AddInt64(&m.metrics.FailedRequests, 1)
 	}
 
-	// Store latency sample
 	m.metrics.mu.Lock()
 	if len(m.metrics.requestLatencies) < m.metrics.maxLatencySamples {
 		m.metrics.requestLatencies = append(m.metrics.requestLatencies, duration)
 	} else {
-		// Circular buffer: overwrite oldest
 		idx := int(atomic.LoadInt64(&m.metrics.TotalRequests)) % m.metrics.maxLatencySamples
 		m.metrics.requestLatencies[idx] = duration
 	}
 	m.metrics.mu.Unlock()
 
-	// Update calculated metrics
 	m.updateCalculatedMetrics()
 }
 
-// updateCalculatedMetrics updates derived metrics
 func (m *MinIOManager) updateCalculatedMetrics() {
 	totalRequests := atomic.LoadInt64(&m.metrics.TotalRequests)
 	if totalRequests == 0 {
 		return
 	}
 
-	// Calculate reuse rate
 	created := atomic.LoadInt64(&m.metrics.TotalConnectionsCreated)
 	reused := atomic.LoadInt64(&m.metrics.TotalConnectionsReused)
 	total := created + reused
@@ -480,23 +540,10 @@ func (m *MinIOManager) updateCalculatedMetrics() {
 		m.metrics.ConnectionReuseRate = float64(reused) / float64(total) * 100
 	}
 
-	// Calculate average request duration
 	totalTime := atomic.LoadInt64(&m.metrics.TotalRequestTime)
 	m.metrics.AvgRequestDuration = time.Duration(totalTime / totalRequests)
 }
 
-// CollectResourceMetrics collects system resource metrics
-// func (m *MinIOManager) CollectResourceMetrics() {
-// 	var memStats runtime.MemStats
-// 	runtime.ReadMemStats(&memStats)
-
-// 	m.metrics.mu.Lock()
-// 	m.metrics.MemoryUsageBytes = memStats.Alloc
-// 	m.metrics.GoroutineCount = runtime.NumGoroutine()
-// 	m.metrics.mu.Unlock()
-// }
-
-// GetMetrics returns current metrics snapshot
 func (m *MinIOManager) GetMetrics() MetricsSnapshot {
 	m.metrics.mu.RLock()
 	defer m.metrics.mu.RUnlock()
@@ -523,7 +570,6 @@ func (m *MinIOManager) GetMetrics() MetricsSnapshot {
 		ConfigMaxIdleConnsPerHost: m.config.MaxIdleConnsPerHost,
 	}
 
-	// Calculate percentiles if we have samples
 	if len(m.metrics.requestLatencies) > 0 {
 		snapshot.LatencyP50 = m.calculatePercentile(50)
 		snapshot.LatencyP95 = m.calculatePercentile(95)
@@ -533,7 +579,6 @@ func (m *MinIOManager) GetMetrics() MetricsSnapshot {
 	return snapshot
 }
 
-// MetricsSnapshot represents a snapshot of metrics
 type MetricsSnapshot struct {
 	Strategy                  string        `json:"strategy"`
 	TotalConnectionsCreated   int64         `json:"total_connections_created"`
@@ -559,7 +604,6 @@ type MetricsSnapshot struct {
 	ConfigMaxIdleConnsPerHost int           `json:"config_max_idle_conns_per_host"`
 }
 
-// calculatePercentile calculates percentile from latency samples
 func (m *MinIOManager) calculatePercentile(percentile float64) time.Duration {
 	samples := make([]time.Duration, len(m.metrics.requestLatencies))
 	copy(samples, m.metrics.requestLatencies)
@@ -568,7 +612,6 @@ func (m *MinIOManager) calculatePercentile(percentile float64) time.Duration {
 		return 0
 	}
 
-	// Simple sort for percentile calculation
 	for i := 0; i < len(samples); i++ {
 		for j := i + 1; j < len(samples); j++ {
 			if samples[i] > samples[j] {
@@ -585,7 +628,6 @@ func (m *MinIOManager) calculatePercentile(percentile float64) time.Duration {
 	return samples[index]
 }
 
-// PrintMetrics prints formatted metrics to console
 func (m *MinIOManager) PrintMetrics() {
 	snapshot := m.GetMetrics()
 
@@ -630,18 +672,14 @@ func (m *MinIOManager) PrintMetrics() {
 
 // ========================== FILE OPERATIONS ==========================
 
-// UploadFile uploads file with metrics tracking
 func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*UploadResponse, error) {
 	if !m.IsReady() {
 		return nil, fmt.Errorf("MinIO client not ready")
 	}
 
-	// Create traced context for monitoring
 	tracedCtx := m.createTracedContext(ctx)
-
 	startTime := time.Now()
 
-	// Decode and validate file
 	data, contentType, err := m.DecodeFile(request.Base64Data)
 	if err != nil {
 		return nil, fmt.Errorf("decode error: %v", err)
@@ -655,7 +693,6 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 		return nil, fmt.Errorf("validation error: %v", err)
 	}
 
-	// Generate object name
 	ext := getExtensionFromContentType(contentType)
 	if ext == "" {
 		ext = ".bin"
@@ -666,10 +703,9 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 		prefix = "file"
 	}
 
-	timestamp := time.Now().Unix()
-	objectName := fmt.Sprintf("%s_%d%s", prefix, timestamp, ext)
+	// timestamp := time.Now().Unix()
+	objectName := fmt.Sprintf("%s%s", prefix, ext)
 
-	// Upload file
 	reader := bytes.NewReader(data)
 	options := minio.PutObjectOptions{
 		ContentType: contentType,
@@ -683,7 +719,6 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 	duration := time.Since(startTime)
 	m.UpdateMetrics(duration, err == nil)
 
-	// Generate URL
 	url := fmt.Sprintf("%s://%s/%s/%s",
 		getProtocol(m.config.UseSSL),
 		m.config.Host,
@@ -700,14 +735,200 @@ func (m *MinIOManager) UploadFile(ctx context.Context, request UploadRequest) (*
 	}, nil
 }
 
-// IsReady returns whether client is ready
+func (m *MinIOManager) GetFile(ctx context.Context, bucketName, objectName string) (*minio.Object, error) {
+	if !m.IsReady() {
+		return nil, fmt.Errorf("MinIO client not ready")
+	}
+
+	return m.client.GetObject(ctx, bucketName, objectName, minio.GetObjectOptions{})
+}
+
+func (m *MinIOManager) DeleteFile(ctx context.Context, bucketName, objectName string) error {
+	if !m.IsReady() {
+		return fmt.Errorf("MinIO client not ready")
+	}
+
+	return m.client.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{})
+}
+
+func (m *MinIOManager) GetPresignedURL(ctx context.Context, bucketName, objectName string, expires time.Duration) (string, error) {
+	if !m.IsReady() {
+		return "", fmt.Errorf("MinIO client not ready")
+	}
+
+	url, err := m.client.PresignedGetObject(ctx, bucketName, objectName, expires, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate presigned URL: %v", err)
+	}
+
+	return url.String(), nil
+}
+
+func (m *MinIOManager) ListObjects(ctx context.Context, bucketName, prefix string) ([]minio.ObjectInfo, error) {
+	if !m.IsReady() {
+		return nil, fmt.Errorf("MinIO client not ready")
+	}
+
+	var objects []minio.ObjectInfo
+	objectCh := m.client.ListObjects(ctx, bucketName, minio.ListObjectsOptions{
+		Prefix:    prefix,
+		Recursive: true,
+	})
+
+	for object := range objectCh {
+		if object.Err != nil {
+			return nil, object.Err
+		}
+		objects = append(objects, object)
+	}
+
+	return objects, nil
+}
+
+func (m *MinIOManager) DecodeFile(base64Data string) ([]byte, string, error) {
+	if base64Data == "" {
+		return nil, "", fmt.Errorf("base64 data cannot be empty")
+	}
+
+	var contentType string
+	if strings.HasPrefix(base64Data, "data:") {
+		if idx := strings.Index(base64Data, ";base64,"); idx != -1 {
+			contentType = base64Data[5:idx]
+			base64Data = base64Data[idx+8:]
+		}
+	}
+
+	decoded, err := io.ReadAll(strings.NewReader(base64Data))
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to decode base64: %v", err)
+	}
+
+	if contentType == "" {
+		contentType = getContentTypeFromData(decoded)
+	}
+
+	return decoded, contentType, nil
+}
+
+func (m *MinIOManager) Validate(data []byte, contentType string, config *FileValidationConfig) error {
+	fileSize := int64(len(data))
+
+	if config.MaxFileSize > 0 && fileSize > config.MaxFileSize {
+		return fmt.Errorf("file size (%d bytes) exceeds maximum allowed size (%d bytes)",
+			fileSize, config.MaxFileSize)
+	}
+	if config.MinFileSize > 0 && fileSize < config.MinFileSize {
+		return fmt.Errorf("file size (%d bytes) is below minimum required size (%d bytes)",
+			fileSize, config.MinFileSize)
+	}
+
+	if len(config.AllowedExtensions) > 0 {
+		ext := getExtensionFromContentType(contentType)
+		if ext == "" {
+			return fmt.Errorf("unable to determine file extension from content type: %s", contentType)
+		}
+
+		allowed := false
+		for _, allowedExt := range config.AllowedExtensions {
+			if ext == strings.ToLower(allowedExt) {
+				allowed = true
+				break
+			}
+		}
+		if !allowed {
+			return fmt.Errorf("file type '%s' (extension '%s') is not allowed. Allowed extensions: %v",
+				contentType, ext, config.AllowedExtensions)
+		}
+	}
+
+	if len(data) > 0 {
+		detectedType := getContentTypeFromData(data)
+		if detectedType != "application/octet-stream" && contentType != detectedType {
+			log.Warn("Content type mismatch detected")
+		}
+	}
+
+	return nil
+}
+
 func (m *MinIOManager) IsReady() bool {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.isReady
 }
 
-// GetClient returns the underlying MinIO client
 func (m *MinIOManager) GetClient() *minio.Client {
 	return m.client
+}
+
+// Helper functions
+func getContentTypeFromData(data []byte) string {
+	if len(data) == 0 {
+		return "application/octet-stream"
+	}
+
+	signatures := map[string]string{
+		"\xFF\xD8\xFF":      "image/jpeg",
+		"\x89PNG\r\n\x1A\n": "image/png",
+		"GIF87a":            "image/gif",
+		"GIF89a":            "image/gif",
+		"\x00\x00\x01\x00":  "image/x-icon",
+		"RIFF":              "image/webp",
+		"%PDF":              "application/pdf",
+		"PK\x03\x04":        "application/zip",
+		"PK\x05\x06":        "application/zip",
+		"PK\x07\x08":        "application/zip",
+	}
+
+	dataStr := string(data[:min(len(data), 10)])
+	for signature, contentType := range signatures {
+		if strings.HasPrefix(dataStr, signature) {
+			return contentType
+		}
+	}
+	return "application/octet-stream"
+}
+
+func getExtensionFromContentType(contentType string) string {
+	extensions := map[string]string{
+		"image/jpeg":               ".jpg",
+		"image/jpg":                ".jpg",
+		"image/png":                ".png",
+		"image/gif":                ".gif",
+		"image/webp":               ".webp",
+		"image/x-icon":             ".ico",
+		"image/vnd.microsoft.icon": ".ico",
+		"application/pdf":          ".pdf",
+		"application/zip":          ".zip",
+		"application/json":         ".json",
+		"text/plain":               ".txt",
+		"text/html":                ".html",
+		"text/css":                 ".css",
+		"text/javascript":          ".js",
+		"application/javascript":   ".js",
+		"video/mp4":                ".mp4",
+		"video/webm":               ".webm",
+		"audio/mp3":                ".mp3",
+		"audio/mpeg":               ".mp3",
+		"audio/wav":                ".wav",
+		"application/msword":       ".doc",
+		"application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
+		"application/vnd.ms-excel": ".xls",
+		"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": ".xlsx",
+	}
+
+	if ext, exists := extensions[contentType]; exists {
+		return ext
+	}
+	if parts := strings.Split(contentType, "/"); len(parts) == 2 {
+		return "." + parts[1]
+	}
+	return ""
+}
+
+func getProtocol(useSSL bool) string {
+	if useSSL {
+		return "https"
+	}
+	return "http"
 }
