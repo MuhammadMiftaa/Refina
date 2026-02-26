@@ -112,6 +112,7 @@ func GinMiddleware() gin.HandlerFunc {
 
 		// Set the request ID
 		c.Set("X-Request-ID", id)
+		log.Log.Info("Request ID", id)
 
 		// Log the request
 		httpRequest(c, latency, statusCode)
