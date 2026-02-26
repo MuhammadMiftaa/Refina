@@ -7,6 +7,7 @@ import (
 	"server/config/log"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type middlewareConfig struct {
@@ -60,6 +61,7 @@ func httpRequest(c *gin.Context, latency time.Duration, statusCode int) {
 		"request_size":  requestSize,
 		"response_size": responseSize,
 		"protocol":      c.Request.Proto,
+		"x_request_id":  c.GetString("X-Request-ID"),
 	}
 
 	// Format message dalam style Apache Combined Log Format
@@ -98,6 +100,18 @@ func GinMiddleware() gin.HandlerFunc {
 
 		// Get status code
 		statusCode := c.Writer.Status()
+
+		id, exist := c.Get("X-Request-ID")
+		if !exist {
+			id, _ = c.Get("CF-Ray")
+		}
+
+		if id == "" {
+			id = uuid.New().String() + "-YIPPIE"
+		}
+
+		// Set the request ID
+		c.Set("X-Request-ID", id)
 
 		// Log the request
 		httpRequest(c, latency, statusCode)
