@@ -7,7 +7,6 @@ import (
 	"server/config/log"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type middlewareConfig struct {
@@ -101,13 +100,10 @@ func GinMiddleware() gin.HandlerFunc {
 		// Get status code
 		statusCode := c.Writer.Status()
 
-		id, exist := c.Get("X-Request-ID")
-		if !exist {
-			id, _ = c.Get("CF-Ray")
-		}
+		id := c.GetHeader("X-Request-ID")
 
 		if id == "" {
-			id = uuid.New().String() + "-YIPPIE"
+			id = c.GetHeader("CF-Ray")
 		}
 
 		// Set the request ID
